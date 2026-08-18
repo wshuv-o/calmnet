@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CALM-Net · Experiment Campaign</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --paper:#f6f6fb; --panel:#ffffff; --panel-2:#fbfbfe;
+    --ink:#17161f; --muted:#66647a; --faint:#8f8da3;
+    --line:#e7e6f0; --line-strong:#d8d7e6;
+    --accent:#6a5af9; --accent-ink:#4b3ce0; --accent-soft:rgba(106,90,249,.10);
+    --good:#178a54; --good-soft:rgba(23,138,84,.12);
+    --warn:#b3760f; --warn-soft:rgba(179,118,15,.13);
+    --crit:#d13a4a; --crit-soft:rgba(209,58,74,.12);
+    --live:#7b6cf6;
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0c0b11; --panel:#15141d; --panel-2:#1a1924;
+      --ink:#ecebf4; --muted:#9694a8; --faint:#726f85;
+      --line:#262433; --line-strong:#322f42;
+      --accent:#8b7cff; --accent-ink:#a99dff; --accent-soft:rgba(139,124,255,.14);
+      --good:#3fbe83; --good-soft:rgba(63,190,131,.15);
+      --warn:#e0a03c; --warn-soft:rgba(224,160,60,.15);
+      --crit:#f0566a; --crit-soft:rgba(240,86,106,.16);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#f6f6fb; --panel:#ffffff; --panel-2:#fbfbfe;
+    --ink:#17161f; --muted:#66647a; --faint:#8f8da3; --line:#e7e6f0; --line-strong:#d8d7e6;
+    --accent:#6a5af9; --accent-ink:#4b3ce0; --accent-soft:rgba(106,90,249,.10);
+    --good:#178a54; --good-soft:rgba(23,138,84,.12); --warn:#b3760f; --warn-soft:rgba(179,118,15,.13);
+    --crit:#d13a4a; --crit-soft:rgba(209,58,74,.12);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0c0b11; --panel:#15141d; --panel-2:#1a1924;
+    --ink:#ecebf4; --muted:#9694a8; --faint:#726f85; --line:#262433; --line-strong:#322f42;
+    --accent:#8b7cff; --accent-ink:#a99dff; --accent-soft:rgba(139,124,255,.14);
+    --good:#3fbe83; --good-soft:rgba(63,190,131,.15); --warn:#e0a03c; --warn-soft:rgba(224,160,60,.15);
+    --crit:#f0566a; --crit-soft:rgba(240,86,106,.16);
+  }
+  *{box-sizing:border-box}
+  html{background:var(--paper)}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;-webkit-font-smoothing:antialiased;font-size:15px}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 22px 72px}
+  .mono{font-family:var(--mono)}
+  a{color:var(--accent-ink);text-underline-offset:2px}
+
+  header{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between;
+    padding-bottom:20px;border-bottom:1px solid var(--line)}
+  .brand h1{margin:0;font-size:26px;letter-spacing:-.02em;text-wrap:balance;font-weight:680}
+  .brand .sub{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:56ch}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-ink);margin-bottom:8px}
+  .hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+  .live{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:999px;padding:7px 13px;color:var(--muted)}
+  .live b{color:var(--ink)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--live);position:relative;flex:none}
+  .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--live);opacity:.5;
+    animation:pulse 1.8s ease-out infinite}
+  @keyframes pulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.dot::after{animation:none}}
+  .tog{font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--line-strong);
+    color:var(--muted);border-radius:7px;padding:5px 10px;cursor:pointer}
+  .tog:hover{color:var(--ink);border-color:var(--accent)}
+  .tog:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  section{margin-top:34px}
+  .shead{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+  .shead h2{margin:0;font-size:13px;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);font-weight:600}
+  .shead .rule{flex:1;height:1px;background:var(--line)}
+
+  .finding{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;
+    display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+  .bignum{font-family:var(--mono);font-size:54px;font-weight:600;letter-spacing:-.03em;color:var(--accent-ink);line-height:1}
+  .bignum small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:8px;font-weight:500}
+  .finding p{margin:0;font-size:15px}
+  .finding b{color:var(--ink)}
+  .conf{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .conf span{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:6px;background:var(--crit-soft);
+    color:var(--crit)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 15px}
+  .stat .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+  .stat .v{font-family:var(--mono);font-size:23px;font-weight:600;margin-top:5px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .stat .d{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .log{display:flex;flex-direction:column;gap:9px}
+  .exp{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px;
+    display:grid;grid-template-columns:26px 1fr auto;gap:14px;align-items:start}
+  .exp .idx{font-family:var(--mono);font-size:12px;color:var(--faint);padding-top:2px}
+  .exp .body .t{font-weight:620;font-size:14.5px}
+  .exp .body .r{color:var(--muted);font-size:13px;margin-top:2px}
+  .exp .body .r .m{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+  .chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+    padding:4px 9px;border-radius:6px;white-space:nowrap;align-self:center;font-weight:600}
+  .c-good{background:var(--good-soft);color:var(--good)} .c-warn{background:var(--warn-soft);color:var(--warn)}
+  .c-info{background:var(--accent-soft);color:var(--accent-ink)} .c-run{background:var(--warn-soft);color:var(--warn)}
+  .bad{color:var(--crit)}
+
+  .twrap{overflow-x:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+  th,td{text-align:right;padding:10px 14px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  tbody td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr.hl td{background:var(--accent-soft)}
+  tbody td:first-child{font-family:var(--sans);color:var(--muted)}
+  .win{color:var(--good)}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px 18px}
+  .card h3{margin:0 0 10px;font-size:12px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+  .card li{display:flex;gap:9px;font-size:13.5px;align-items:baseline}
+  .card li .mk{color:var(--accent);font-family:var(--mono);font-size:12px;flex:none}
+  .card li .mono{font-size:12.5px;color:var(--muted)}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--faint);
+    font-family:var(--mono);font-size:11.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  @media(max-width:720px){
+    .stats{grid-template-columns:repeat(2,1fr)} .cols{grid-template-columns:1fr}
+    .finding{grid-template-columns:1fr;gap:14px} .bignum{font-size:44px}
+    .exp{grid-template-columns:22px 1fr} .exp .chip{grid-column:2;justify-self:start;margin-top:6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="eyebrow">Experiment campaign · status board</div>
+      <h1>CALM-Net</h1>
+      <div class="sub">Calibrated, abstaining, longitudinal EEG decoder for closed-loop lower-limb
+        exoskeleton control. NeuroRex dataset (OpenNeuro ds007788), 7 subjects × 9 sessions.</div>
+    </div>
+    <div class="hd-right">
+      <button class="tog" id="tog" type="button">◐ theme</button>
+      <div class="live"><span class="dot" style="background:var(--good)"></span>COMPLETE · invariance check <b>7 / 7</b> ✓</div>
+    </div>
+  </header>
+
+  <section>
+    <div class="shead"><h2>Headline finding</h2><span class="rule"></span></div>
+    <div class="finding">
+      <div class="bignum">~0.70<small>movement-invariant decode</small></div>
+      <div>
+        <p>The walk/stop label on this paradigm <b>is</b> the exoskeleton's motion. Once the decoder is
+          forced to be movement-invariant, accuracy settles near <b>0.70</b> regardless of model or data —
+          a hard, data-imposed ceiling. Any higher number is the movement confound leaking back in.
+          The contribution is therefore a <b>calibrated, abstaining, coverage-guaranteed</b> framework,
+          not an accuracy figure.</p>
+        <div class="conf">
+          <span>confirmed ×3 ↓</span><span>HSIC disentangle</span><span>pre-movement window</span><span>augmentation leakage</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Full CALM-Net · mean over 7 subjects</h2><span class="rule"></span></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Invariant acc</div><div class="v">0.694</div><div class="d">above chance 6/7</div></div>
+      <div class="stat"><div class="k">Adaptive coverage</div><div class="v">0.902</div><div class="d">target 0.90 · all 7</div></div>
+      <div class="stat"><div class="k">Wrong-walk rate</div><div class="v">0.051</div><div class="d">from 0.144 · target 0.05</div></div>
+      <div class="stat"><div class="k">Conf-AUROC</div><div class="v">0.740</div><div class="d">ensemble · from 0.697</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Experiment log</h2><span class="rule"></span></div>
+    <div class="log">
+      <div class="exp"><div class="idx">01</div><div class="body"><div class="t">Dataset + baselines</div>
+        <div class="r">EEGNet <span class="m">0.819</span> · Conformer <span class="m">0.826</span> · but IMU-only <span class="m">0.839</span> → movement confound is dataset-wide</div></div>
+        <span class="chip c-good">baseline</span></div>
+      <div class="exp"><div class="idx">02</div><div class="body"><div class="t">Motion-invariant disentanglement (MID v2)</div>
+        <div class="r">12-D IMU target + decorrelation → intent→IMU R² <span class="m">0.15 → −0.31</span>; honest decode <span class="m">0.65</span></div></div>
+        <span class="chip c-good">works</span></div>
+      <div class="exp"><div class="idx">03</div><div class="body"><div class="t">Full pipeline · calibration + adaptive conformal + abstention</div>
+        <div class="r">ECE <span class="m">0.154 → 0.114</span> · adaptive coverage <span class="m">0.902</span> (static drifts 0.78–0.95)</div></div>
+        <span class="chip c-good">works</span></div>
+      <div class="exp"><div class="idx">04</div><div class="body"><div class="t">Encoder ablation · Riemannian tangent + XFCA</div>
+        <div class="r">Higher accuracy <span class="m">0.805</span> — but movement-coupled, disentangles poorly</div></div>
+        <span class="chip c-warn">mixed</span></div>
+      <div class="exp"><div class="idx">05</div><div class="body"><div class="t">HSIC · nonlinear independence + selection fix</div>
+        <div class="r">Enforced invariance → accuracy collapsed <span class="m">0.805 → 0.645</span>; the 0.805 was leakage</div></div>
+        <span class="chip c-info">ceiling ✓</span></div>
+      <div class="exp"><div class="idx">06</div><div class="body"><div class="t">Pre-movement window · decode the transition onset</div>
+        <div class="r">IMU baseline unchanged <span class="m">0.936 → 0.936</span> — exo moves at command; no movement-free window</div></div>
+        <span class="chip c-info">ceiling ✓</span></div>
+      <div class="exp"><div class="idx">07</div><div class="body"><div class="t">Safety improvements · ensemble + class-conditional threshold</div>
+        <div class="r">Wrong-walk <span class="m">0.144 → 0.051</span> · AUROC <span class="m">0.697 → 0.740</span> · exec@80 <span class="m">0.719 → 0.771</span> · ECE unchanged</div></div>
+        <span class="chip c-good">safety ↑</span></div>
+      <div class="exp"><div class="idx">08</div><div class="body"><div class="t">Trial data augmentation (+~4.5k epochs/subj)</div>
+        <div class="r">Accuracy <span class="m">0.694 → 0.753</span> — <b>mixed</b>: genuine invariant gains for data-starved subjects (sub-02 <span class="m">0.52→0.74</span>, R²≈−0.08), <b class="bad">leakage</b> on the strong (sub-01 R² <span class="m">0.08→0.23</span>)</div></div>
+        <span class="chip c-warn">mixed</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Full pipeline · per subject</h2><span class="rule"></span></div>
+    <div class="twrap">
+      <table>
+        <thead><tr><th>Subject</th><th>inv. acc</th><th>ECE</th><th>AUROC</th><th>exec@80</th><th>cov. adpt</th></tr></thead>
+        <tbody>
+          <tr><td>sub-01</td><td>0.792</td><td>0.097</td><td>0.718</td><td>0.836</td><td>0.901</td></tr>
+          <tr><td>sub-02</td><td>0.516</td><td>0.130</td><td>0.470</td><td>0.522</td><td>0.901</td></tr>
+          <tr><td>sub-03</td><td>0.771</td><td>0.115</td><td>0.773</td><td>0.827</td><td>0.905</td></tr>
+          <tr><td>sub-04</td><td>0.698</td><td>0.098</td><td>0.731</td><td>0.738</td><td>0.898</td></tr>
+          <tr><td>sub-05</td><td>0.657</td><td>0.086</td><td>0.742</td><td>0.648</td><td>0.902</td></tr>
+          <tr><td>sub-06</td><td>0.695</td><td>0.084</td><td>0.743</td><td>0.719</td><td>0.905</td></tr>
+          <tr><td>sub-07</td><td>0.732</td><td>0.189</td><td>0.705</td><td>0.746</td><td>0.899</td></tr>
+          <tr class="hl"><td>Mean</td><td>0.694</td><td>0.114</td><td>0.698</td><td>0.719</td><td class="win">0.902</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Deliverables &amp; open items</h2><span class="rule"></span></div>
+    <div class="cols">
+      <div class="card">
+        <h3>Shipped</h3>
+        <ul>
+          <li><span class="mk">▸</span><div>IEEE journal paper · <span class="mono">calmnet_paper_journal.pdf</span> (6 pp)</div></li>
+          <li><span class="mk">▸</span><div>Extended version · <span class="mono">calmnet_paper_extended.pdf</span> (7 pp)</div></li>
+          <li><span class="mk">▸</span><div>Conference version · <span class="mono">calmnet_paper.pdf</span></div></li>
+          <li><span class="mk">▸</span><div>Architecture figure (draw.io + vector PDF)</div></li>
+          <li><span class="mk">▸</span><div>~15 src modules · 10 result JSONs · GPU pipeline</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Open · needs you</h3>
+        <ul>
+          <li><span class="mk">◇</span><div>Author + affiliation (placeholders in all 3 papers)</div></li>
+          <li><span class="mk">◇</span><div>Reference page numbers / DOIs verification</div></li>
+          <li><span class="mk">◇</span><div>Novelty-claim check vs literature</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Snapshot · reflects runs completed so far · ask me to refresh</span>
+    <span>7 subjects · 41 refs · 3 papers</span>
+  </footer>
+</div>
+<script>
+  (function(){
+    var order=["light","dark"], cur=null;
+    document.getElementById("tog").addEventListener("click",function(){
+      var isDark = (cur===null)
+        ? window.matchMedia("(prefers-color-scheme:dark)").matches
+        : cur==="dark";
+      cur = isDark ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme",cur);
+    });
+  })();
+</script>
+</body>
+</html>

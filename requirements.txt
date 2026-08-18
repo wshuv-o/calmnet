@@ -1,0 +1,9 @@
+# CALM-Net pipeline (Python 3.14)
+openneuro-py>=2026.4
+mne>=1.12
+torch>=2.12
+numpy>=2.0
+scipy>=1.13
+scikit-learn>=1.5
+pandas>=2.0
+matplotlib>=3.8

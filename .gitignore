@@ -1,0 +1,20 @@
+# Large / regenerable artifacts - never commit
+# (3.7 GB OpenNeuro dataset + epoch/tangent caches live under data/)
+data/
+*.npz
+__pycache__/
+*.pyc
+*.output
+*.log
+# LaTeX build artifacts
+*.aux
+*.out
+*.bbl
+*.blg
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+# OS junk
+.DS_Store
+Thumbs.db

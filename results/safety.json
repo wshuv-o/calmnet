@@ -1,0 +1,107 @@
+{
+  "sub-01": {
+    "subject": "sub-01",
+    "summary": {
+      "auroc_single": 0.7182744070297135,
+      "auroc_ens": 0.7983264090905492,
+      "ece_single": 0.09703014510828188,
+      "ece_ens": 0.17839401984860548,
+      "ece_ens_persession": 0.22648406228230514,
+      "exec_single": 0.8355684432281539,
+      "exec_ens": 0.8939467601368268,
+      "wrong_walk_base": 0.08118247373805425,
+      "wrong_walk_safe": 0.04470269730768272,
+      "walk_recall_safe": 0.6481481481481481
+    }
+  },
+  "sub-02": {
+    "subject": "sub-02",
+    "summary": {
+      "auroc_single": 0.4686514817989223,
+      "auroc_ens": 0.5033972116140802,
+      "ece_single": 0.13005630589864622,
+      "ece_ens": 0.11178187586984543,
+      "ece_ens_persession": 0.16205004216187055,
+      "exec_single": 0.5221069589199817,
+      "exec_ens": 0.48037883149654376,
+      "wrong_walk_base": 0.3515064631374794,
+      "wrong_walk_safe": 0.11988181605994293,
+      "walk_recall_safe": 0.1332027760599189
+    }
+  },
+  "sub-03": {
+    "subject": "sub-03",
+    "summary": {
+      "auroc_single": 0.773301412783059,
+      "auroc_ens": 0.7972066446604372,
+      "ece_single": 0.11472849712799382,
+      "ece_ens": 0.22637388535463177,
+      "ece_ens_persession": 0.2256758608103647,
+      "exec_single": 0.8271410836233145,
+      "exec_ens": 0.8114964743634072,
+      "wrong_walk_base": 0.12043566135189761,
+      "wrong_walk_safe": 0.032834293984080644,
+      "walk_recall_safe": 0.38215488215488214
+    }
+  },
+  "sub-04": {
+    "subject": "sub-04",
+    "summary": {
+      "auroc_single": 0.7313903849974389,
+      "auroc_ens": 0.7361683831115503,
+      "ece_single": 0.09761527417070581,
+      "ece_ens": 0.16030850132709462,
+      "ece_ens_persession": 0.12799986373818886,
+      "exec_single": 0.7379241185472359,
+      "exec_ens": 0.7992946752234328,
+      "wrong_walk_base": 0.17467749582054545,
+      "wrong_walk_safe": 0.04424482870474337,
+      "walk_recall_safe": 0.41750841750841755
+    }
+  },
+  "sub-05": {
+    "subject": "sub-05",
+    "summary": {
+      "auroc_single": 0.7424333379254237,
+      "auroc_ens": 0.7820487604044075,
+      "ece_single": 0.08613079771353764,
+      "ece_ens": 0.18870743527414677,
+      "ece_ens_persession": 0.2165991043581614,
+      "exec_single": 0.6480245027538621,
+      "exec_ens": 0.7805250220087405,
+      "wrong_walk_base": 0.08577488334955212,
+      "wrong_walk_safe": 0.04151508346433116,
+      "walk_recall_safe": 0.3063973063973064
+    }
+  },
+  "sub-06": {
+    "subject": "sub-06",
+    "summary": {
+      "auroc_single": 0.7430222439182769,
+      "auroc_ens": 0.7435764753958427,
+      "ece_single": 0.0835549477342934,
+      "ece_ens": 0.11418645879999097,
+      "ece_ens_persession": 0.16523955047022676,
+      "exec_single": 0.7201744206979402,
+      "exec_ens": 0.7321117541952228,
+      "wrong_walk_base": 0.05617350738042429,
+      "wrong_walk_safe": 0.004789446467916723,
+      "walk_recall_safe": 0.06544612794612795
+    }
+  },
+  "sub-07": {
+    "subject": "sub-07",
+    "summary": {
+      "auroc_single": 0.7047856593874816,
+      "auroc_ens": 0.8200219891327841,
+      "ece_single": 0.18905014636162532,
+      "ece_ens": 0.2127269318919602,
+      "ece_ens_persession": 0.2189705891102732,
+      "exec_single": 0.7444990339799754,
+      "exec_ens": 0.8995329133247502,
+      "wrong_walk_base": 0.13922908662766126,
+      "wrong_walk_safe": 0.06849128654225123,
+      "walk_recall_safe": 0.662037037037037
+    }
+  }
+}
