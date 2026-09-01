@@ -1,0 +1,165 @@
+{
+  "raw|bandpower": {
+    "acc": 0.62519196715674,
+    "r2": 0.007422727798776967,
+    "score": 0.617769239357963,
+    "n_leak": 3,
+    "secs": 5.6
+  },
+  "raw|fbcsp": {
+    "acc": 0.7200332287559966,
+    "r2": -0.5274073556065559,
+    "score": 0.7200332287559966,
+    "n_leak": 4,
+    "secs": 16.6
+  },
+  "raw|tangent_ea": {
+    "acc": 0.7627677714232205,
+    "r2": -0.08894061190741402,
+    "score": 0.7627677714232205,
+    "n_leak": 3,
+    "secs": 163.7
+  },
+  "raw|plv": {
+    "acc": 0.6797534857940838,
+    "r2": 0.02876331391079085,
+    "score": 0.6509901718832929,
+    "n_leak": 3,
+    "secs": 17.9
+  },
+  "raw|tangent+plv": {
+    "acc": 0.7656249701313337,
+    "r2": -0.038194739392825534,
+    "score": 0.7656249701313337,
+    "n_leak": 3,
+    "secs": 184.7
+  },
+  "car|bandpower": {
+    "acc": 0.7483247330743922,
+    "r2": 0.04578970226326159,
+    "score": 0.7025350308111306,
+    "n_leak": 4,
+    "secs": 5.6
+  },
+  "car|fbcsp": {
+    "error": "LinAlgError: The leading minor of order 60 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
+  },
+  "car|tangent_ea": {
+    "acc": 0.7560980635543103,
+    "r2": -0.10957298427820206,
+    "score": 0.7560980635543103,
+    "n_leak": 3,
+    "secs": 160.6
+  },
+  "car|plv": {
+    "acc": 0.6634108800344967,
+    "r2": -0.07614213760410037,
+    "score": 0.6634108800344967,
+    "n_leak": 3,
+    "secs": 17.7
+  },
+  "car|tangent+plv": {
+    "acc": 0.7488532916789572,
+    "r2": -0.07479996766362872,
+    "score": 0.7488532916789572,
+    "n_leak": 3,
+    "secs": 206.7
+  },
+  "laplacian|bandpower": {
+    "acc": 0.7052480548889315,
+    "r2": -0.5656795714582715,
+    "score": 0.7052480548889315,
+    "n_leak": 2,
+    "secs": 11.3
+  },
+  "laplacian|fbcsp": {
+    "error": "LinAlgError: The leading minor of order 60 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
+  },
+  "laplacian|tangent_ea": {
+    "acc": 0.7516115270533922,
+    "r2": -0.10146501394254821,
+    "score": 0.7516115270533922,
+    "n_leak": 3,
+    "secs": 216.0
+  },
+  "laplacian|plv": {
+    "acc": 0.6273598423554224,
+    "r2": -0.2533866632729769,
+    "score": 0.6273598423554224,
+    "n_leak": 1,
+    "secs": 20.4
+  },
+  "laplacian|tangent+plv": {
+    "acc": 0.7540312794466878,
+    "r2": -0.08351469306009156,
+    "score": 0.7540312794466878,
+    "n_leak": 3,
+    "secs": 188.2
+  },
+  "asr|bandpower": {
+    "acc": 0.62519196715674,
+    "r2": 0.007422727798776967,
+    "score": 0.617769239357963,
+    "n_leak": 3,
+    "secs": 34.4
+  },
+  "asr|fbcsp": {
+    "acc": 0.7200332287559966,
+    "r2": -0.5274073556065559,
+    "score": 0.7200332287559966,
+    "n_leak": 4,
+    "secs": 45.9
+  },
+  "asr|tangent_ea": {
+    "acc": 0.7627677714232205,
+    "r2": -0.08894061190741402,
+    "score": 0.7627677714232205,
+    "n_leak": 3,
+    "secs": 175.5
+  },
+  "asr|plv": {
+    "acc": 0.6797534857940838,
+    "r2": 0.02876331391079085,
+    "score": 0.6509901718832929,
+    "n_leak": 3,
+    "secs": 40.8
+  },
+  "asr|tangent+plv": {
+    "acc": 0.7656249701313337,
+    "r2": -0.038194739392825534,
+    "score": 0.7656249701313337,
+    "n_leak": 3,
+    "secs": 191.1
+  },
+  "asr+laplacian|bandpower": {
+    "acc": 0.7052480548889315,
+    "r2": -0.5656795714582715,
+    "score": 0.7052480548889315,
+    "n_leak": 2,
+    "secs": 31.0
+  },
+  "asr+laplacian|fbcsp": {
+    "error": "LinAlgError: The leading minor of order 60 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
+  },
+  "asr+laplacian|tangent_ea": {
+    "acc": 0.7516115270533922,
+    "r2": -0.10146501394254821,
+    "score": 0.7516115270533922,
+    "n_leak": 3,
+    "secs": 169.9
+  },
+  "asr+laplacian|plv": {
+    "acc": 0.6273598423554224,
+    "r2": -0.2533866632729769,
+    "score": 0.6273598423554224,
+    "n_leak": 1,
+    "secs": 44.6
+  },
+  "asr+laplacian|tangent+plv": {
+    "acc": 0.7540312794466878,
+    "r2": -0.08351469306009156,
+    "score": 0.7540312794466878,
+    "n_leak": 3,
+    "secs": 191.4
+  }
+}

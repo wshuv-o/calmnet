@@ -294,13 +294,17 @@ constrained to rely on movement-invariant neural features, by construction, not 
 post-hoc argument.
 
 \subsection{Longitudinal self-calibration (LSC)}
-At deployment on a new session $s$ we (i) align feature statistics to the training
-distribution without labels (source-free batch-statistic / CORAL
+At deployment on a new session $s$ we (i) optionally align feature statistics to the
+training distribution without labels (source-free batch-statistic / CORAL
 alignment~\cite{sun2016}); (ii) apply temperature scaling~\cite{guo2017} for honest
 confidence; and (iii) form split-conformal prediction sets~\cite{angelopoulos2023}
 whose threshold $q_t$ is updated online by adaptive conformal
 inference~\cite{gibbs2021},
-$q_{t+1}=q_t+\eta\,(\alpha-\mathbf{1}[\text{err}_t])$,
+$q_{t+1}=q_t+\eta\,(\mathbf{1}[\text{err}_t]-\alpha)$,
+where $q_t$ is the prediction-set threshold, so a miscoverage widens the set. Step
+(i) is applied in the Riemannian encoder of Section~\ref{sec:ablation}; the
+band-power results reported below use steps (ii) and (iii) only, and alignment is
+therefore not responsible for any coverage figure we report.
 which provably maintains the long-run executed-error rate at the target $\alpha$ as
 drift accumulates over weeks.
 
@@ -345,7 +349,7 @@ $\mathcal{L}_{\mathrm{cal}}$.
 \Else
    \State command $\leftarrow \textsc{stop}$ \Comment{safe default}
 \EndIf
-\State on feedback, update $q_{t+1}\leftarrow q_t+\eta(\alpha-\mathbf{1}[\text{err}])$
+\State on feedback, update $q_{t+1}\leftarrow q_t+\eta(\mathbf{1}[\text{err}]-\alpha)$
 \end{algorithmic}
 \end{algorithm}
 
@@ -386,12 +390,22 @@ with MID disabled, and probe how well the intent code predicts the IMU descripto
 with a nonlinear (MLP) regressor: a lower coefficient of determination $R^2$ means
 the neural code is more movement-invariant.
 
-\emph{MID achieves invariance.} The intent-to-IMU $R^2$ falls from a mean of $0.15$
-without MID to $-0.31$ with it (Fig.~\ref{fig:mid}, right); crucially it collapses to
-near zero even for the movement-dominated subjects whose IMU baseline exceeds the EEG
-decoder (e.g.\ subject~3, $R^2\!:\,0.56\!\rightarrow\!-0.14$; subject~4,
-$0.36\!\rightarrow\!-0.21$). Movement is no longer linearly or nonlinearly
-recoverable from the code that drives the command.
+\emph{MID reduces, but does not eliminate, movement recoverability.} Under the
+nonlinear (MLP) probe the intent-to-IMU $R^2$ falls from a mean of $0.15$ without MID
+to $-0.31$ with it (Fig.~\ref{fig:mid}, right), including on the movement-dominated
+subjects whose IMU baseline exceeds the EEG decoder (e.g.\ subject~3,
+$R^2\!:\,0.56\!\rightarrow\!-0.14$; subject~4, $0.36\!\rightarrow\!-0.21$).
+
+We report the \emph{linear} probe alongside it, because the two disagree and the
+weaker number is the defensible one. On the same models a ridge probe gives a mean
+$R^2$ of $-0.02$ -- essentially zero -- and remains clearly positive for two of seven
+subjects (S01 $+0.19$, S03 $+0.21$). A more expressive probe returning a
+\emph{more} negative $R^2$ indicates that the MLP fails to generalise from its own
+fitting split, not that the code carries less movement information: a richer probe
+should recover more structure where structure exists. We therefore treat the linear
+probe as the operative measure of invariance throughout, and claim only that MID
+removes \emph{linearly} recoverable movement on five of seven subjects rather than
+that movement is unrecoverable.
 
 \emph{Invariance exposes the honest neural decode.} Removing the movement shortcut
 lowers mean balanced accuracy from $0.81$ to $0.65$ (Fig.~\ref{fig:mid}, left), with
