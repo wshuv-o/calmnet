@@ -1,5 +1,10 @@
 # Session findings — representation beats architecture
 
+> **Read section 0 first.** The result below is a solid *internal* finding, but
+> the winning method is standard practice in the BCI literature, not a
+> contribution. This document originally framed it as a discovery; that framing
+> was wrong and is corrected in section 0.
+
 Headline: a **1,831-parameter classical pipeline outperforms 131 deep
 architectures and 18 published deep models** on this task, on two cohorts, and
 is the only method that is genuinely movement-invariant.
@@ -28,6 +33,58 @@ the artefact is removed before any classifier sees it. Every deep method here
 instead tried to *learn* invariance against it (adversary, HSIC, decorrelation,
 in-network cancellation). All were fighting in the loss for something a
 whitening transform does in closed form.
+
+---
+
+## 0. Novelty assessment — the winning method is not new
+
+The pipeline that won is **established practice**, not a discovery:
+
+- Riemannian tangent-space classification of EEG covariance: Barachant et al.,
+  2012.
+- Euclidean / Riemannian Alignment for cross-session and cross-subject transfer:
+  He & Wu, and tangent-space alignment validated across **18 BCI databases,
+  349 subjects** (PMC9755175).
+- "Riemannian methods match or beat deep learning on small-sample BCI" is
+  reproduced routinely in MOABB benchmarks.
+
+So the honest description of this session's headline is: **the standard pipeline
+for this problem was not tried until late, and when it was, it beat everything
+built before it.** That is a process failure, not a result. Any write-up that
+presents 0.776 as a contribution will be desk-rejected by anyone who knows the
+Riemannian BCI literature.
+
+### What might still be unclaimed
+
+1. **Closed-form second-order alignment beats learned adversarial invariance.**
+   Adversarial gradient reversal, HSIC, cross-covariance decorrelation and
+   in-network motion cancellation were all run against Euclidean Alignment on
+   the same task. EA won on accuracy *and* on invariance. A direct head-to-head
+   of this kind, on a movement-confounded paradigm, is the most promising
+   residue here.
+2. **The invariance probe as a diagnostic** — measuring how recoverable the
+   nuisance variable is from the decoder's own representation, and showing that
+   accuracy gains track it at r = +0.60 across 131 architectures.
+
+### Why neither is publishable yet
+
+- **The real baselines were never run.** No pyriemann MDM, no MOABB pipelines,
+  no published domain-adaptation comparators. Without them there is no way to
+  separate a contribution from a textbook result — which is exactly the mistake
+  made above.
+- **Every R² predating the probe fix is unscored**, including the +0.603
+  correlation the whole argument rests on.
+- **The literature has not been checked** for movement-artefact-invariant BCI
+  decoding, or for existing EA-versus-adversarial comparisons. The residue above
+  may already be claimed.
+- N = 7 + 8, and the two cohorts may share a lab.
+
+### Next action is not another experiment
+
+A proper literature search on (a) movement-artefact-invariant BCI decoding and
+(b) alignment versus adversarial domain-invariance comparisons. If the residue
+survives that, most of the supporting experiments are already built and only
+need re-scoring with the corrected probe.
 
 ---
 
@@ -151,9 +208,14 @@ Mean seed sd = **0.028** over 23 replicated variants.
 
 ## Next
 
-1. Re-score the ablation, the 131-sweep and the backbone selection with
+1. **Literature positioning first** (see section 0). Establish what, if
+   anything, in section 0's residue is unclaimed before running more compute.
+2. Run the actual baselines: pyriemann MDM, MOABB standard pipelines, published
+   domain-adaptation comparators. Without these there is no contribution claim.
+3. Re-score the ablation, the 131-sweep and the backbone selection with
    `invariance_r2_cv`. Prior verdicts used the broken probe.
-2. Rebuild the paper around the representation result.
+4. Rebuild the paper around whatever survives 1-3 -- NOT around the 0.776
+   number, which is a replication of standard practice.
 3. Consolidate the sweep files (`exp_sweep.py` is superseded; `arch_zoo`/
    `arch_zoo2` should merge; `exp_sweep_resume.py` should be a flag).
 4. Check whether ds007788 and the MoBI cohort share a lab — if so the external
