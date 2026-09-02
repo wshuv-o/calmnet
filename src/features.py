@@ -191,6 +191,9 @@ def plv_features(X, lo=8, hi=30, sfreq=100.0, max_ch=20):
 # --------------------------------------------------------------------------- #
 # Invariance probe
 # --------------------------------------------------------------------------- #
+N_PROBE_COMPONENTS = 64      # fixed probe width; see note inside
+
+
 def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     """Movement recoverability, measured WITHIN one distribution.
 
@@ -206,7 +209,10 @@ def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     features and a negative one means it is not. Session-grouped folds keep the
     probe from exploiting within-session autocorrelation.
     """
-    from sklearn.linear_model import Ridge
+    from sklearn.linear_model import RidgeCV
+    from sklearn.decomposition import PCA
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
     from sklearn.model_selection import cross_val_predict, GroupKFold
     from sklearn.metrics import r2_score
     groups = np.asarray(groups)
@@ -216,5 +222,15 @@ def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     mu, sd = M.mean(0), M.std(0) + 1e-6
     Mz = (M - mu) / sd
     cv = GroupKFold(n_splits=min(n_splits, n_g))
-    pred = cross_val_predict(Ridge(alpha), F, Mz, cv=cv, groups=groups)
+    # Fixed-width probe. R^2 from an unregularised ridge depends strongly on the
+    # FEATURE dimension: on pure-noise features carrying no movement whatever,
+    # this probe returns -0.04 at 50 dims and -4.46 at 1104. Comparing models
+    # with different feature widths on raw R^2 is therefore meaningless -- a
+    # wide representation looks invariant purely by overfitting the probe.
+    # PCA to a fixed width plus alpha selection makes the null comparable across
+    # architectures.
+    k = int(min(N_PROBE_COMPONENTS, F.shape[1], len(F) // 4))
+    est = make_pipeline(StandardScaler(), PCA(n_components=k, random_state=0),
+                        RidgeCV(alphas=np.logspace(-2, 4, 13)))
+    pred = cross_val_predict(est, F, Mz, cv=cv, groups=groups)
     return float(r2_score(Mz, pred, multioutput="variance_weighted"))
