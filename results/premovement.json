@@ -1,0 +1,79 @@
+{
+  "sub-01": {
+    "subject": "sub-01",
+    "n_prep": 54,
+    "n_move": 54,
+    "n_stop": 63,
+    "prep_vs_stop_acc": 0.8432539682539683,
+    "move_vs_stop_acc": 0.7638888888888888,
+    "imu_prep": 0.36666550217227,
+    "imu_move": 0.40522735538188104,
+    "imu_stop": 0.23735212655748245
+  },
+  "sub-02": {
+    "subject": "sub-02",
+    "n_prep": 54,
+    "n_move": 54,
+    "n_stop": 63,
+    "prep_vs_stop_acc": 0.7936507936507937,
+    "move_vs_stop_acc": 0.6944444444444444,
+    "imu_prep": 0.5537245475207068,
+    "imu_move": 0.5304611162411301,
+    "imu_stop": 0.3665946107168413
+  },
+  "sub-03": {
+    "subject": "sub-03",
+    "n_prep": 54,
+    "n_move": 54,
+    "n_stop": 63,
+    "prep_vs_stop_acc": 0.7777777777777778,
+    "move_vs_stop_acc": 0.7658730158730158,
+    "imu_prep": 0.30511924448955063,
+    "imu_move": 0.3835253051665798,
+    "imu_stop": 0.2569040720384737
+  },
+  "sub-04": {
+    "subject": "sub-04",
+    "n_prep": 54,
+    "n_move": 54,
+    "n_stop": 63,
+    "prep_vs_stop_acc": 0.6011904761904762,
+    "move_vs_stop_acc": 0.5674603174603174,
+    "imu_prep": 0.3196770211761803,
+    "imu_move": 0.3201580716328018,
+    "imu_stop": 0.19152583914338936
+  },
+  "sub-05": {
+    "subject": "sub-05",
+    "n_prep": 54,
+    "n_move": 54,
+    "n_stop": 63,
+    "prep_vs_stop_acc": 0.7162698412698413,
+    "move_vs_stop_acc": 0.628968253968254,
+    "imu_prep": 0.34379582676643966,
+    "imu_move": 0.5784114135531758,
+    "imu_stop": 0.5617764491799762
+  },
+  "sub-06": {
+    "subject": "sub-06",
+    "n_prep": 45,
+    "n_move": 45,
+    "n_stop": 54,
+    "prep_vs_stop_acc": 0.5932400932400932,
+    "move_vs_stop_acc": 0.6666666666666666,
+    "imu_prep": 0.30668436970593627,
+    "imu_move": 0.3989005761211372,
+    "imu_stop": 0.252539936691127
+  },
+  "sub-07": {
+    "subject": "sub-07",
+    "n_prep": 48,
+    "n_move": 48,
+    "n_stop": 57,
+    "prep_vs_stop_acc": 0.6547619047619048,
+    "move_vs_stop_acc": 0.6646825396825397,
+    "imu_prep": 0.649751208691758,
+    "imu_move": 0.4103574809087808,
+    "imu_stop": 0.29717726070807476
+  }
+}

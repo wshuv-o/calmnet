@@ -207,10 +207,19 @@ def build_epochs(subject="sub-01", sessions=None, tasks=MI_TASKS,
     tag = f"{subject}_s{'-'.join(map(str, sessions))}_{'-'.join(tasks)}_w{win}_st{step}_{l_freq}-{h_freq}_z{int(zscore)}_v2imu"
     cache = CACHE_DIR / f"{tag}.npz"
     if use_cache and cache.exists():
-        d = np.load(cache, allow_pickle=True)
-        return EpochSet(d["X"], d["y"], d["session"], d["day"], d["task"],
-                        d["motion"], d["segment"], d["imu_feats"],
-                        list(d["ch_names"]), float(d["sfreq"]))
+        try:
+            with open(cache, "rb") as fh:                      # explicit handle => always closed
+                with np.load(fh, allow_pickle=True) as d:
+                    m = {k: d[k] for k in d.files}             # materialise before the file closes
+            return EpochSet(m["X"], m["y"], m["session"], m["day"], m["task"],
+                            m["motion"], m["segment"], m["imu_feats"],
+                            list(m["ch_names"]), float(m["sfreq"]))
+        except Exception as e:                                 # corrupt/truncated cache (e.g. disk-full)
+            print(f"  [cache] {cache.name} unreadable ({type(e).__name__}); regenerating", flush=True)
+            try:
+                cache.unlink()
+            except Exception:
+                pass
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     allX, ally, allses, allday, alltask, allmot, allsid, allfeat = [], [], [], [], [], [], [], []

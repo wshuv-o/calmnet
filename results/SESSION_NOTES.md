@@ -186,6 +186,94 @@ Mean seed sd = **0.028** over 23 replicated variants.
 - Still outstanding: the selective head and `L_cal` in the training objective do
   not exist in the code (`calmnet_v2.py` now implements a real one), and the
   three-term SAS gate has never been run with more than one term.
+  **Now run — see section 8.**
+
+---
+
+## 8. CALM-Net v2 finally has a number, and it loses
+
+`calmnet_v2.py` had sat in the tree with no driver since the sweep. `exp_calmnet_v2.py`
+runs it: 7 subjects x 3 seeds x 80 epochs, FBMSNet backbone, conformal calibration
+on a segment-disjoint half of the held-out 30% that plays no part in fitting.
+
+| | CALM-Net v2 | tangent_EA |
+|---|---|---|
+| parameters | 83,694 | 1,831 |
+| balanced accuracy | **0.628 +/- 0.052** | **0.763** |
+| invariance R2_cv | −0.134 | **−0.265** |
+| subjects where it wins on accuracy | 2 of 7 | 5 of 7 |
+| subjects where it is more invariant | 2 of 7 | 5 of 7 |
+
+**It loses on both axes at 46x the parameters.** The two subjects it wins
+(sub-06, sub-07) are the two where tangent_EA is weakest. This is the
+representation-beats-architecture result again, now with the project's own
+best-designed model as the loser rather than a sweep variant.
+
+### The seed problem is worse than section 5 said
+
+Mean within-subject seed sd is **0.071**, 2.5x the 0.028 measured across the
+sweep. sub-04 spans 0.537–0.760 and sub-03 spans 0.533–0.742 across three seeds
+of an identical configuration. Any single-seed number from this model is
+uninterpretable, and the three-seed means above are themselves thin.
+
+### The three-term SAS gate: two of the three terms are nearly inert
+
+First time the whole rule has been run. Acceptance rate of each term alone, and
+the marginal cost of each given the other two:
+
+| term | accepts alone | marginal cost |
+|---|---|---|
+| selective head g >= theta | 0.85 | 0.06 |
+| conformal singleton | 0.49 | **0.19** |
+| wrong-walk bound | 0.67 | 0.05 |
+
+The rule is a conformal filter with two decorations. The **trained selective
+head — the piece added specifically because the paper claimed it and the repo
+lacked it — rejects almost nothing** the other terms would have kept.
+
+### Coverage misses the target by half, and safety is bought by refusing to walk
+
+Achieved coverage **0.381** against a 0.80 target. Executed accuracy 0.712, but
+at 38% coverage that number cannot be compared with the paper's "0.719 @ 80%
+coverage" — different operating point entirely.
+
+**Walk recall is 0.174.** The wrong-walk bound is satisfied (0.040 against a
+0.05 bound) largely because the system almost never commits walk. This is the
+same degenerate solution `cost_weights()` documents for `c_ww=5` — "trivially
+safe and entirely useless" — reached through the decision threshold instead of
+through the loss. Moving the asymmetry out of the objective did not avoid it.
+
+Calibration sets average **103 windows, ~33 of them walk**. A 90% class-conditional
+conformal quantile needs 19+ per class, so the guarantee is nominally valid and
+practically fragile. Any future coverage claim needs more calibration data.
+
+### Independent confirmation of the section 1 metric fix
+
+On a model the fix was not derived from, the old cross-split probe reports
+−0.420 and the corrected probe −0.134. The old probe **overstates invariance by
+0.29** — same direction and similar magnitude as the FBCSP case in section 1.
+
+### The classical winner is not uniformly invariant
+
+Per-subject tangent_EA (this run reproduces `features.json`: mean acc 0.763 vs
+0.7628 recorded, mean R2_cv −0.265):
+
+| | s01 | s02 | s03 | s04 | s05 | s06 | s07 |
+|---|---|---|---|---|---|---|---|
+| acc | 0.972 | 0.675 | 0.939 | 0.794 | 0.785 | 0.574 | 0.601 |
+| R2_cv | **+0.471** | −0.800 | **+0.420** | −0.210 | −0.897 | −0.204 | −0.638 |
+
+**Movement is positively recoverable for 2 of 7 subjects, and they are the two
+highest-accuracy subjects.** corr(acc, R2_cv) across subjects within tangent_EA
+alone is **+0.691** — the same coupling found across the 131 architectures,
+now visible inside the classical pipeline. The headline "the only method that is
+genuinely movement-invariant" is a mean over a split population, and it fails
+exactly where the accuracy comes from. This qualification belongs anywhere the
+0.776/−0.265 pair is quoted.
+
+Note the 0.776 in this document does not match `features.json`, where
+`raw|tangent_ea` is **0.7628**; 0.776 appears to come from the validation split.
+Quote the number the results file contains.
 
 ---
 
@@ -204,20 +292,38 @@ Mean seed sd = **0.028** over 23 replicated variants.
 | `braindecode_zoo.py`, `select_backbone.py` | 18 published backbones through the same harness |
 | `calmnet_msa.py`, `exp_msa.py` | multi-subject pooling (negative result) |
 | `calmnet_v2.py` | selective head + Mondrian conformal + wrong-walk bound |
+| `exp_calmnet_v2.py` | its driver: multi-seed, fit-disjoint conformal calibration, both probes, per-term gate breakdown (section 8) |
+| `LITERATURE_POSITIONING.md` | step 1 of the Next list: what in section 0's residue is actually unclaimed |
 | `tools/dashboard.py` | live experiment dashboard |
 
 ## Next
 
-1. **Literature positioning first** (see section 0). Establish what, if
-   anything, in section 0's residue is unclaimed before running more compute.
-2. Run the actual baselines: pyriemann MDM, MOABB standard pipelines, published
-   domain-adaptation comparators. Without these there is no contribution claim.
-3. Re-score the ablation, the 131-sweep and the backbone selection with
-   `invariance_r2_cv`. Prior verdicts used the broken probe.
+1. ~~Literature positioning first~~ **done** — `LITERATURE_POSITIONING.md`.
+   Outcome: residue #1 survives only in its narrow form (a *physically
+   measured, label-correlated* nuisance, not subject/session shift, where
+   "simple alignment is competitive" is already the prevailing view). Residue #2
+   is not blocked by the literature but by our own unscored R2 — which reverses
+   the order below.
+2. **Re-score the ablation, the 131-sweep and the backbone selection with
+   `invariance_r2_cv`.** Promoted from 3: the +0.603 correlation is the entire
+   evidence base for residue #2 and it is currently unscored, so this is a
+   precondition for any claim, not a follow-up. Models are trained; this is
+   re-measurement.
+3. Run the actual baselines: pyriemann MDM, MOABB standard pipelines, and — new,
+   from the literature pass — at least one *published* adversarial DA method, so
+   the head-to-head is against something someone published rather than only
+   against in-house adversaries.
 4. Rebuild the paper around whatever survives 1-3 -- NOT around the 0.776
-   number, which is a replication of standard practice.
-3. Consolidate the sweep files (`exp_sweep.py` is superseded; `arch_zoo`/
+   number, which is a replication of standard practice. Frame the confound
+   section as Castermans (2014) vs Nathan & Contreras-Vidal (2015): the
+   contribution is the measurement, not the observation.
+5. Decide what to do with CALM-Net v2 (section 8). It loses on both axes at 46x
+   the parameters, its selective head is inert, and its coverage target is
+   missed by half. Either report it as a negative result or cut the SAS
+   machinery from the paper — it currently claims capabilities the run does not
+   support.
+6. Consolidate the sweep files (`exp_sweep.py` is superseded; `arch_zoo`/
    `arch_zoo2` should merge; `exp_sweep_resume.py` should be a flag).
-4. Check whether ds007788 and the MoBI cohort share a lab — if so the external
+7. Check whether ds007788 and the MoBI cohort share a lab — if so the external
    validation is weaker than it looks and should be described as a different
    paradigm and sensor rather than an independent replication.

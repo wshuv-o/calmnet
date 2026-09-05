@@ -31,6 +31,7 @@ from calibrate import (fit_temperature, softmax_np, expected_calibration_error,
                        conformal_qhat, adaptive_conformal)
 from abstain import balanced_accuracy, confidence_auroc
 from calmnet_msa import imu_valid_mask, invariance_r2
+import features as FE
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
@@ -176,7 +177,8 @@ def subject_data(sub, band=(8.0, 30.0)):
     d = {"Xf": es.X[tr][ti], "yf": es.y[tr][ti], "Mf": es.imu_feats[tr][ti],
          "vf": valid[tr][ti],
          "Xv": es.X[tr][vi], "yv": es.y[tr][vi], "Mv": es.imu_feats[tr][vi],
-         "Xt": es.X[~tr], "yt": es.y[~tr], "Mt": es.imu_feats[~tr], "vt": valid[~tr]}
+         "Xt": es.X[~tr], "yt": es.y[~tr], "Mt": es.imu_feats[~tr], "vt": valid[~tr],
+         "st": es.session[~tr]}
     _CACHE[key] = d
     return d
 
@@ -211,14 +213,22 @@ def run_variant(delta, seed=0, band=(8.0, 30.0)):
         Mt = ((d["Mt"] - mu) / sd).astype(np.float32)
         r2 = (invariance_r2(zf[d["vf"]], Mf[d["vf"]], zt[d["vt"]], Mt[d["vt"]])
               if d["vf"].sum() > 20 and d["vt"].sum() > 20 else float("nan"))
+        # corrected probe (section 1 of SESSION_NOTES): fitted and scored INSIDE
+        # the test distribution, session-grouped. The cross-split r2 above scores
+        # a merely-drifting representation as invariant, so it is kept only for
+        # comparability with the original sweep -- never for a verdict.
+        r2cv = (FE.invariance_r2_cv(zt[d["vt"]], d["Mt"][d["vt"]], d["st"][d["vt"]])
+                if d["vt"].sum() > 30 else float("nan"))
         per_sub.append({"subject": sub, "bal_acc": balanced_accuracy(d["yt"], pred),
                         "ece": expected_calibration_error(p_cal, d["yt"]),
                         "auroc": confidence_auroc(p_cal.max(1), correct),
                         "exec80": exec_at_cov(d["yt"], p_cal), "r2": r2,
-                        "cov_adaptive": ada_cov})
+                        "r2_cv": r2cv, "cov_adaptive": ada_cov})
     agg = {k: float(np.nanmean([p[k] for p in per_sub]))
-           for k in ("bal_acc", "ece", "auroc", "exec80", "r2", "cov_adaptive")}
+           for k in ("bal_acc", "ece", "auroc", "exec80", "r2", "r2_cv",
+                     "cov_adaptive")}
     agg["n_leak"] = int(sum(1 for p in per_sub if p["r2"] > 0))
+    agg["n_leak_cv"] = int(sum(1 for p in per_sub if p["r2_cv"] > 0))
     return agg, per_sub
 
 
