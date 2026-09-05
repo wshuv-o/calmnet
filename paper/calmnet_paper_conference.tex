@@ -32,6 +32,7 @@ esmechowdhuryabha@gmail.com}
 \IEEEauthorblockA{\textit{Associate Professor} \\
 \textit{American International University-Bangladesh}\\
 Dhaka, Bangladesh \\
+chayon@aiub.edu \\
 \textit{(Corresponding author)}}
 }
 
@@ -507,14 +508,16 @@ longitudinal. Baseline accuracy is movement-inflated: it sits at the IMU-only
 baseline of $0.84$, reachable with no EEG at all.}
 \label{tab:cmp}
 \centering
+\setlength{\tabcolsep}{3pt}
+\small
 \begin{tabular}{lccccc}
 \toprule
-Method & Mov.-inv. & Acc & ECE & AUROC & Cov. guar. \\
+Method & Inv. & Acc & ECE & AUROC & Cov. \\
 \midrule
-IMU-only (movement) & -- & 0.839 & -- & -- & -- \\
+IMU-only & -- & 0.839 & -- & -- & -- \\
 EEGNet~\cite{lawhern2018} & no & 0.819 & 0.086 & 0.813 & no \\
-EEG Conformer~\cite{song2023} & no & 0.826 & 0.067 & 0.845 & no \\
-\textbf{CALM-Net (ours)} & \textbf{yes} & \textbf{0.694} & 0.114 & 0.698 & \textbf{yes} \\
+EEG Conf.~\cite{song2023} & no & 0.826 & 0.067 & 0.845 & no \\
+\textbf{CALM-Net} & \textbf{yes} & \textbf{0.694} & 0.114 & 0.698 & \textbf{yes} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -549,7 +552,7 @@ to the subjects where invariance holds it too scores $0.64$. The ${\sim}0.65$
 movement-invariant ceiling is thus independent of the encoder family, whether compact
 CNN, transformer, Riemannian tangent space, or scalp-graph network.
 
-\begin{table}[t]
+\begin{table*}[t]
 \caption{Encoder ablation under the same MID, calibration, and adaptive-conformal
 pipeline, mean over seven subjects. The Riemannian--XFCA encoder is more accurate but
 more movement-coupled; the band-power encoder disentangles more cleanly.}
@@ -563,7 +566,7 @@ Band-power (primary) & 0.694 & 0.114 & 0.698 & 0.719 & 0.902 & $0.15\rightarrow-
 Riemannian--XFCA & 0.805 & 0.137 & 0.741 & 0.835 & 0.900 & $0.13\rightarrow-0.24$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 
 \section{Measurement Limitations and Re-evaluation}\label{sec:reeval}
@@ -588,19 +591,24 @@ any single session.
 The corrected estimator, $\textsf{invariance\_r2\_cv}$, cross-validates the probe
 \emph{inside} the evaluation set with session-grouped folds, so a positive value means
 movement genuinely is recoverable. The two disagree materially, and in a direction that
-flatters the original analysis:
+flatters the original analysis (Table~\ref{tab:probe}).
 
-\begin{center}
+\begin{table}[t]
+\caption{Movement recoverability $R^2$ under the original cross-split probe and
+the corrected within-distribution probe. Negative values indicate movement is not
+recoverable.}
+\label{tab:probe}
+\centering
 \begin{tabular}{lrr}
 \toprule
-representation & cross-split (original) & within-distribution (corrected) \\
+representation & cross-split & corrected \\
 \midrule
 FBCSP      & $-0.501$ & $+0.187$ \\
 tangent+EA & $-0.089$ & $-0.258$ \\
 band-power & $+0.007$ & $+0.034$ \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{table}
 
 FBCSP, which the original probe ranked as the \emph{most} invariant representation
 tested, is in fact plainly leaky. Every $R^2$ we reported before this correction is
@@ -616,22 +624,27 @@ families, seven readouts, fifteen augmentations, four independence penalties, fo
 optimisers and five frequency bands, from $7$k to $391$k parameters --- at three seeds
 each, scoring every one with the corrected probe. Of the configurations completed at
 submission, \textbf{none} attains $R^2 \le 0$; the least leaky reaches $+0.043$.
-Accuracy and leakage correlate at $r = +0.68$.
+Accuracy and leakage correlate at $r = +0.68$ (Table~\ref{tab:topcfg}).
 
-\begin{center}
-\begin{tabular}{lrrr}
+\begin{table}[t]
+\caption{Highest-accuracy configurations under the corrected probe, with the
+classical and movement-only references. Accuracy is the mean over three seeds.}
+\label{tab:topcfg}
+\centering
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccr}
 \toprule
 configuration & accuracy & $R^2_{\mathrm{cv}}$ & params \\
 \midrule
-\texttt{decorr\_0}        & $0.818 \pm 0.010$ & $+0.322$ & $7$k \\
-\texttt{bb\_shallow\_wide}& $0.783 \pm 0.012$ & $+0.249$ & $391$k \\
-\texttt{ro\_stat}         & $0.748 \pm 0.031$ & $+0.190$ & $31$k \\
+\texttt{decorr\_0}         & $0.818 \pm 0.010$ & $+0.322$ & $7$k \\
+\texttt{bb\_shallow\_wide} & $0.783 \pm 0.012$ & $+0.249$ & $391$k \\
+\texttt{ro\_stat}          & $0.748 \pm 0.031$ & $+0.190$ & $31$k \\
 \midrule
-tangent+EA (classical)    & $0.763$           & $-0.265$ & $1{,}831$ \\
-IMU only, no EEG          & $0.870$           & ---      & --- \\
+tangent+EA                 & $0.763$           & $-0.265$ & $1{,}831$ \\
+IMU only, no EEG           & $0.870$           & ---      & --- \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{table}
 
 The best configuration beats the classical pipeline by $0.055$ and replicates tightly
 across seeds. It is also the leakiest representation measured anywhere in this work. We
@@ -670,18 +683,23 @@ rather than merely displacing it.
 
 \subsection{The classical pipeline is not uniformly invariant either}
 
-The aggregate $-0.265$ conceals a split population:
+The aggregate $-0.265$ conceals a split population (Table~\ref{tab:persubj}).
 
-\begin{center}
+\begin{table*}[t]
+\caption{Per-subject accuracy and movement recoverability for the classical
+tangent+EA pipeline. Movement is positively recoverable for S1 and S3, which are
+also the two highest-accuracy subjects.}
+\label{tab:persubj}
+\centering
 \begin{tabular}{lrrrrrrr}
 \toprule
-subject & S1 & S2 & S3 & S4 & S5 & S6 & S7 \\
+ & S1 & S2 & S3 & S4 & S5 & S6 & S7 \\
 \midrule
 accuracy            & $0.972$ & $0.675$ & $0.939$ & $0.794$ & $0.785$ & $0.574$ & $0.601$ \\
 $R^2_{\mathrm{cv}}$ & $+0.471$& $-0.800$& $+0.420$& $-0.210$& $-0.897$& $-0.204$& $-0.638$ \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{table*}
 
 Movement is positively recoverable for two of seven subjects, and they are the two
 highest-accuracy subjects; within the classical pipeline alone, accuracy and leakage
