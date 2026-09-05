@@ -127,7 +127,14 @@ context for abstention.
 
 \textbf{CALM-Net} (Calibrated, Abstaining, Longitudinal, Multimodal) is a per-subject
 walk/stop framework for closed-loop lower-limb exoskeleton control
-(Fig.~\ref{fig:arch}). Its contributions are:
+(Fig.~\ref{fig:arch}). In that figure, multimodal encoders map EEG sub-bands (as
+spatial covariances), head and exoskeleton IMU, and EOG into a shared space;
+cross-frequency coupling attention forms the neural representation; motion-invariant
+disentanglement splits it into an intent subspace, which the selective classifier
+reads, and an artefact subspace trained to predict the inertial signals; longitudinal
+self-calibration aligns per-session statistics and runs adaptive conformal risk
+control; and the safety-asymmetric head commits Walk or Stop only on unanimous
+agreement, defaulting to STOP otherwise. Its contributions are:
 \begin{itemize}
 \item \textbf{C1: A multimodal neuro-kinematic architecture.} We design, from the
 signal physics rather than from an existing image/EEG backbone, an encoder that
@@ -164,15 +171,7 @@ and its evaluation protocol.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{fig_architecture.pdf}
-\caption{The CALM-Net framework. Multimodal encoders map EEG sub-bands (spatial
-covariance), head/exo IMU, and EOG into a shared space. Cross-frequency coupling
-attention (XFCA) forms the neural representation, which motion-invariant
-disentanglement (MID) splits into an IMU-invariant \emph{intent} subspace (used by
-the selective classifier) and an \emph{artefact} subspace (trained to predict the
-inertial signals and to estimate kinematic contamination). Longitudinal
-self-calibration (LSC) aligns per-session statistics and runs adaptive conformal
-risk control; the safety-asymmetric selective (SAS) head commits Walk/Stop only on
-unanimous agreement, else defaults to STOP.}
+\caption{The CALM-Net framework: encoders, MID, LSC, and the SAS head.}
 \label{fig:arch}
 \end{figure*}
 
@@ -434,15 +433,7 @@ it and withdraws the accompanying invariance claim.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{fig_mid.pdf}
-\caption{Validation of motion-invariant disentanglement (MID) across seven subjects.
-\textbf{Left:} balanced accuracy of the IMU-only movement baseline, the EEG decoder
-without MID (movement-inflated), and with MID (movement-invariant); the drop isolates
-the movement contribution, largest where the IMU baseline is highest, yet every
-subject stays above chance. \textbf{Right:} nonlinear $R^2$ of predicting the IMU
-descriptor from the intent code, without and with MID, as measured by the
-\emph{original} cross-split probe. Section~\ref{sec:reeval} shows this probe
-conflates invariance with distribution shift; under the corrected estimator the same
-representation retains recoverable movement.}
+\caption{MID across seven subjects: accuracy (left) and movement recoverability (right).}
 \label{fig:mid}
 \end{figure*}
 
@@ -464,12 +455,15 @@ Subject~2, whose movement-invariant decode is at chance, is correctly flagged by
 uninformative confidence (AUROC $0.47$): the pipeline degrades gracefully rather
 than committing confident errors.
 
+Table~\ref{tab:full} reports these per subject, averaged over the six held-out test
+sessions with training on sessions 1--3. There, invAcc is movement-invariant balanced
+accuracy; ECE$_{\text{raw}}$ and ECE$_{\text{cal}}$ are expected calibration error
+before and after temperature scaling; exec@80 is balanced accuracy over the $80\%$
+most-confident committed windows; and cov$_{\text{stat}}$ and cov$_{\text{adpt}}$ are
+static and adaptive conformal coverage against a $0.90$ target.
+
 \begin{table*}[t]
-\caption{Full CALM-Net per subject, mean over the six held-out test sessions
-(trained on sessions 1--3). invAcc: movement-invariant balanced accuracy;
-exec@80: balanced accuracy of the $80\%$ most-confident committed windows;
-cov$_{\text{stat}}$/cov$_{\text{adpt}}$: static/adaptive conformal coverage
-(target $0.90$).}
+\caption{Full CALM-Net per subject, mean over six held-out sessions.}
 \label{tab:full}
 \centering
 \begin{tabular}{lccccccc}
@@ -492,19 +486,12 @@ S07 & 0.732 & 0.189 & 0.189 & 0.705 & 0.746 & 0.823 & 0.899 \\
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{fig_full.pdf}
-\caption{Full CALM-Net across seven subjects. \textbf{Left:} adaptive conformal
-inference holds prediction-set coverage at the $0.90$ target under cross-session
-drift, where static conformal misses it. \textbf{Right:} temperature scaling lowers
-the Expected Calibration Error across the session gap.}
+\caption{Conformal coverage (left) and calibration error (right) across the session gap.}
 \label{fig:full}
 \end{figure*}
 
 \begin{table}[t]
-\caption{CALM-Net versus baseline decoders (mean over the seven subjects,
-longitudinal). Baseline accuracy is \emph{movement-inflated}: it sits at the IMU-only
-movement baseline ($0.84$), attainable from a single motion feature with no EEG.
-CALM-Net's accuracy is movement-invariant, and it is the only method here that also
-provides a distribution-free coverage guarantee.}
+\caption{CALM-Net versus baseline decoders, mean over seven subjects.}
 \label{tab:cmp}
 \centering
 \begin{tabular}{lccccc}
@@ -550,10 +537,7 @@ movement-invariant ceiling is thus independent of the encoder family, whether co
 CNN, transformer, Riemannian tangent space, or scalp-graph network.
 
 \begin{table}[t]
-\caption{Encoder ablation under the same MID, calibration, and adaptive-conformal
-pipeline (mean over seven subjects). The Riemannian--XFCA encoder is more accurate,
-but its accuracy is more movement-coupled (a smaller, less consistent invariance
-gain); the band-power encoder disentangles more cleanly. Coverage holds for both.}
+\caption{Encoder ablation under an identical downstream pipeline.}
 \label{tab:enc}
 \centering
 \begin{tabular}{lcccccc}
