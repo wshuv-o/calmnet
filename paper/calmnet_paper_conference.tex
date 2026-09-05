@@ -171,7 +171,10 @@ and its evaluation protocol.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{fig_architecture.pdf}
-\caption{The CALM-Net framework: encoders, MID, LSC, and the SAS head.}
+\caption{The CALM-Net framework. Multimodal encoders map EEG sub-bands, IMU, and
+EOG into a shared space; MID splits it into intent and artefact subspaces; LSC
+aligns per-session statistics and runs adaptive conformal control; the SAS head
+commits Walk/Stop only on unanimous agreement, else STOP.}
 \label{fig:arch}
 \end{figure*}
 
@@ -433,7 +436,10 @@ it and withdraws the accompanying invariance claim.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{fig_mid.pdf}
-\caption{MID across seven subjects: accuracy (left) and movement recoverability (right).}
+\caption{Motion-invariant disentanglement across seven subjects. \textbf{Left:}
+balanced accuracy of the IMU-only baseline, the decoder without MID, and with MID.
+\textbf{Right:} recoverability of the IMU descriptor from the intent code, under the
+original cross-split probe; see Section~\ref{sec:reeval} for the corrected estimate.}
 \label{fig:mid}
 \end{figure*}
 
@@ -463,7 +469,9 @@ most-confident committed windows; and cov$_{\text{stat}}$ and cov$_{\text{adpt}}
 static and adaptive conformal coverage against a $0.90$ target.
 
 \begin{table*}[t]
-\caption{Full CALM-Net per subject, mean over six held-out sessions.}
+\caption{Full CALM-Net per subject, mean over the six held-out test sessions with
+training on sessions 1--3. Column definitions are given in the text; conformal
+coverage targets $0.90$.}
 \label{tab:full}
 \centering
 \begin{tabular}{lccccccc}
@@ -486,12 +494,17 @@ S07 & 0.732 & 0.189 & 0.189 & 0.705 & 0.746 & 0.823 & 0.899 \\
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{fig_full.pdf}
-\caption{Conformal coverage (left) and calibration error (right) across the session gap.}
+\caption{Full CALM-Net across seven subjects. \textbf{Left:} adaptive conformal
+inference holds coverage at the $0.90$ target under cross-session drift, where static
+conformal misses it. \textbf{Right:} temperature scaling lowers calibration error
+across the session gap.}
 \label{fig:full}
 \end{figure*}
 
 \begin{table}[t]
-\caption{CALM-Net versus baseline decoders, mean over seven subjects.}
+\caption{CALM-Net versus baseline decoders, mean over seven subjects,
+longitudinal. Baseline accuracy is movement-inflated: it sits at the IMU-only
+baseline of $0.84$, reachable with no EEG at all.}
 \label{tab:cmp}
 \centering
 \begin{tabular}{lccccc}
@@ -537,7 +550,9 @@ movement-invariant ceiling is thus independent of the encoder family, whether co
 CNN, transformer, Riemannian tangent space, or scalp-graph network.
 
 \begin{table}[t]
-\caption{Encoder ablation under an identical downstream pipeline.}
+\caption{Encoder ablation under the same MID, calibration, and adaptive-conformal
+pipeline, mean over seven subjects. The Riemannian--XFCA encoder is more accurate but
+more movement-coupled; the band-power encoder disentangles more cleanly.}
 \label{tab:enc}
 \centering
 \begin{tabular}{lcccccc}
