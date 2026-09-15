@@ -138,9 +138,37 @@ updates its estimate. It shows no reduction in either cohort (9.173 and 6.309,
 both at or above raw), so the effect comes from adaptation rather than from the
 whitening operation or from the measurement itself.
 
-Momentum is 0.2. The estimate must be updated in batches to converge: a single
+**The adaptation rate is the layer's critical hyperparameter, and selecting it
+on drift reduction was a mistake.** Momentum 0.2 was chosen because it maximised
+the drift reduction above (60% against 25% at momentum 0.05). Faster adaptation
+tracks the incoming signal more closely -- including *which class* is currently
+streaming.
+
+That matters because the two cohorts have opposite temporal structure:
+
+| cohort | contiguous class blocks | median length | longest |
+|---|---|---|---|
+| ds007788 | 109 | 18 windows | 126 |
+| MoBI | 7 | 309 windows | 2211 |
+
+At momentum 0.2 the estimate has an effective memory of roughly five batches
+(~160 windows). On ds007788 the class blocks are *shorter* than that memory, so
+the running estimate stays class-mixed and the layer whitens session drift. On
+MoBI a single class streams for hundreds to thousands of consecutive windows, so
+the estimate becomes that class, and the layer whitens away the very structure it
+should be decoding.
+
+The operating condition is therefore explicit: **the adaptation memory must
+exceed the class-block duration of the recording protocol.** Classical Euclidean
+Alignment never encounters this because it estimates from a whole recording,
+which is the maximally slow setting.
+
+`[PENDING: momentum 0.01 / 0.05 on MoBI -- does slowing adaptation below the
+block rate restore decoding?]`
+
+Note also that the estimate must be updated in batches to converge: a single
 whole-recording update moves it by one momentum step and removes almost nothing
-(4.5%), which is how this was first mis-measured.
+(4.5%), which is how the drift reduction was first mis-measured.
 
 **The alignment survives the stem.** A whitening layer placed before a
 BatchNorm invites the objection that the normalisation simply undoes it, which

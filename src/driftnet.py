@@ -96,7 +96,10 @@ class AdaptiveAlignment(nn.Module):
     mis-measured.
     """
 
-    def __init__(self, n_chan, momentum=0.2, gate_init=2.0):
+    def __init__(self, n_chan, momentum=None, gate_init=2.0):
+        import os as _os
+        if momentum is None:
+            momentum = float(_os.environ.get("DN_MOMENTUM", "0.2"))
         super().__init__()
         self.register_buffer("run_cov", torch.eye(n_chan))
         self.register_buffer("primed", torch.zeros(1))
