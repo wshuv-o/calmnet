@@ -148,9 +148,20 @@ def fbcsp(Xtr, ytr, Xte, bands=((8, 13), (13, 20), (20, 30)), n_comp=6, sfreq=10
 # Riemannian with Euclidean Alignment
 # --------------------------------------------------------------------------- #
 def covariances(X, eps=1e-5):
+    """Spatial covariance with a SCALE-RELATIVE ridge.
+
+    The ridge used to be absolute (`C + 1e-5*I`), which is harmless on data
+    normalised to unit variance and destroys anything else. Raw EEG is in volts:
+    channel variance is ~8e-11, so an absolute 1e-5 ridge exceeds the signal by
+    five orders of magnitude and every covariance comes back as 1e-5 * I --
+    identity, no signal, silently. Scaling the ridge by the mean diagonal makes
+    it a true regulariser at any input scale, and leaves the normalised case
+    numerically where it was (mean diagonal ~1, so eps*1 == the old eps).
+    """
     Xc = X - X.mean(-1, keepdims=True)
     C = np.einsum("nct,ndt->ncd", Xc, Xc) / X.shape[-1]
-    return C + eps * np.eye(X.shape[1], dtype=np.float32)
+    scale = np.einsum("nii->n", C)[:, None, None] / X.shape[1]
+    return C + eps * np.maximum(scale, 1e-30) * np.eye(X.shape[1], dtype=np.float32)
 
 
 def euclidean_align(C):
