@@ -105,10 +105,30 @@ class AdaptiveAlignment(nn.Module):
         self.gate = nn.Parameter(torch.tensor(float(gate_init)))
         self.n_chan = n_chan
 
-    def _cov(self, x):                       # (N, C, T) -> (C, C)
+    def _cov(self, x, per_window=True):       # (N, C, T) -> (C, C)
+        """Mean spatial covariance over a batch of windows.
+
+        `per_window` normalises EACH window's covariance before averaging, so
+        every window contributes equally regardless of its power. Summing raw
+        covariances and normalising once at the end instead weights the estimate
+        by power, which is how this layer failed on the MoBI cohort: walking
+        windows are 87.7% of that data and carry 1.52x the power of standing
+        windows, so they supplied 91.6% of a power-weighted estimate. Whitening
+        by an estimate that is essentially one class removes the very variance
+        that separates the classes -- measured at -0.166 accuracy there, against
+        +0.051 on the more balanced cohort.
+
+        Equal weighting does not make the estimate class-balanced (87.7% is
+        still a majority) but it removes the extra power-driven skew on top of
+        the count imbalance, without needing labels.
+        """
         xc = x - x.mean(dim=-1, keepdim=True)
+        if per_window:
+            c = torch.einsum("nct,ndt->ncd", xc, xc) / x.shape[-1]
+            tr = torch.diagonal(c, dim1=1, dim2=2).mean(-1)[:, None, None]
+            return (c / (tr + EPS)).mean(0)
         c = torch.einsum("nct,ndt->cd", xc, xc) / (x.shape[0] * x.shape[-1])
-        return c / (torch.diagonal(c).mean() + EPS)      # trace-normalised
+        return c / (torch.diagonal(c).mean() + EPS)
 
     def forward(self, x):                    # (N, C, T)
         with torch.no_grad():
