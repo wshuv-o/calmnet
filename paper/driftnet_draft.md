@@ -193,8 +193,42 @@ conditional on the class label throughout.
 ## 6. Results
 
 ### 6.1 Component ablation, Cohort A
-`[PENDING: results/driftnet_ds.json -- dn_full / dn_noalign / dn_noctx /
-dn_nogate / dn_stem, five outcomes, paired within seed]`
+
+ds007788, full data, 4 s windows, seed 0 (`results/driftnet_ds.json`).
+`[PENDING: seeds 1-2]`
+
+| arm | components | acc | ECE | acc@90 | onsets/min | latency |
+|---|---|---|---|---|---|---|
+| **dn_noctx** | align + gate | **0.901** | **0.039** | **0.876** | 1.64 | 0.0 s |
+| dn_full | align + ctx + gate | 0.878 | 0.074 | 0.837 | 1.26 | 0.0 s |
+| dn_nogate | align + ctx | 0.862 | 0.072 | (n/a) | 1.26 | 0.0 s |
+| dn_noalign | ctx + gate | 0.827 | 0.091 | 0.778 | 0.73 | 0.2 s |
+| dn_stem | none | 0.827 | 0.082 | 0.823 | 0.73 | 0.1 s |
+
+`dn_nogate`'s acc@90 is not reported: with the gate disabled the model emits a
+constant confidence, so ranking by it selects the first 90% of the test set in
+recording order rather than a confident subset. The number the code produces
+(0.859) is an artefact of that ordering and is not a selective accuracy.
+
+**Alignment is necessary, not merely additive.** `dn_noalign` (0.827) equals
+`dn_stem` (0.827): with alignment removed, the context and gate together
+contribute nothing. The gate only pays once the representation is aligned. This
+is the ablation result the architecture rests on, and it is consistent with the
+independent drift measurement in section 4.1.
+
+**The recommended configuration is alignment + gate**, at **0.901** -- +0.074
+over the bare multi-scale stem, and above every published model measured in the
+same harness (section 6.3).
+
+**Cross-epoch context is an operating point, not a default.** Adding it to
+alignment + gate costs 0.023 accuracy (0.901 -> 0.878) and doubles calibration
+error (0.039 -> 0.074) while reducing spurious activations 23% (1.64 -> 1.26).
+For a device that starts and stops a wearer's legs that trade may be worth
+taking, so it is reported as a selectable mode rather than included by default.
+Note this is the third temporal-smoothing mechanism in this project to show the
+same shape -- a fixed dwell prior and a within-epoch attention stack behaved
+identically -- which suggests the trade is a property of the task rather than of
+any one implementation.
 
 ### 6.2 External validation, Cohort B
 `[PENDING: results/driftnet_mobi.json]`
