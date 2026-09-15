@@ -105,19 +105,27 @@ def main():
         print("=" * 94)
         print("%-11s %16s %16s %14s" % ("arm", "A d_acc", "B d_acc", "transfers"))
         print("-" * 94)
+        ref = "dn_full" if "dn_full" in a else "base"
+        # For DriftNet the arms ablate DOWN from dn_full, so a NEGATIVE delta
+        # means the removed component was carrying its weight. Flip the sign so
+        # "helps" reads the same way in both conventions.
+        flip = -1.0 if ref == "dn_full" else 1.0
         for arm in ARMS:
-            if arm == "base":
+            if arm == ref or arm not in a and arm not in b:
                 continue
             ds = []
             for src in (a, b):
-                if arm in src and "base" in src:
-                    c = sorted(set(src[arm]) & set(src["base"]))
-                    ds.append(np.mean([src[arm][s]["acc"] - src["base"][s]["acc"]
-                                       for s in c]) if c else float("nan"))
+                if arm in src and ref in src:
+                    c = sorted(set(src[arm]) & set(src[ref]))
+                    ds.append(flip * np.mean([src[arm][s]["acc"] - src[ref][s]["acc"]
+                                              for s in c]) if c else float("nan"))
                 else:
                     ds.append(float("nan"))
             ok = "yes" if all(np.isfinite(ds)) and all(x > 0 for x in ds) else "no"
             print("%-11s %+16.3f %+16.3f %14s" % (arm, ds[0], ds[1], ok))
+        print("")
+        print("(for DriftNet arms the sign is flipped: a positive value means")
+        print(" the component REMOVED in that arm was contributing.)")
     print()
 
 
