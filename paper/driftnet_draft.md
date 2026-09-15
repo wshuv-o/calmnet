@@ -230,8 +230,46 @@ same shape -- a fixed dwell prior and a within-epoch attention stack behaved
 identically -- which suggests the trade is a property of the task rather than of
 any one implementation.
 
-### 6.2 External validation, Cohort B
-`[PENDING: results/driftnet_mobi.json]`
+### 6.2 External validation, Cohort B -- THE ARCHITECTURE DOES NOT TRANSFER
+
+MoBI, seed 0 (`results/driftnet_mobi.json`). This is a negative result and it is
+reported as the main finding of the section rather than as a caveat.
+
+| arm | components | Cohort A | Cohort B |
+|---|---|---|---|
+| dn_noctx | align + gate | **0.901** | 0.581 |
+| dn_full | align + ctx + gate | 0.878 | 0.626 |
+| dn_nogate | align + ctx | 0.862 | 0.606 |
+| dn_noalign | ctx + gate | 0.827 | **0.792** |
+| dn_stem | none (bare stem) | 0.827 | 0.737 |
+
+**On Cohort B the bare stem beats the full model**, 0.737 against 0.626. Every
+added component except the gate makes it worse.
+
+Component contributions, same measurement in both cohorts:
+
+| component | Cohort A | Cohort B | transfers |
+|---|---|---|---|
+| adaptive alignment | +0.051 | **-0.166** | **no -- reverses** |
+| cross-epoch context | -0.023 | **+0.045** | **no -- reverses** |
+| selective gate | +0.016 | +0.020 | yes |
+
+**Both components whose effect was explained mechanistically in section 4 reverse
+sign between cohorts.** The only one that transfers is the selective head, which
+is SelectiveNet used as published and is not a contribution of this work.
+
+**Why alignment fails on Cohort B.** MoBI is 88% walk. The layer's running
+covariance estimate is therefore dominated by a single class, and whitening by it
+removes the very variance that separates walk from stand. On Cohort A (26% walk)
+the estimate is a genuine mixture, so whitening removes session drift instead.
+The layer requires a class-mixed covariance estimate, and nothing in its design
+enforces that.
+
+**The separation this forces.** Section 4.1 shows the layer removes 84% of
+measured session drift on Cohort B -- more than on Cohort A -- while costing
+0.166 accuracy there. Removing drift and improving decoding are therefore
+demonstrably different things, and the drift measurement alone cannot support a
+performance claim. That is the most useful thing this section establishes.
 
 ### 6.3 Reference points
 Same harness, full data, 2 seeds (`results/fullbench.json`):
@@ -242,6 +280,30 @@ Same harness, full data, 2 seeds (`results/fullbench.json`):
 | EEGNeX | 58082 | 0.876 +- 0.021 |
 | ShallowFBCSPNet | 97120 | 0.867 +- 0.010 |
 | EEGConformer | 440706 | 0.843 +- 0.009 |
+
+## 6.4 What this paper can and cannot claim
+
+Stated plainly, because the external validation changed the answer.
+
+**Supported:**
+- The adaptive alignment layer removes 52% / 84% of measured session-to-session
+  covariance drift, 15/15 subjects, two cohorts, p <= 0.0001, with a no-op
+  control at zero. This is a mechanism result and it holds.
+- On Cohort A, alignment + gate reaches 0.901 balanced accuracy with ECE 0.039,
+  above every published model measured in the same harness, and alignment is
+  necessary there rather than additive (dn_noalign == dn_stem).
+- Removing session drift and improving decoding are different things. Cohort B
+  is the counterexample: 84% drift removed, 0.166 accuracy lost.
+
+**Not supported:**
+- That DriftNet is a generally better architecture. On an independent cohort the
+  bare stem beats the full model.
+- That adaptive alignment helps decoding. It helps on one cohort and hurts on the
+  other, by more than it helps.
+- Any cross-cohort claim for the cross-epoch context, which also reverses.
+
+The only component transferring across both cohorts is the selective head, which
+is prior work used as published.
 
 ## 7. Limitations
 
