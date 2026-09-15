@@ -65,6 +65,13 @@ OUT = RESULTS / "globalnorm.json"
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN = 3
 SCHEMES = ["perwindow", "global", "none"]
+# The closed-loop trials (trial01-12) are rexstate-labelled with walk/stop
+# interleaved inside each recording, so adding them carries no recording-level
+# confound. They raise the fit set from ~900 to ~5600 windows per subject.
+# walk6min/stop6min are deliberately excluded: one recording per class would
+# make recording identity a perfect predictor.
+TRIALS = tuple("trial%02d" % i for i in range(1, 13))
+FULL = os.environ.get("FULL_DATA", "0") == "1"
 
 
 def normalise(scheme, Xf, Xc, Xt):
@@ -99,6 +106,23 @@ def load(sub, win, seed):
     ti, ci = grouped_split(es.segment[tr], es.y[tr], frac=0.3, seed=seed)
     f = lambda a: a[tr][ti]
     c = lambda a: a[tr][ci]
+    if FULL:
+        # Trials from the TRAIN sessions only, appended to the fit split. The
+        # test set stays the held-out training-task sessions, unchanged, so the
+        # number remains comparable with every other result in this project.
+        ex = build_epochs(subject=sub, sessions=sess[:N_TRAIN], tasks=TRIALS,
+                          win=win, step=0.5, zscore=False)
+        Mx, _ = build_motion_ts(sub, sessions=sess[:N_TRAIN], tasks=TRIALS,
+                                win=win, step=0.5)
+        if len(Mx) != len(ex):
+            raise RuntimeError("trial motion misaligned")
+        cat = lambda a, b: np.concatenate([a, b])
+        return {"Xf": cat(f(es.X), ex.X), "Mf": cat(f(M), Mx),
+                "yf": cat(f(es.y), ex.y),
+                "Xc": c(es.X), "Mc": c(M), "yc": c(es.y),
+                "Xt": es.X[~tr], "Mt": M[~tr], "yt": es.y[~tr],
+                "st": es.session[~tr], "tt": es.task[~tr], "gt": es.segment[~tr],
+                "imu_t": es.imu_feats[~tr], "vt": valid[~tr]}
     return {"Xf": f(es.X), "Mf": f(M), "yf": f(es.y),
             "Xc": c(es.X), "Mc": c(M), "yc": c(es.y),
             "Xt": es.X[~tr], "Mt": M[~tr], "yt": es.y[~tr],
@@ -160,16 +184,17 @@ def main():
                    "acc_per_seed": acc,
                    "cond_r2": float(np.nanmean([p[1] for p in per_seed])),
                    "onsets": float(np.mean([p[2] for p in per_seed]))}
-            out["w%s|%s" % (win, scheme)] = rec
+            out["w%s|%s%s" % (win, scheme, "|full" if FULL else "")] = rec
             print("  %-10s win=%s  ACC %.3f+-%.3f  cond_r2 %+.3f  onsets %.2f"
                   % (scheme, win, rec["acc"], rec["acc_sd"], rec["cond_r2"],
                      rec["onsets"]), flush=True)
             OUT.write_text(json.dumps(out, indent=1))
-        base = out.get("w%s|perwindow" % win, {}).get("acc")
+        sfx = "|full" if FULL else ""
+        base = out.get("w%s|perwindow%s" % (win, sfx), {}).get("acc")
         if base is not None:
             print("", flush=True)
             for scheme in SCHEMES:
-                r = out.get("w%s|%s" % (win, scheme))
+                r = out.get("w%s|%s%s" % (win, scheme, sfx))
                 if r:
                     print("  %-10s %.3f   delta vs per-window %+.3f"
                           % (scheme, r["acc"], r["acc"] - base), flush=True)

@@ -58,19 +58,47 @@ from exp_globalnorm import normalise
 import features as FE
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-OUT = RESULTS / "published.json"
+OUT = RESULTS / os.environ.get("PUB_OUT", "published.json")
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN, EPOCHS = 3, 60
 # EEGNet is excluded on this machine only: importing it pulls in h5py, whose
 # DLL is blocked by a Windows Application Control policy ("DLL load failed
 # while importing h5s"). Environment, not architecture -- restore it wherever
 # h5py loads.
-MODELS = ["ShallowFBCSPNet", "Deep4Net", "EEGNeX", "EEGITNet",
-          "BDTCN", "EEGConformer", "ATCNet"]
-SCHEMES = ["perwindow", "global"]
+MODELS = os.environ.get("MODELS", "ShallowFBCSPNet,Deep4Net,EEGNeX,EEGITNet,BDTCN,EEGConformer,ATCNet").split(",")
+# "none" (one global scalar, every relative amplitude preserved) was added
+# after the bare CNN showed a monotonic ordering none > global > perwindow:
+# the more amplitude information survives, the better it does. Whether that
+# ordering holds for published architectures is the open question.
+SCHEMES = os.environ.get("SCHEMES", "perwindow,global,none").split(",")
+
+
+AMP = os.environ.get("AMP", "off")   # off | on | shuffle
 
 
 def build(name, n_chan, n_time):
+    """Published model, optionally with the amplitude side-channel attached.
+
+    AMP=off       the published architecture, untouched (baseline)
+    AMP=on        + log-power side-channel fused before the classifier
+    AMP=shuffle   + the same module with its amplitude vector permuted across
+                  the batch during training: identical parameter count and
+                  gradient path, zero amplitude information. If `on` beats
+                  `off` only because of added capacity, `shuffle` matches it.
+    """
+    if name.startswith("PowerAttn"):
+        # PowerAttn[-mode]: the merged architecture and its two ablations,
+        # benchmarked through the same harness as its parents so the numbers
+        # are directly comparable rather than merely similar.
+        from powerattn import build_powerattn
+        # PowerAttn[-mode][-size]; e.g. PowerAttn-full-small
+        parts = name.split("-")[1:]
+        mode = parts[0] if parts else "full"
+        size = parts[1] if len(parts) > 1 else os.environ.get("PA_SIZE", "base")
+        return build_powerattn(n_chan, n_time, 2, mode=mode, size=size)
+    if AMP != "off":
+        from amp_channel import wrap
+        return wrap(name, n_chan, n_time, 2, mode=AMP)
     import braindecode.models as B
     cls = getattr(B, name)
     kw = {"n_chans": n_chan, "n_outputs": 2, "n_times": n_time, "sfreq": 100.0}
@@ -79,7 +107,22 @@ def build(name, n_chan, n_time):
     return cls(**kw)
 
 
+TRIALS = tuple("trial%02d" % i for i in range(1, 13))
+FULL = os.environ.get("FULL_DATA", "0") == "1"
+
+
 def load(sub, win, seed):
+    """Fit split, optionally with the closed-loop trials appended.
+
+    At ~905 windows a 441k-parameter model carries ~490 parameters per training
+    sample, and everything measured tonight says capacity is a liability in that
+    regime -- a 1.3k-parameter network reached 0.873 while the largest published
+    models sat at 0.82. FULL_DATA=1 raises the fit set to ~5600 windows, which is
+    the regime these architectures were actually designed for, and the only
+    condition under which an attention stack has enough data to earn its
+    parameters. The TEST set is untouched either way, so the numbers stay
+    comparable with every other result here.
+    """
     es = build_epochs(subject=sub, win=win, step=0.5, zscore=False)
     valid = imu_valid_mask(es.imu_feats, es.session)
     pres = sorted(set(int(v) for v in np.unique(es.session)))
@@ -88,6 +131,14 @@ def load(sub, win, seed):
     ti, ci = grouped_split(es.segment[tr], es.y[tr], frac=0.3, seed=seed)
     f = lambda a: a[tr][ti]
     c = lambda a: a[tr][ci]
+    if FULL:
+        ex = build_epochs(subject=sub, sessions=sess[:N_TRAIN], tasks=TRIALS,
+                          win=win, step=0.5, zscore=False)
+        return {"Xf": np.concatenate([f(es.X), ex.X]),
+                "yf": np.concatenate([f(es.y), ex.y]),
+                "Xc": c(es.X), "yc": c(es.y),
+                "Xt": es.X[~tr], "yt": es.y[~tr], "st": es.session[~tr],
+                "imu_t": es.imu_feats[~tr], "vt": valid[~tr]}
     return {"Xf": f(es.X), "yf": f(es.y), "Xc": c(es.X), "yc": c(es.y),
             "Xt": es.X[~tr], "yt": es.y[~tr], "st": es.session[~tr],
             "imu_t": es.imu_feats[~tr], "vt": valid[~tr]}
@@ -162,7 +213,8 @@ def main():
 
     for name in MODELS:
         for scheme in SCHEMES:
-            key = "w%s|%s|%s|s%d" % (win, name, scheme, seed)
+            key = "w%s|%s|%s|s%d|amp-%s%s" % (win, name, scheme, seed, AMP,
+                                             "|full" if FULL else "")
             if key in out:
                 continue
             t0, A, R = time.time(), [], []
@@ -189,8 +241,8 @@ def main():
           flush=True)
     print("-" * 50, flush=True)
     for name in MODELS:
-        a = out.get("w%s|%s|perwindow|s%d" % (win, name, seed), {}).get("acc")
-        b = out.get("w%s|%s|global|s%d" % (win, name, seed), {}).get("acc")
+        a = out.get("w%s|%s|perwindow|s%d|amp-%s" % (win, name, seed, AMP), {}).get("acc")
+        b = out.get("w%s|%s|global|s%d|amp-%s" % (win, name, seed, AMP), {}).get("acc")
         if a is not None and b is not None:
             print("%-16s %10.3f %10.3f %+10.3f" % (name, a, b, b - a), flush=True)
     print("\nDONE", flush=True)

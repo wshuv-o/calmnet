@@ -1,4 +1,145 @@
-# The selection metric was inverted, and temporal structure is the untried lever
+# Preprocessing, not architecture: what actually capped this project
+
+---
+
+## 00. ARCHITECTURES ARE NOT DISTINGUISHABLE ON THIS DATASET
+
+The split seed -- which only changes WHICH segments go to fit versus calibration,
+not how much data there is -- moves accuracy more than any architectural choice
+does. Same subjects, same test sessions, same normalisation, 4 s windows:
+
+| model | seed 0 | seed 1 | swing |
+|---|---|---|---|
+| ShallowFBCSPNet (2017 baseline) | 0.821 | **0.874** | **0.053** |
+| ATCNet | 0.828 | 0.868 | 0.040 |
+| PowerAttn-noattn | 0.836 | 0.868 | 0.032 |
+| PowerAttn-full (the merge) | 0.837 | 0.852 | 0.015 |
+| PowerAttn-nopower | 0.837 | 0.839 | 0.002 |
+
+At seed 0 the merge ranks **first**; at seed 1 it ranks **fourth** and the plain
+2017 baseline wins. Within-model variation from the split alone (up to 0.053)
+**exceeds** between-model variation (0.016 at seed 0, 0.035 at seed 1).
+
+**Consequence: no single-seed architecture ranking on this dataset carries
+information.** That covers, retroactively:
+
+- the 131-variant sweep and its "winners"
+- the 18-backbone leaderboard
+- the v3 arm comparison
+- the 0.836 CNN headline reported earlier in this session, which reversed sign
+  on seeds 1 and 2
+- the motion canceller, which looked like the best module in the project
+
+Measurement precision on 905 windows x 7 subjects is roughly +-0.05. Every
+architectural effect anyone has proposed for this task is smaller than that. The
+only routes to a trustworthy architecture comparison are more data per subject or
+more subjects -- not a better module.
+
+### The merge itself (PowerAttnNet = ShallowFBCSPNet power pathway x ATCNet attention)
+
+Built on the two mechanisms this project measured: power is the signal (+0.134
+from restoring amplitude) and the states have 12-32 s dwells. It keeps
+ShallowFBCSPNet's `square -> pool -> log` estimator but emits a SEQUENCE instead
+of collapsing the time axis, then attends over it -- the thing neither parent
+does.
+
+Pre-registered success condition: `full` must beat both its own ablations and
+both parents. **It failed.** Two-seed means: `noattn` 0.852, ShallowFBCSPNet
+0.848, ATCNet 0.848, `full` 0.845, `nopower` 0.838. Removing attention makes it
+BETTER, which is the opposite of the design claim, and all differences sit inside
+the seed noise above.
+
+Also tried and failed: an amplitude side-channel fused into all seven published
+backbones. Mean effect -0.005 (4 up, 3 down), and a shuffle control that permutes
+the amplitude vector across the batch matched the intact version exactly
+(EEGNeX 0.841 both ways) -- so the apparent gains were capacity, not information.
+
+---
+
+---
+
+## THE RESULT: amplitude normalisation, found by reading someone else's code
+
+Comparing against `shonaka/EEG-neural-decoding` (Contreras-Vidal lab, who
+recorded the MoBI cohort) surfaced one difference: they fit a single
+StandardScaler on train and apply it to test. `dataio.build_epochs` does
+`X.std(axis=2)` -- every channel of every window forced to unit variance
+independently.
+
+Bare CNN, 4 s windows, 3 seeds:
+
+| scheme | accuracy | onsets/min | cond R² |
+|---|---|---|---|
+| perwindow (what the project always used) | 0.823 ± 0.008 | 1.34 | −0.082 |
+| global (per-channel stats from the fit split) | 0.862 ± 0.023 | 1.20 | −0.075 |
+| **none** (one global scalar; all relative amplitude kept) | **0.873 ± 0.013** | **0.97** | −0.076 |
+
+Monotonic: the more amplitude information survives, the better the decoder gets,
+on accuracy AND safety together, with leakage flat. **+0.050 from a
+preprocessing line** -- larger than the spread across all 131 architecture
+variants, 18 backbones and 14 ablated modules tried before it.
+
+### What it does NOT mean
+
+An earlier draft of this section said per-window z-scoring "deletes ERD". That
+is too strong and the benchmark disproves it: ShallowFBCSPNet scores 0.824 on
+per-window data, which would be impossible if the signal were gone.
+
+What per-window normalisation removes is **marginal per-channel power**. The
+correlation structure survives, and a spatial filter's output power depends on
+correlations rather than on marginal variances -- so architectures that learn
+spatial filters, or renormalise internally, route around the loss. The damage is
+specific to features that read marginal power directly:
+
+| feature | per-window | raw | Δ |
+|---|---|---|---|
+| log band-power (pure marginal power) | 0.625 | 0.760 | **+0.134** |
+| tangent + EA (correlation-based) | 0.762 | 0.746 | −0.016 |
+| correlation only | 0.738 | 0.734 | −0.004 |
+
+### Published architectures, 4 s, seed 0
+
+| model | perwindow | global | Δ |
+|---|---|---|---|
+| Deep4Net | 0.760 | 0.821 | **+0.061** |
+| ShallowFBCSPNet | 0.824 | 0.821 | −0.003 |
+| EEGNeX | 0.834 | 0.832 | −0.002 |
+| EEGITNet | 0.833 | 0.791 | **−0.042** |
+| BDTCN | 0.820 | 0.822 | +0.002 |
+
+Model-dependent, not universal. **Provisional headline: the bare CNN with
+minimal normalisation (0.873 ± 0.013, 3 seeds) beats every published
+architecture tested (0.760–0.834, 1 seed each).** Provisional because the
+published models have one seed and have not yet been run under `none`, which was
+the winning scheme -- both queued.
+
+### Two bugs found on the way
+
+- `features.covariances` added an **absolute** 1e-5 ridge. Raw EEG variance is
+  ~8e-11, so on unnormalised data the regulariser exceeded the signal by five
+  orders of magnitude and every covariance came back as pure identity, silently.
+  Now scale-relative; numerically unchanged for normalised input.
+- `exp_published` defaults `mods.get(k, True)`, which would have switched
+  excluded modules back ON in every cell of the clean ablation.
+
+### Probe sensitivity (`exp_sensitivity.py`) -- the null is now a bound
+
+Injecting the real motion reference, spatially mixed, at known power:
+
+| injected | cond R² | raw R² | accuracy |
+|---|---|---|---|
+| 0% | −0.112 | +0.199 | 0.763 |
+| 0.1% | −0.057 | +0.447 | 0.819 |
+| **0.5%** | **+0.015** | +0.726 | 0.873 |
+| 5% | +0.085 | +0.828 | 0.913 |
+| 50% | +0.094 | +0.821 | 0.917 |
+
+**Detection threshold 0.50% of signal power.** So the −0.11 on clean data bounds
+real contamination below half a percent, rather than merely failing to find it.
+Note 5% injected artefact buys +0.15 accuracy: contamination is extremely
+exploitable, which is why every gain in this project needed a control.
+
+---
 
 ---
 
