@@ -1,0 +1,62 @@
+{
+ "w4.0|PowerAttn-full|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "PowerAttn-full",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8417514925742922,
+  "acc_sd": 0.07862124725196079,
+  "cond_r2": -0.07662557119762017,
+  "n_sub": 7
+ },
+ "w4.0|PowerAttn-nopower|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "PowerAttn-nopower",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8486616742894035,
+  "acc_sd": 0.10335332794033954,
+  "cond_r2": -0.07971424150236488,
+  "n_sub": 7
+ },
+ "w4.0|PowerAttn-noattn|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "PowerAttn-noattn",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8453781974378725,
+  "acc_sd": 0.06730834343957612,
+  "cond_r2": -0.07137498321822865,
+  "n_sub": 7
+ },
+ "w4.0|ShallowFBCSPNet|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "ShallowFBCSPNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8561683055226782,
+  "acc_sd": 0.08022018622439495,
+  "cond_r2": -0.0747337241390064,
+  "n_sub": 7
+ },
+ "w4.0|ATCNet|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "ATCNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8813191842024357,
+  "acc_sd": 0.0725241923413147,
+  "cond_r2": -0.06580563436735999,
+  "n_sub": 7
+ },
+ "w4.0|EEGNeX|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "EEGNeX",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8548905411853137,
+  "acc_sd": 0.08753155188722912,
+  "cond_r2": -0.05475683415010946,
+  "n_sub": 7
+ }
+}

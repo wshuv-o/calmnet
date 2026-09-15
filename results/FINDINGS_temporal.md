@@ -2,7 +2,62 @@
 
 ---
 
-## 00. ARCHITECTURES ARE NOT DISTINGUISHABLE ON THIS DATASET
+## 000. ARCHITECTURE MATTERS AT FULL DATA -- the "ceiling" was a floor
+
+Section 00 below concluded the architecture avenue was closed. That conclusion
+was drawn ENTIRELY at ~905 fit windows per subject, and it is wrong at scale.
+Seed-0 paired, 4 s windows, global normalisation, 905 -> 4881 windows:
+
+| model | params | 905 | 4881 | Δ |
+|---|---|---|---|---|
+| **ATCNet** | 45k | 0.828 | **0.881** | **+0.053** |
+| ShallowFBCSPNet | 97k | 0.821 | 0.856 | +0.035 |
+| EEGNeX | 58k | 0.832 | 0.855 | +0.023 |
+| PowerAttn-nopower | 123k | 0.837 | 0.849 | +0.012 |
+| PowerAttn-full | 123k | 0.830 | 0.842 | +0.012 |
+| PowerAttn-noattn | 123k | 0.836 | 0.845 | +0.009 |
+
+At 905 windows every architecture collapsed to 0.84 +- 0.02 and that was read as
+a task ceiling. It was a floor imposed by sample size: no architecture can
+express its inductive bias with ~490 parameters per training sample. Given 5.4x
+the data the published designs separate, and **the models built in this project
+gain the LEAST** -- they were nearer their own ceilings, the real designs had
+headroom.
+
+**The best decoder on this task is ATCNet (Altaheri et al. 2022), unmodified, at
+0.881. Nothing built here beats it.**
+
+### ATCNet is winning while silently degraded
+
+Its temporal hyperparameters are specified in SAMPLES and tuned on BCI-IV-2a
+(22 channels, 1125 samples, 250 Hz). As durations, from the authors' own code:
+
+    eegn_kernelSize 64 @ 250 Hz -> 256 ms ;  second conv 16 -> 64 ms
+    pooling 8 x 7 -> 224 ms per frame ;  1125/56 = 20 frames ;  5 sliding windows
+
+Our data is 100 Hz, so identical sample counts stretch every receptive field by
+2.5x -- and 400 samples falls below the 616 the default configuration needs, so
+braindecode rewrites the model:
+
+    n_windows        5 -> 3      the windowed attention ensemble, the "AT" in ATCNet
+    tcn_kernel_size  4 -> 2
+    kernel_length_1 64 -> 41 ;  pool sizes 8,7 -> 5,4
+
+It reaches 0.881 with 40% of its attention ensemble removed. The rate-matched
+configuration (`atcnet_rate.py`) restores the intended durations at 100 Hz --
+k1=26, k2=6, pool 4x5 -> 20 frames -- which also drops the minimum input to 220,
+below our 400, so nothing degrades. Control `rate_nw3` keeps the corrected
+kernels but forces n_windows back to 3, separating "restored the ensemble" from
+"fixed the kernels". Result pending.
+
+The defect is worth recording regardless of whether the fix helps: a published
+architecture's sample-specified hyperparameters do not transfer across sampling
+rates, and the framework's compatibility fallback hides it by yielding a model
+that still runs and still scores well.
+
+---
+
+## 00. ARCHITECTURES ARE NOT DISTINGUISHABLE ON THIS DATASET (superseded -- see 000; true only at 905 windows)
 
 The split seed -- which only changes WHICH segments go to fit versus calibration,
 not how much data there is -- moves accuracy more than any architectural choice

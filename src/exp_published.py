@@ -86,6 +86,14 @@ def build(name, n_chan, n_time):
                   gradient path, zero amplitude information. If `on` beats
                   `off` only because of added capacity, `shuffle` matches it.
     """
+    if name.startswith("ATC-"):
+        # ATC-default | ATC-rate | ATC-rate_nw3 -- ATCNet with its temporal
+        # hyperparameters matched to 100 Hz instead of the 250 Hz they were
+        # tuned at. See atcnet_rate.py: at 400 samples the default config falls
+        # below braindecode's minimum and is silently degraded from 5 attention
+        # windows to 3.
+        from atcnet_rate import build_atcnet
+        return build_atcnet(name.split("-", 1)[1], n_chan, n_time, 2, 100.0)
     if name.startswith("PowerAttn"):
         # PowerAttn[-mode]: the merged architecture and its two ablations,
         # benchmarked through the same harness as its parents so the numbers
