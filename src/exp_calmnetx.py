@@ -83,6 +83,39 @@ K_CTX, S_CTX = 8, 3
 EPOCHS = int(os.environ.get("CX_EPOCHS", "30"))
 SIZE = os.environ.get("CX_SIZE", "base")
 TRIALS = tuple("trial%02d" % i for i in range(1, 13))
+COHORT = os.environ.get("CX_COHORT", "ds007788")
+
+
+def load_mobi(sub, seed):
+    """Second cohort (Luu et al. treadmill BCI) in the same dict shape.
+
+    External validation: independent lab, independent subjects, goniometers
+    instead of IMU, treadmill walk/stand instead of exoskeleton walk/stop,
+    64 channels instead of 60, and the class imbalance REVERSED -- Stop is ~12%
+    here and the majority on ds007788. An architecture that only worked on
+    whichever class happens to dominate would fail here.
+
+    Windows are 2 s (this cohort's cached protocol) rather than the 4 s used on
+    ds007788; the context module's span scales with the window, so K is kept and
+    the covered duration is stated rather than matched.
+
+    Split convention (fit trial 1, test trials 2-3) matches exp_mobi.py and
+    exp_calmnet3.py so the numbers stay comparable with what is already reported.
+    """
+    from dataio_mobi import build_subject
+    es = build_subject(sub, win=2.0, step=0.5, zscore=False)
+    if es is None or len(es) < 100:
+        raise RuntimeError("no MoBI data for %s" % sub)
+    fit, test = es.by_trials([1]), es.by_trials([2, 3])
+    ti, ci = grouped_split(fit.segment, fit.y, frac=0.3, seed=seed)
+    const = lambda n: np.array(["mobi"] * n, object)
+    return {"Xf": fit.X[ti], "yf": fit.y[ti], "sf": fit.trial[ti],
+            "tf": const(len(ti)), "gf": fit.segment[ti],
+            "Xc": fit.X[ci], "yc": fit.y[ci], "sc": fit.trial[ci],
+            "tc": const(len(ci)), "gc": fit.segment[ci],
+            "Xt": test.X, "yt": test.y, "st": test.trial,
+            "tt": const(len(test)), "gt": test.segment,
+            "imu_t": test.motion, "vt": np.ones(len(test), bool)}
 
 
 def context_index(strm, n, k=K_CTX, s=S_CTX):
@@ -221,10 +254,15 @@ def run(d, arm, seed):
 def main():
     seeds = [int(s) for s in os.environ.get("CX_SEEDS", "0").split(",")]
     out = json.loads(OUT.read_text()) if OUT.exists() else {}
+    if COHORT.startswith("mobi"):
+        from dataio_mobi import subjects as _ms
+        subs, loader = _ms(), load_mobi
+    else:
+        subs, loader = SUBJECTS, load
     D = {}
-    for sub in SUBJECTS:
+    for sub in subs:
         try:
-            D[sub] = load(sub, seeds[0])
+            D[sub] = loader(sub, seeds[0])
         except Exception as e:
             print("  [skip] %s: %s: %s" % (sub, type(e).__name__, e), flush=True)
     n = int(np.mean([len(d["yf"]) for d in D.values()])) if D else 0
@@ -241,7 +279,7 @@ def main():
             for sub, d in D.items():
                 try:
                     if seed != seeds[0]:
-                        d = load(sub, seed)
+                        d = loader(sub, seed)
                     rows.append(run(d, name, seed))
                 except Exception as e:
                     print("    [fail] %s/%s: %s: %s"

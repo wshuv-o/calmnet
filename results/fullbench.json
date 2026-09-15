@@ -78,5 +78,85 @@
   "acc_sd": 0.08543121431193444,
   "cond_r2": -0.07564903234585996,
   "n_sub": 7
+ },
+ "w4.0|PowerAttn-nopower|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "PowerAttn-nopower",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8313675734797091,
+  "acc_sd": 0.08108076506179139,
+  "cond_r2": -0.05423071398253697,
+  "n_sub": 7
+ },
+ "w4.0|PowerAttn-noattn|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "PowerAttn-noattn",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8755978841658311,
+  "acc_sd": 0.06494903742896013,
+  "cond_r2": -0.06457023320300967,
+  "n_sub": 7
+ },
+ "w4.0|ShallowFBCSPNet|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "ShallowFBCSPNet",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8770286172308469,
+  "acc_sd": 0.06693314107911177,
+  "cond_r2": -0.06380239577158424,
+  "n_sub": 7
+ },
+ "w4.0|ATCNet|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "ATCNet",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8764730852435726,
+  "acc_sd": 0.08551917348193615,
+  "cond_r2": -0.05322650721149248,
+  "n_sub": 7
+ },
+ "w4.0|EEGNeX|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "EEGNeX",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8963793495507364,
+  "acc_sd": 0.0745936981576008,
+  "cond_r2": -0.06100505328384159,
+  "n_sub": 7
+ },
+ "w4.0|EEGConformer|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "EEGConformer",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8524738595169968,
+  "acc_sd": 0.06930965013972223,
+  "cond_r2": -0.052595852093191876,
+  "n_sub": 7
+ },
+ "w4.0|CALMNet-bare|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "CALMNet-bare",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8781192844658466,
+  "acc_sd": 0.0557194721619394,
+  "cond_r2": -0.07018597929203842,
+  "n_sub": 7
+ },
+ "w4.0|CALMNet-bare|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "CALMNet-bare",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.838033179817068,
+  "acc_sd": 0.08993569073139376,
+  "cond_r2": -0.07537674255032664,
+  "n_sub": 7
  }
 }
