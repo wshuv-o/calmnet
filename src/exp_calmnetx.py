@@ -64,6 +64,7 @@ from train import set_seed, DEVICE
 from exp_temporal import streams, onset_metrics
 from exp_globalnorm import normalise
 from atcnet_plus import build_atcnet_plus, selective_loss
+from driftnet import build_driftnet
 import features as FE
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
@@ -77,6 +78,20 @@ ARMS = {
     "rate+gate": dict(rate=True,  use_ctx=False, use_gate=True),
     "full":      dict(rate=True,  use_ctx=True,  use_gate=True),
 }
+# DriftNet ablation. `full` is the proposed architecture; each `no_*` arm
+# removes exactly one component so it has to earn its place. `no_align` is the
+# one that matters -- it isolates the in-network session adaptation, which is
+# the part not taken from any prior architecture.
+DRIFT_ARMS = {
+    "dn_full":     dict(use_align=True,  use_ctx=True,  use_gate=True),
+    "dn_noalign":  dict(use_align=False, use_ctx=True,  use_gate=True),
+    "dn_noctx":    dict(use_align=True,  use_ctx=False, use_gate=True),
+    "dn_nogate":   dict(use_align=True,  use_ctx=True,  use_gate=False),
+    "dn_stem":     dict(use_align=False, use_ctx=False, use_gate=False),
+}
+MODEL = os.environ.get("CX_MODEL", "atcplus")
+if MODEL == "driftnet":
+    ARMS = DRIFT_ARMS
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN, WIN, STEP = 3, 4.0, 0.5
 K_CTX, S_CTX = 8, 3
@@ -195,7 +210,11 @@ def run(d, arm, seed):
     tXt, tyt, ixt, strm_t = make_split(Xt, d["yt"], d["st"], d["tt"], d["gt"], k)
 
     set_seed(seed)
-    model = build_atcnet_plus(Xf.shape[1], Xf.shape[2], 2, **cfg).to(DEVICE)
+    if MODEL == "driftnet":
+        model = build_driftnet(Xf.shape[1], Xf.shape[2], 2, size=SIZE,
+                               **cfg).to(DEVICE)
+    else:
+        model = build_atcnet_plus(Xf.shape[1], Xf.shape[2], 2, **cfg).to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-2)
     sched = torch.optim.lr_scheduler.OneCycleLR(
         opt, max_lr=3e-4, total_steps=EPOCHS * max(1, len(ixf) // 32 + 1))
