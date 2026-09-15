@@ -118,5 +118,55 @@
   "acc_sd": 0.07016581757523421,
   "cond_r2": -0.07858649207425623,
   "n_sub": 7
+ },
+ "w4.0|PowerAttn-noattn|global|s2|amp-off": {
+  "win": 4.0,
+  "model": "PowerAttn-noattn",
+  "scheme": "global",
+  "seed": 2,
+  "acc": 0.8860510928350662,
+  "acc_sd": 0.06448295010167021,
+  "cond_r2": -0.06926938716386652,
+  "n_sub": 7
+ },
+ "w4.0|ShallowFBCSPNet|global|s2|amp-off": {
+  "win": 4.0,
+  "model": "ShallowFBCSPNet",
+  "scheme": "global",
+  "seed": 2,
+  "acc": 0.8606985320896803,
+  "acc_sd": 0.07033815747485526,
+  "cond_r2": -0.04627648471410268,
+  "n_sub": 7
+ },
+ "w4.0|ATCNet|global|s2|amp-off": {
+  "win": 4.0,
+  "model": "ATCNet",
+  "scheme": "global",
+  "seed": 2,
+  "acc": 0.8263503051404744,
+  "acc_sd": 0.10189491342408191,
+  "cond_r2": -0.043716207532709585,
+  "n_sub": 7
+ },
+ "w4.0|PowerAttn-full-small|global|s0|amp-off": {
+  "win": 4.0,
+  "model": "PowerAttn-full-small",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8336348452601875,
+  "acc_sd": 0.08148384870314453,
+  "cond_r2": -0.06658668511021913,
+  "n_sub": 7
+ },
+ "w4.0|PowerAttn-noattn-small|global|s0|amp-off": {
+  "win": 4.0,
+  "model": "PowerAttn-noattn-small",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8442099694468749,
+  "acc_sd": 0.09810830226451954,
+  "cond_r2": -0.07976296101289972,
+  "n_sub": 7
  }
 }

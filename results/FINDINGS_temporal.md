@@ -72,17 +72,37 @@ of collapsing the time axis, then attends over it -- the thing neither parent
 does.
 
 Pre-registered success condition: `full` must beat both its own ablations and
-both parents. **It failed**, and with three seeds the failure is now
-well-measured rather than noise-limited:
+both parents. **It failed, and finished last.** Three seeds each:
 
-    PowerAttn-full     0.840 +- 0.009  (n=3)
-    PowerAttn-nopower  0.842 +- 0.006  (n=3)   <- removing the power pathway: no cost
-    PowerAttn-noattn   0.852 +- 0.016  (n=2)   <- removing attention: no cost, if anything better
+| model | n | mean | SD | per-seed |
+|---|---|---|---|---|
+| **PowerAttn-noattn** | 3 | **0.863** | 0.021 | 0.836 / 0.868 / 0.886 |
+| ShallowFBCSPNet (parent 1) | 3 | 0.852 | 0.023 | 0.821 / 0.874 / 0.861 |
+| PowerAttn-nopower | 3 | 0.842 | 0.006 | 0.837 / 0.839 / 0.850 |
+| ATCNet (parent 2) | 3 | 0.841 | 0.019 | 0.828 / 0.868 / 0.826 |
+| **PowerAttn-full** (the merge) | 3 | **0.840** | 0.009 | 0.830 / 0.837 / 0.852 |
 
-The power pathway -- the entire reason for the merge -- contributes nothing, and
-the error bars are now tight enough to say that rather than to shrug at it.
-Removing attention does not hurt either. Both parents sit at ~0.847-0.848, so the
-merge does not beat them.
+The finding is not "the merge did not help". It is that **the ATCNet half
+actively hurts**: deleting attention and the TCN is worth +0.023, the largest
+gap in the table and about 2x the pooled standard error. What remains after that
+deletion -- ShallowFBCSPNet's log-power front end emitting a SEQUENCE which is
+then mean-pooled, plus LayerNorm -- is the best configuration tested, +0.011 over
+ShallowFBCSPNet itself (inside noise).
+
+Both design mechanisms failed to transfer, and each failed for an instructive
+reason:
+
+  * Power IS the signal at the feature level (+0.134 on band-power when
+    amplitude normalisation is corrected), but adding a power pathway to a
+    network that already computes power does nothing: `nopower` == `full`.
+  * Temporal structure IS real (12-32 s dwells), but attention over 22 frames
+    INSIDE a 4 s window does not capture it. The dwell prior that worked
+    operated ACROSS windows, over tens of seconds -- a different timescale
+    entirely, and not one a within-window attention layer can see.
+
+Third architecture attempt tonight to fail its own pre-registered control
+(after the amplitude side-channel and the per-model normalisation fix). The
+consistency is itself the result.
 
 Also tried and failed: an amplitude side-channel fused into all seven published
 backbones. Mean effect -0.005 (4 up, 3 down), and a shuffle control that permutes
