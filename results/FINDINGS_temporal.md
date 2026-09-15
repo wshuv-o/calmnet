@@ -10,15 +10,43 @@ does. Same subjects, same test sessions, same normalisation, 4 s windows:
 
 | model | seed 0 | seed 1 | swing |
 |---|---|---|---|
-| ShallowFBCSPNet (2017 baseline) | 0.821 | **0.874** | **0.053** |
-| ATCNet | 0.828 | 0.868 | 0.040 |
-| PowerAttn-noattn | 0.836 | 0.868 | 0.032 |
+| ShallowFBCSPNet (2017 baseline) | 0.821 | **0.874** | 0.053 (n=2) |
+| ATCNet | 0.828 | 0.868 | 0.040 (n=2) |
+| PowerAttn-noattn | 0.836 | 0.868 | 0.032 (n=2) |
 | PowerAttn-full (the merge) | 0.837 | 0.852 | 0.015 |
 | PowerAttn-nopower | 0.837 | 0.839 | 0.002 |
 
 At seed 0 the merge ranks **first**; at seed 1 it ranks **fourth** and the plain
-2017 baseline wins. Within-model variation from the split alone (up to 0.053)
-**exceeds** between-model variation (0.016 at seed 0, 0.035 at seed 1).
+2017 baseline wins.
+
+### Calibrated version of that claim (the two-seed reading above overstates it)
+
+A "swing" over two seeds is the range of two samples and estimates variance
+badly. With three or more seeds the instability is real but roughly half what
+two seeds suggested:
+
+| pipeline | n | mean | seed SD |
+|---|---|---|---|
+| PowerAttn-nopower | 3 | 0.842 | 0.006 |
+| bare CNN (perwindow) | 3 | 0.823 | 0.008 |
+| PowerAttn-full | 3 | 0.840 | 0.009 |
+| tangent + logreg | 4 | 0.778 | 0.009 |
+| bare CNN (none) | 3 | 0.873 | 0.013 |
+| bare CNN (global) | 3 | 0.862 | 0.023 |
+| ShallowFBCSPNet | 2 | 0.847 | 0.027 |
+| ATCNet | 2 | 0.848 | 0.020 |
+
+Typical seed SD is **~0.010-0.015**, and the two alarming values are the two
+with n=2. So the defensible statement is:
+
+> Seed SD is ~0.01; with 3 seeds the standard error on a mean is ~0.006-0.013.
+> Architecture differences of ~0.02 among deep models are marginal but NOT
+> unresolvable -- they require 3+ seeds and cannot be read off a single run.
+
+That is weaker than "architectures are indistinguishable", which an earlier
+draft of this section claimed on n=2 evidence. It still invalidates every
+single-seed ranking here, which is the part that matters, but it does not
+license "measurement is hopeless".
 
 **Consequence: no single-seed architecture ranking on this dataset carries
 information.** That covers, retroactively:
@@ -44,10 +72,17 @@ of collapsing the time axis, then attends over it -- the thing neither parent
 does.
 
 Pre-registered success condition: `full` must beat both its own ablations and
-both parents. **It failed.** Two-seed means: `noattn` 0.852, ShallowFBCSPNet
-0.848, ATCNet 0.848, `full` 0.845, `nopower` 0.838. Removing attention makes it
-BETTER, which is the opposite of the design claim, and all differences sit inside
-the seed noise above.
+both parents. **It failed**, and with three seeds the failure is now
+well-measured rather than noise-limited:
+
+    PowerAttn-full     0.840 +- 0.009  (n=3)
+    PowerAttn-nopower  0.842 +- 0.006  (n=3)   <- removing the power pathway: no cost
+    PowerAttn-noattn   0.852 +- 0.016  (n=2)   <- removing attention: no cost, if anything better
+
+The power pathway -- the entire reason for the merge -- contributes nothing, and
+the error bars are now tight enough to say that rather than to shrug at it.
+Removing attention does not hurt either. Both parents sit at ~0.847-0.848, so the
+merge does not beat them.
 
 Also tried and failed: an amplitude side-channel fused into all seven published
 backbones. Mean effect -0.005 (4 up, 3 down), and a shuffle control that permutes

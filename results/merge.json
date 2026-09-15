@@ -108,5 +108,15 @@
   "acc_sd": 0.060413934188277195,
   "cond_r2": -0.0764831214237592,
   "n_sub": 7
+ },
+ "w4.0|PowerAttn-nopower|global|s2|amp-off": {
+  "win": 4.0,
+  "model": "PowerAttn-nopower",
+  "scheme": "global",
+  "seed": 2,
+  "acc": 0.8500322133662158,
+  "acc_sd": 0.07016581757523421,
+  "cond_r2": -0.07858649207425623,
+  "n_sub": 7
  }
 }
