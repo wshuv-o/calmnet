@@ -61,12 +61,36 @@ from abstain import balanced_accuracy
 import features as FE
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-OUT = RESULTS / "zscore.json"
+OUT = RESULTS / os.environ.get("ZS_OUT", "zscore.json")
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN = 3
 
 
+COHORT = os.environ.get("COHORT", "ds007788")
+
+
+def load_mobi(sub, win, zscore):
+    """Second cohort. dataio_mobi.py:179 applies the SAME per-window,
+    per-channel z-score as dataio.py -- and two lines later normalises the
+    goniometer reference with axis=(0, 2), globally per channel. The same file
+    preserves amplitude for the movement signal and destroys it for the EEG,
+    which is what makes this a genuine independent replication rather than a
+    re-test of one lab's habit.
+    """
+    from dataio_mobi import build_subject
+    es = build_subject(sub, win=win, step=0.5, zscore=zscore)
+    if es is None or len(es) < 100:
+        raise RuntimeError("no MoBI data for %s" % sub)
+    fit, test = es.by_trials([1]), es.by_trials([2, 3])
+    ti, _ = grouped_split(fit.segment, fit.y, frac=0.3, seed=0)
+    return {"Xf": fit.X[ti], "yf": fit.y[ti],
+            "Xt": test.X, "yt": test.y, "st": test.trial,
+            "imu_t": test.motion, "vt": np.ones(len(test), bool)}
+
+
 def load(sub, win, zscore):
+    if COHORT.startswith("mobi"):
+        return load_mobi(sub, win, zscore)
     es = build_epochs(subject=sub, win=win, step=0.5, zscore=zscore)
     valid = imu_valid_mask(es.imu_feats, es.session)
     pres = sorted(set(int(v) for v in np.unique(es.session)))
@@ -100,6 +124,10 @@ def feats(kind, Xf, Xt):
 
 def main():
     wins = [float(w) for w in sys.argv[1].split(",")] if len(sys.argv) > 1 else [2.0]
+    global SUBJECTS
+    if COHORT.startswith("mobi"):
+        from dataio_mobi import subjects as ms
+        SUBJECTS = ms()
     out = json.loads(OUT.read_text()) if OUT.exists() else {}
     for win in wins:
         for kind in ("tangent_ea", "bandpower", "corr_only"):
