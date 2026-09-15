@@ -86,6 +86,33 @@ def build(name, n_chan, n_time):
                   gradient path, zero amplitude information. If `on` beats
                   `off` only because of added capacity, `shuffle` matches it.
     """
+    if name == "CALMNet-bare":
+        # OUR model, run through the SAME harness as the published ones. Its
+        # 0.878 came from exp_globalnorm's loop; ATCNet's 0.879 came from this
+        # one. The loops are near-identical (AdamW 1e-3, cosine, batch 64,
+        # patience 20) but "near-identical" is not identical, and a 0.003 gap
+        # cannot be claimed across two training loops. CALMNetArch takes a
+        # motion reference it does not use when every module is off -- verified
+        # in exp_cancel_control, where perturbing it moved accuracy by 0.000 --
+        # so it is fed zeros.
+        import torch.nn as _nn
+        from calmnet_arch import CALMNetArch
+        from exp_ablate import ARCH_MODS
+
+        class _Bare(_nn.Module):
+            def __init__(self, n_chan, n_time):
+                super().__init__()
+                self.net = CALMNetArch(n_chan=n_chan, n_time=n_time, n_ref=4,
+                                       k_imu=16,
+                                       mods={k: False for k in ARCH_MODS})
+                self.n_ref, self.n_time = 4, n_time
+
+            def forward(self, x):
+                m = torch.zeros(x.shape[0], self.n_ref, self.n_time,
+                                device=x.device, dtype=x.dtype)
+                return self.net(x, m, 0.0)["logits"]
+
+        return _Bare(n_chan, n_time)
     if name.startswith("ATC-"):
         # ATC-default | ATC-rate | ATC-rate_nw3 -- ATCNet with its temporal
         # hyperparameters matched to 100 Hz instead of the 250 Hz they were
