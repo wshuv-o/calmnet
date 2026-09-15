@@ -134,6 +134,37 @@ on accuracy AND safety together, with leakage flat. **+0.050 from a
 preprocessing line** -- larger than the spread across all 131 architecture
 variants, 18 backbones and 14 ablated modules tried before it.
 
+### REPLICATED on the second cohort (`exp_zscore.py`, COHORT=mobi)
+
+`dataio_mobi.py:179` carries the identical defect -- `X.std(axis=2)`, per-window
+per-channel -- and two lines later normalises the goniometer reference with
+`axis=(0, 2)`, globally per channel. The same function preserves amplitude for
+the movement signal and destroys it for the EEG, which is the signature of a
+habit rather than a typo and is why this is a real replication target.
+
+| representation | cohort | z-scored | raw | Δ |
+|---|---|---|---|---|
+| **band-power** | ds007788 | 0.625 | 0.760 | **+0.134** |
+| **band-power** | **MoBI** | **0.574** | **0.748** | **+0.174** |
+| tangent + EA | ds007788 | 0.762 | 0.746 | −0.016 |
+| tangent + EA | **MoBI** | 0.675 | 0.704 | **+0.029** |
+
+Independent lab, independent subjects, different sensors (goniometers vs IMU),
+different task framing (treadmill walk/stand vs exoskeleton walk/stop), different
+channel count (64 vs 60) -- same defect, same effect, slightly larger.
+
+Two honest caveats:
+
+  * MoBI's `bandpower/raw` cell reports conditional R² = −1.056, a numerical
+    blow-up rather than a measurement: log-variance of volt-scale data sits near
+    −23 with tiny spread and the probe's ridge is unstable there. The accuracy is
+    sound; that leakage number is not, and the features need rescaling before it
+    can be quoted. The same artefact appeared on ds007788 (−196).
+  * tangent + EA moves in OPPOSITE directions across the two cohorts (−0.016 vs
+    +0.029). The prediction was that it would be unaffected in both, since
+    trace-normalised covariance already discards amplitude. That holds on
+    ds007788 and fails on MoBI. Unexplained; recorded rather than smoothed over.
+
 ### What it does NOT mean
 
 An earlier draft of this section said per-window z-scoring "deletes ERD". That
