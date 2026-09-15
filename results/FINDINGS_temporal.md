@@ -142,16 +142,32 @@ per-channel -- and two lines later normalises the goniometer reference with
 the movement signal and destroys it for the EEG, which is the signature of a
 habit rather than a typo and is why this is a real replication target.
 
-| representation | cohort | z-scored | raw | Δ |
-|---|---|---|---|---|
-| **band-power** | ds007788 | 0.625 | 0.760 | **+0.134** |
-| **band-power** | **MoBI** | **0.574** | **0.748** | **+0.174** |
-| tangent + EA | ds007788 | 0.762 | 0.746 | −0.016 |
-| tangent + EA | **MoBI** | 0.675 | 0.704 | **+0.029** |
+| representation | contains | ds007788 Δ | MoBI Δ |
+|---|---|---|---|
+| **band-power** | pure marginal power | **+0.134** | **+0.174** |
+| tangent + EA | power AND correlation | −0.016 | +0.029 |
+| **corr_only** | pure correlation | **−0.004** | **+0.000** |
+
+(MoBI absolute values: band-power 0.574→0.748, tangent 0.675→0.704,
+corr_only 0.701→0.702.)
 
 Independent lab, independent subjects, different sensors (goniometers vs IMU),
 different task framing (treadmill walk/stand vs exoskeleton walk/stop), different
 channel count (64 vs 60) -- same defect, same effect, slightly larger.
+
+**`corr_only` is the control that closes the argument.** A correlation matrix is
+invariant to per-channel scaling *by construction*, so if removing per-window
+normalisation helped for any GENERIC reason -- better optimiser conditioning,
+implicit regularisation, distribution shift -- `corr_only` would move with
+everything else. It does not: +0.000 and −0.004. The effect size tracks exactly
+how much marginal power each representation carries and vanishes precisely where
+the mechanism says it must, in both cohorts independently.
+
+Four independent legs, then: a demonstrated mechanism (synthetic ERD reads 1.000
+where truth is 0.25), replication across labs and sensors, a dose-response
+ordering across three representations, and a scale-invariant null that reads
+zero. `corr_only` was added as an afterthought and turned out to be the strongest
+evidence in the set.
 
 Two honest caveats:
 
