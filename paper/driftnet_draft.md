@@ -142,6 +142,13 @@ Momentum is 0.2. The estimate must be updated in batches to converge: a single
 whole-recording update moves it by one momentum step and removes almost nothing
 (4.5%), which is how this was first mis-measured.
 
+**The alignment survives the stem.** A whitening layer placed before a
+BatchNorm invites the objection that the normalisation simply undoes it, which
+would make the ablation a test of nothing. Checked directly on held-out windows:
+with identical initialisation, stem outputs with and without alignment differ by
+36% in relative magnitude and their correlation structure differs by 0.108, so
+the layer reaches the representation the classifier sees.
+
 ### 4.2 Multi-scale power stem
 
 Three parallel temporal resolutions (64 / 128 / 256 ms), each with its own
