@@ -52,6 +52,10 @@ OUT = RESULTS / "cnn_temporal.json"
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN = 3
 ARMS = ["none", "forward", "viterbi", "forward@auto"]
+# The headline number from this file is the one most worth distrusting, so the
+# split seed AND the training seed are both settable. A single-seed leaderboard
+# has already misled this project once.
+SEED = int(os.environ.get("CNN_TEMPORAL_SEED", "0"))
 
 
 def load(sub, win):
@@ -63,7 +67,7 @@ def load(sub, win):
     pres = sorted(set(int(v) for v in np.unique(es.session)))
     sess = [s for s in list_sessions(sub) if s in pres]
     tr = np.isin(es.session, sess[:N_TRAIN])
-    ti, ci = grouped_split(es.segment[tr], es.y[tr], frac=0.3, seed=0)
+    ti, ci = grouped_split(es.segment[tr], es.y[tr], frac=0.3, seed=SEED)
     f = lambda a: a[tr][ti]
     c = lambda a: a[tr][ci]
     return {
@@ -79,7 +83,7 @@ def load(sub, win):
 
 def run_subject(d, arms):
     model, _ = train_arch(dict(BARE), d["Xf"], d["Mf"], d["yf"],
-                          d["Xv"], d["Mv"], d["yv"], seed=0)
+                          d["Xv"], d["Mv"], d["yv"], seed=SEED)
     lgv, _ = predict_arch(model, d["Xv"], d["Mv"])
     T = float(np.clip(fit_temperature(lgv, d["yv"]), 0.5, 5.0))
     lg, _ = predict_arch(model, d["Xt"], d["Mt"])
@@ -123,6 +127,9 @@ def run_subject(d, arms):
 
 def main():
     wins = [float(w) for w in sys.argv[1].split(",")] if len(sys.argv) > 1 else [2.0, 4.0]
+    global OUT
+    if SEED:
+        OUT = RESULTS / ("cnn_temporal_seed%d.json" % SEED)
     out = json.loads(OUT.read_text()) if OUT.exists() else {}
     for win in wins:
         per = {}

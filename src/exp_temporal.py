@@ -287,6 +287,73 @@ def viterbi(P, A, pi):
     return path
 
 
+def adaptive_forward(P, pi, target_rate, tau0=0.9, eta=0.05, horizon=120,
+                     tau_lo=0.5, tau_hi=0.999):
+    """Causal forward filtering with the dwell strength controlled ONLINE.
+
+    Fixes the failure documented for `forward@auto`: tau chosen on a calibration
+    split meets its false-onset budget there and then drifts 2.6-3.0x over budget
+    on held-out sessions. A one-shot split quantile cannot survive session drift,
+    which is the entire longitudinal problem this project exists to study.
+
+    The obvious repair is adaptive conformal, and `calibrate.adaptive_conformal`
+    already implements Gibbs-Candes correctly -- but it updates from realised
+    coverage, which needs the TRUE LABEL after each window. A deployed
+    exoskeleton never learns whether the wearer actually intended to walk, so
+    that signal does not exist at inference.
+
+    What DOES exist is the decoder's own switching rate. How often the device
+    commands a transition is observable without any label, and the training
+    labels say what that rate should be: count Stop->Walk transitions per window
+    and you have the target. If the decoder is switching faster than the wearer's
+    own dwell statistics permit, the excess is very largely false alarms, because
+    genuine intent cannot speed up beyond how fast a person actually starts and
+    stops walking.
+
+    So the control law is
+
+        tau <- tau + eta * (observed switching rate - target rate)
+
+    over a trailing horizon, clipped. Switching too often tightens the prior;
+    switching too rarely loosens it. It is causal, label-free, and it regulates
+    the quantity that actually matters rather than a proxy for it.
+
+    Returns (predictions, tau_trace).
+    """
+    E = np.exp(_log_emission(P, pi))
+    a = pi * E[0]
+    a = a / (a.sum() + EPS)
+    tau = float(tau0)
+    pred = np.zeros(len(P), int)
+    pred[0] = int(a.argmax())
+    trace = np.empty(len(P))
+    trace[0] = tau
+    recent = []                      # 1 for each window that began a Walk command
+    for t in range(1, len(P)):
+        A = transition_from_tau(tau)
+        a = (a @ A) * E[t]
+        a = a / (a.sum() + EPS)
+        pred[t] = int(a.argmax())
+        recent.append(1.0 if (pred[t] == 1 and pred[t - 1] == 0) else 0.0)
+        if len(recent) > horizon:
+            recent.pop(0)
+        if len(recent) >= min(horizon, 30):
+            tau = float(np.clip(tau + eta * (float(np.mean(recent)) - target_rate),
+                                tau_lo, tau_hi))
+        trace[t] = tau
+    return pred, trace
+
+
+def onset_rate(y, strm):
+    """Stop->Walk transitions per window, from labels. The control target."""
+    n = tr = 0
+    for idx in strm:
+        ys = np.asarray(y)[idx]
+        tr += int(((ys[1:] == 1) & (ys[:-1] == 0)).sum())
+        n += len(ys)
+    return tr / max(n, 1)
+
+
 def stack_context(F, strm, k=1):
     """Concatenate features from t-k..t+k, edge-padded inside each stream.
 
@@ -482,6 +549,17 @@ def run_subject(d, arm):
         post, pred = P.copy(), np.zeros(len(P), int)
         for idx in st:
             pred[idx] = viterbi(P[idx], A, pi)
+    elif arm == "adapt":
+        # target switching rate comes from the FIT labels only
+        target = onset_rate(d["yf"], sf)
+        post, pred = P.copy(), np.zeros(len(P), int)
+        taus = []
+        for idx in st:
+            pr, tr = adaptive_forward(P[idx], pi, target,
+                                      tau0=(0.9 if tau is None else tau))
+            pred[idx] = pr
+            taus.append(tr.mean())
+        A = transition_from_tau(float(np.mean(taus)))    # report the mean tau reached
     elif arm == "fwdshuf":
         # NULL CONTROL. Identical arithmetic to `forward`, but the window order
         # inside each stream is permuted first and the outputs are mapped back.

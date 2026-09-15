@@ -272,6 +272,42 @@ rather than to a one-shot split-calibration quantile, is the untried step.
 Note the plain estimated-τ arm (τ=0.956 from label counts) achieves 0.97
 onsets/min without any budget machinery, beating both calibrated arms on safety.
 
+### Online adaptive tau: fixes the drift, does not beat the simple arm
+
+`adaptive_forward` in `exp_temporal.py` controls the dwell strength online from
+a signal that exists at deployment. Adaptive conformal is the textbook answer to
+the drift above, and `calibrate.adaptive_conformal` implements Gibbs-Candes
+correctly, but it updates from realised coverage and therefore needs the true
+label after each window -- which a worn exoskeleton never learns.
+
+The decoder's own *switching rate* is observable without labels, and the training
+labels supply the target (Stop->Walk transitions per window). Switching faster
+than the wearer's own dwell statistics permit is very largely false alarms,
+because genuine intent cannot exceed how fast a person actually starts and stops.
+So: `tau <- tau + eta * (observed switching rate - target)` over a trailing
+horizon. Causal, label-free, needs no calibration split.
+
+Validated on a synthetic stream: tau climbs 0.900 -> 0.987 unaided, switching
+rate 0.210 -> 0.010, false onsets 26.2 -> 1.44 per minute.
+
+On real data:
+
+| arm | ds007788 acc / onsets | MoBI acc / onsets |
+|---|---|---|
+| none | 0.763 / 1.87 | 0.675 / 6.67 |
+| forward (tau estimated from labels) | 0.798 / **0.97** | 0.766 / **2.09** |
+| forward@auto (budget-calibrated) | 0.808 / 1.29 | 0.779 / 2.59 |
+| **adapt** (online, label-free) | 0.798 / 1.03 | 0.775 / 2.56 |
+
+It reaches the hand-estimated arm's operating point on ds007788 (0.798 / 1.03 vs
+0.798 / 0.97) and sits mid-pack on MoBI. It does repair the specific failure it
+was built for -- `forward@auto`'s calibrated budget drifting to 1.29 on held-out
+sessions -- but it does not beat plain `forward`.
+
+**Honest verdict: a deployability result, not a performance one.** Its value is
+that it needs no labels, no calibration split, and self-tunes under session
+drift, while matching what label-based tau estimation achieves.
+
 ### Calibrating the prior instead of guessing it
 
 Estimating the transition matrix is fine on ds007788 (dozens of transitions per
@@ -368,19 +404,48 @@ tangent+logreg (0.778). Applied instead to the best EEG-only decoder:
 | 4 s | **forward** (causal) | 0.827 | **0.46** | 0.3 s | −0.078 |
 | 4 s | viterbi (offline) | 0.843 | 0.56 | 0.0 s | −0.080 |
 
-**Headline, and it is honest:** a causal, deployable decoder at **0.836 balanced
-accuracy with 1.13 spurious activations per minute**, or **0.827 at 0.46/min**
-at 4 s. Offline upper bound 0.849. Conditional leakage is negative in every row,
-so none of it is bought with movement, and the bare CNN takes no motion at
-inference at all (verified: perturbing its motion reference moves accuracy by
-0.000).
+### RETRACTED: the 0.836/0.849 headline was a single-seed artifact
 
-Context: the project's previous honest number was 0.778, its stated "invariant
-ceiling" ~0.70, and a published lower-limb BMI reports 1.45 false positives/min.
+The table above is seed 0. Replicated at seeds 1 and 2 (win=2 s), the accuracy
+gain reverses sign:
 
-The gain decomposes exactly as the controls predicted: at 2 s the prior buys
-+0.025 accuracy and halves onsets; at 4 s, where the long overlapping window is
-already integrating, it buys only +0.011 but still cuts onsets 38%.
+| arm | acc per seed (0/1/2) | mean | Δacc | onsets per seed | Δonsets |
+|---|---|---|---|---|---|
+| none | 0.811 / 0.830 / 0.804 | 0.815 | — | 2.23 / 3.60 / 3.13 | — |
+| forward | 0.836 / **0.770** / **0.776** | 0.794 | **−0.021 MIXED** | 1.13 / 1.38 / 1.10 | **−1.79** |
+| viterbi | 0.849 / **0.774** / **0.786** | 0.803 | **−0.012 MIXED** | 0.85 / 0.76 / 0.69 | **−2.22** |
+| forward@auto | 0.814 / 0.746 / 0.740 | 0.767 | −0.048 MIXED | 0.57 / 0.86 / 0.67 | −2.29 |
+
+Seed 0 drew a weak baseline (0.811 vs 0.830) and a strong filtered arm. Averaged
+over three seeds the dwell prior **costs** the CNN 0.021 accuracy.
+
+This was predictable from the controls already in hand: `forward@0.5`, which has
+no temporal memory, produced the LARGER accuracy gain on the tangent pipeline
+(+0.040 vs +0.024), which already said the accuracy gain was never coming from
+temporal structure. The implication should have been carried into the CNN
+prediction instead of the seed-0 number being reported as a headline.
+
+**What replicates** is the onset reduction: same sign on every seed, every
+cohort, every arm, −1.79/min for causal forward and −2.22 for Viterbi. Roughly
+3x fewer spurious activations.
+
+**Corrected claim, and it is a trade rather than a win:**
+
+> A label-space dwell prior cuts spurious walk activations ~3x at a cost of
+> ~0.02 balanced accuracy. It does not improve accuracy on a strong decoder.
+
+**Best honest operating points** (conditional leakage negative throughout, and
+the bare CNN consumes no motion at inference):
+
+| configuration | acc | onsets/min |
+|---|---|---|
+| bare CNN, 4 s window | **0.816** | **0.74** |
+| bare CNN, 2 s (3-seed mean) | 0.815 | 3.0 |
+| bare CNN, 2 s + forward (3-seed mean) | 0.794 | 1.20 |
+
+Window length is the better lever: 4 s alone beats the 2 s prior-filtered arm on
+BOTH axes simultaneously. Context: a published lower-limb BMI reports 1.45 false
+positives/min.
 
 ## Status
 
