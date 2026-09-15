@@ -58,5 +58,25 @@
   "acc_sd": 0.08753155188722912,
   "cond_r2": -0.05475683415010946,
   "n_sub": 7
+ },
+ "w4.0|EEGConformer|global|s0|amp-off|full": {
+  "win": 4.0,
+  "model": "EEGConformer",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8342880832932781,
+  "acc_sd": 0.06270311629809923,
+  "cond_r2": -0.06409699332404752,
+  "n_sub": 7
+ },
+ "w4.0|PowerAttn-full|global|s1|amp-off|full": {
+  "win": 4.0,
+  "model": "PowerAttn-full",
+  "scheme": "global",
+  "seed": 1,
+  "acc": 0.8548737749369743,
+  "acc_sd": 0.08543121431193444,
+  "cond_r2": -0.07564903234585996,
+  "n_sub": 7
  }
 }

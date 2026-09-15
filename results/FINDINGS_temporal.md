@@ -16,13 +16,29 @@ Seed-0 paired, 4 s windows, global normalisation, 905 -> 4881 windows:
 | PowerAttn-nopower | 123k | 0.837 | 0.849 | +0.012 |
 | PowerAttn-full | 123k | 0.830 | 0.842 | +0.012 |
 | PowerAttn-noattn | 123k | 0.836 | 0.845 | +0.009 |
+| EEGConformer | 441k | 0.828 | 0.834 | +0.006 |
 
 At 905 windows every architecture collapsed to 0.84 +- 0.02 and that was read as
-a task ceiling. It was a floor imposed by sample size: no architecture can
-express its inductive bias with ~490 parameters per training sample. Given 5.4x
-the data the published designs separate, and **the models built in this project
-gain the LEAST** -- they were nearer their own ceilings, the real designs had
-headroom.
+a task ceiling. Given 5.4x the data the designs separate by up to 0.053, so the
+ceiling reading was wrong.
+
+**The obvious explanation is ALSO wrong.** "The models were data-starved --
+441k parameters over 905 samples is ~490 per sample, too few to express any
+inductive bias" predicts that the LARGEST model gains most. EEGConformer (441k)
+gains **least** (+0.006), and the biggest gainer is the second-smallest model
+(ATCNet, 45k). The gain is not monotonic in capacity; if anything it is
+inversely related.
+
+So what separates the architectures at scale is not capacity. A hypothesis --
+NOT a conclusion, and explicitly flagged as untested here -- is that ATCNet's
+windowed attention ensemble averages over sliding crops, and an ensembling
+mechanism sharpens with more examples in a way a plain transformer or deep CNN
+does not. The rate-matched study below is a direct test of it: if the ensemble
+is what exploits data, restoring n_windows 3 -> 5 should help and the `rate_nw3`
+control should not.
+
+What IS established: the published designs separate given data, and **the models
+built in this project gain the least**.
 
 **The best decoder on this task is ATCNet (Altaheri et al. 2022), unmodified, at
 0.881. Nothing built here beats it.**
