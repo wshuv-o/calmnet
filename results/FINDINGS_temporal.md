@@ -303,6 +303,85 @@ A smoothing result is easy to fake, so three:
 
 ---
 
+## 3. The module ablation, run correctly, says no module earns its place
+
+With the conditional probe AND the two motion-input modules excluded
+(`EXCLUDE_MODS=cancel,basis`), `results/ablation_clean.json`:
+
+| module | add-one | gain | leave-out | gain | verdict |
+|---|---|---|---|---|---|
+| (bare) | 0.811 | | | | |
+| spec_gate | 0.819 | +0.008 | 0.694 | −0.019 | KEEP |
+| attn | 0.803 | −0.008 | 0.680 | −0.005 | drop |
+| multiband | 0.831 | +0.020 | 0.678 | −0.003 | KEEP |
+| adv | 0.783 | −0.029 | 0.687 | −0.012 | drop |
+| decorr | 0.615 | −0.196 | 0.776 | −0.101 | drop |
+| hsic | 0.799 | −0.012 | 0.710 | −0.035 | drop |
+| art | 0.810 | −0.001 | 0.658 | +0.017 | KEEP |
+| FULL | 0.675 | | | | |
+| **STACKED** | **0.789** | | | | composed architecture |
+
+**The composed architecture loses to the bare model (0.789 vs 0.811).** Every
+module is individually marginal and they are jointly harmful. This is the
+methodology working as intended and returning a negative.
+
+Every disentanglement loss term (`adv`, `decorr`, `hsic`, `art`) hurts, which is
+consistent with section 1: they were built to suppress a confound that the
+honest probe says is not present. `decorr` is catastrophic (−0.196).
+
+Note also `spec_gate` is invariant to the motion perturbation to three decimal
+places (0.819 / 0.819 / 0.819), meaning its motion-conditioning path is inert.
+It was designed to attenuate bands whose power envelope tracks the motion
+envelope; it is not doing that. Its +0.008 is not the mechanism working.
+
+**The best EEG-only decoder in this project is the bare CNN at 0.811.**
+
+## 4. Window length (the other untried lever)
+
+| window | none | forward | viterbi |
+|---|---|---|---|
+| 1.0 s | 0.729 / 3.79 | 0.775 / 1.42 | 0.788 / 1.05 |
+| 2.0 s | 0.763 / 1.87 | 0.798 / 0.97 | 0.814 / 0.87 |
+| 3.0 s | 0.778 / 1.01 | 0.805 / 0.61 | 0.827 / 0.73 |
+| 4.0 s | 0.786 / 0.58 | 0.807 / **0.34** | 0.828 / 0.49 |
+
+(accuracy / false onsets per minute.) Monotonic in window length on both axes,
+and it composes with the prior rather than substituting for it: the 3 s baseline
+(0.778, 1.01) already beats the 1 s prior-filtered arm (0.775, 1.42). Step is
+fixed at 0.5 s throughout, so 4 s windows overlap 87% -- long windows are
+themselves a crude temporal integrator, which is why the prior's marginal
+benefit shrinks as windows lengthen (+0.046 at 1 s, +0.021 at 4 s).
+
+## 5. The combination: dwell prior on the bare CNN (`exp_cnn_temporal.py`)
+
+The prior operates on emitted posteriors and knows nothing about where they came
+from, so it composes with any decoder. Everything above applied it to
+tangent+logreg (0.778). Applied instead to the best EEG-only decoder:
+
+| window | arm | acc | onsets/min | latency | cond R² |
+|---|---|---|---|---|---|
+| 2 s | none | 0.811 | 2.23 | 0.4 s | −0.051 |
+| 2 s | **forward** (causal) | **0.836** | 1.13 | 0.5 s | −0.057 |
+| 2 s | viterbi (offline) | **0.849** | 0.85 | 0.0 s | −0.059 |
+| 2 s | forward@auto | 0.814 | **0.57** | 0.8 s | −0.055 |
+| 4 s | none | 0.816 | 0.74 | 0.0 s | −0.075 |
+| 4 s | **forward** (causal) | 0.827 | **0.46** | 0.3 s | −0.078 |
+| 4 s | viterbi (offline) | 0.843 | 0.56 | 0.0 s | −0.080 |
+
+**Headline, and it is honest:** a causal, deployable decoder at **0.836 balanced
+accuracy with 1.13 spurious activations per minute**, or **0.827 at 0.46/min**
+at 4 s. Offline upper bound 0.849. Conditional leakage is negative in every row,
+so none of it is bought with movement, and the bare CNN takes no motion at
+inference at all (verified: perturbing its motion reference moves accuracy by
+0.000).
+
+Context: the project's previous honest number was 0.778, its stated "invariant
+ceiling" ~0.70, and a published lower-limb BMI reports 1.45 false positives/min.
+
+The gain decomposes exactly as the controls predicted: at 2 s the prior buys
++0.025 accuracy and halves onsets; at 4 s, where the long overlapping window is
+already integrating, it buys only +0.011 but still cuts onsets 38%.
+
 ## Status
 
 - ds007788 window sweep (1/2/3/4 s × 4 arms): running
