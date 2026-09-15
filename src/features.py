@@ -194,6 +194,39 @@ def plv_features(X, lo=8, hi=30, sfreq=100.0, max_ch=20):
 N_PROBE_COMPONENTS = 64      # fixed probe width; see note inside
 
 
+def invariance_r2_conditional(F, M, y, groups, n_splits=3):
+    """Movement recoverable BEYOND what the task label already explains.
+
+    Every "leakage" number in this project so far -- including the headline
+    intent->motion R^2 -- has the same blind spot: Walk and Stop differ in how
+    much the body is moving, by definition. So the label itself predicts motion,
+    and ANY representation that decodes the label well must predict motion well
+    too. Raw R^2 therefore rises with accuracy whether or not the decoder is
+    cheating, and two arms at different accuracies cannot be compared on it at
+    all. That was tolerable while every architecture scored within a point of
+    every other one; it stops being tolerable the moment something actually
+    improves accuracy, which is exactly when the measurement matters most.
+
+    Conditioning fixes it. Centring the movement features within each class
+    removes the component of motion that the label explains, leaving the
+    residual motion that varies WITHIN Walk and WITHIN Stop. A representation
+    that has merely learned "walking bodies move" predicts none of that residual
+    and scores ~0. One that has latched onto the artefact itself -- limb speed,
+    stride cadence, head bob -- still predicts it, and scores positive.
+
+    That is the question the paper has been trying to ask all along: not "does
+    this representation know about movement", which is unavoidable, but "does it
+    know MORE about movement than the task requires".
+    """
+    y = np.asarray(y)
+    M = np.asarray(M, dtype=np.float64).copy()
+    for c in np.unique(y):
+        m = y == c
+        if m.sum() > 1:
+            M[m] -= M[m].mean(0)
+    return invariance_r2_cv(F, M, groups, n_splits=n_splits)
+
+
 def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     """Movement recoverability, measured WITHIN one distribution.
 
@@ -216,6 +249,13 @@ def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     from sklearn.model_selection import cross_val_predict, GroupKFold
     from sklearn.metrics import r2_score
     groups = np.asarray(groups)
+    F = np.asarray(F, dtype=np.float64)
+    # A diverged model yields non-finite features; drop those rows rather than
+    # letting PCA raise and take the whole ablation cell with it.
+    good = np.isfinite(F).all(axis=1) & np.isfinite(M).all(axis=1)
+    if good.sum() < 30:
+        return float("nan")
+    F, M, groups = F[good], np.asarray(M)[good], groups[good]
     n_g = len(np.unique(groups))
     if len(F) < 30 or n_g < 2:
         return float("nan")
