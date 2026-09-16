@@ -4,10 +4,17 @@
 %% Every number is traceable to a JSON file in ../results/. Where two values
 %% exist for the same model, both are reported and the reason is stated.
 \documentclass[a4paper,fleqn]{cas-dc}
-\usepackage[authoryear,longnamesfirst]{natbib}
+\usepackage[numbers,sort&compress]{natbib}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,
+            citecolor=magenta,
+            linkcolor=magenta,
+            urlcolor=magenta,
+            filecolor=magenta}
+
 
 % Let TeX relax spacing on lines holding long unbreakable
 % citation strings, instead of overrunning the column.
@@ -30,23 +37,20 @@
 \title[mode = title]{In-network covariance alignment tracks the streaming class:
 an admissible rate band for test-time adaptation in EEG under blocked protocols}
 
-%% TODO(authors): verify the CRediT role split below before submission.
 \author[1]{Esm E Moula Chowdhury Abha}
 \ead{26-94089-2@student.aiub.edu}
-\credit{Conceptualization, Methodology, Software, Validation, Formal analysis,
-Investigation, Data curation, Writing -- original draft, Visualization}
+\credit{Software, Methodology, Validation, Formal analysis, Investigation,
+Data curation, Writing -- original draft, Visualization}
 
 \author[1]{Md Wahiduzzaman Suva}
 \ead{26-94088-2@student.aiub.edu}
-\credit{Methodology, Software, Validation, Formal analysis, Investigation,
-Data curation, Writing -- original draft, Writing -- review and editing,
-Visualization}
+\credit{Software, Methodology, Validation, Formal analysis, Investigation,
+Data curation, Writing -- original draft, Visualization}
 
 \author[1]{Muhammad Hasibur Rashid Chayon}
 \cormark[1]
 \ead{chayon@aiub.edu}
-\credit{Supervision, Conceptualization, Writing -- review and editing,
-Project administration}
+\credit{Supervision, Project administration, Writing -- review and editing}
 
 \affiliation[1]{organization={Department of Computer Science,
                 American International University-Bangladesh},
@@ -1204,9 +1208,14 @@ tested in the direction where it predicts nothing will happen.
 
 %=============================================================================
 \section*{CRediT authorship contribution statement}
-\textbf{Author Name}: Conceptualization, Methodology, Software, Validation,
+\textbf{Esm E Moula Chowdhury Abha}: Software, Methodology, Validation,
 Formal analysis, Investigation, Data curation, Writing -- original draft,
-Writing -- review and editing, Visualization.
+Visualization.
+\textbf{Md Wahiduzzaman Suva}: Software, Methodology, Validation,
+Formal analysis, Investigation, Data curation, Writing -- original draft,
+Visualization.
+\textbf{Muhammad Hasibur Rashid Chayon}: Supervision, Project administration,
+Writing -- review and editing.
 
 \section*{Declaration of competing interest}
 The authors declare no known competing financial interests or personal
@@ -1217,7 +1226,7 @@ paper.
 Both datasets are publicly available. All code, configurations and result files,
 including those of experiments that failed, are in the accompanying repository.
 
-\bibliographystyle{cas-model2-names}
+\bibliographystyle{elsarticle-num-names}
 \bibliography{refs}
 
 \end{document}
