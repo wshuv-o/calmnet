@@ -130,8 +130,13 @@ def cov_from_signal(x, ridge=1e-4, shrink=None):
     C = C / tr * n
     I = torch.eye(n, device=C.device, dtype=C.dtype)
     if shrink is None:
-        # scale shrinkage with how under-determined the estimate is
-        shrink = 0.0 if n < x.shape[-1] // 2 else min(0.5, float(n) / x.shape[-1])
+        # Scale with how under-determined the estimate is, but never zero.
+        # The previous rule returned 0 whenever n < T/2, which meant the
+        # delay-embedded arms (n=180, T=200) got shrinkage 0.5 while the
+        # no-delay arm (n=60) got none -- so that arm went indefinite after the
+        # BiMap projections and Cholesky failed. Worse, it confounded the
+        # ablation: "delay embedding" and "conditioning" were changing together.
+        shrink = float(np.clip(n / x.shape[-1], 0.05, 0.5))
     if shrink > 0:
         C = (1.0 - shrink) * C + shrink * I
     return _sym(C) + ridge * I
@@ -797,7 +802,11 @@ class ASPDNetChol(nn.Module):
         for bm in self.bimaps:
             C = bm(C)
             n = C.shape[-1]
-            C = C + EPS * torch.eye(n, device=C.device, dtype=C.dtype)
+            # BiMap is a congruence by a semi-orthogonal matrix, so the result is
+            # PSD in exact arithmetic but can lose definiteness numerically. Scale
+            # the jitter to the matrix so it works at any magnitude.
+            sc = C.diagonal(dim1=-2, dim2=-1).mean(-1).clamp(min=EPS)[..., None, None]
+            C = _sym(C) + 1e-4 * sc * torch.eye(n, device=C.device, dtype=C.dtype)
         t = chol_tangent(C)
         if self.attend is not None:
             t = self.attend(t)

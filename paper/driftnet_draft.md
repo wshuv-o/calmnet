@@ -12,7 +12,9 @@ Experiments that failed are reported, not omitted.
 | A label-free alignment layer removes 52 % / 84 % of session-to-session covariance drift | **supported** | 15/15 subjects, two cohorts, p <= 0.0001, no-op control at zero |
 | On cohort A it is *necessary*: removing it collapses the model to its bare stem | **supported** | 0.827 = 0.827, ablation |
 | The resulting model reaches 0.901 on cohort A, above every published model in the same harness | **supported** | vs ATCNet 0.879, EEGNeX 0.876, ShallowFBCSPNet 0.867, EEGConformer 0.843 |
-| The layer's adaptation memory must exceed the protocol's class-block duration | **supported** | predicted threshold, observed step-then-plateau across three momenta x five arms |
+| The layer's adaptation memory must exceed the class-block duration | **supported** | predicted threshold, step of +0.090 to +0.098 on all 3 alignment arms, 0.000 on both alignment-free arms |
+| ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.097 on cohort B and **-0.077** on cohort A |
+| No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is ~0.08-0.10 worse at the other's setting |
 | **The architecture generalises** | **NOT supported** | on cohort B the *bare stem* beats the full model, 0.737 vs 0.626 |
 | **Alignment helps decoding** | **NOT supported** | +0.051 on cohort A, -0.060 to -0.166 on cohort B |
 | **Cross-epoch context helps** | **NOT supported** | reverses sign between cohorts |
@@ -36,6 +38,11 @@ evaluation protocol that preceded it:
 3. A verified correction to a real covariance-estimation bias moved decoding by
    +0.005 on cohort B and -0.016 on cohort A. The mechanism improved; performance
    did not follow.
+   A fourth case is the sharpest, because it is a *prediction we registered and
+   lost*: we predicted slowing adaptation would be neutral on cohort A, since its
+   class blocks already sit far inside the fastest memory. It cost 0.077. The
+   estimate had been doing useful work we had not accounted for -- tracking
+   genuine drift -- and the metric we were optimising could not see it.
 4. The movement-leakage probe used throughout the preceding work is confounded
    with accuracy: a decoder using no movement information whatsoever measures
    R^2 = +0.863.
@@ -296,19 +303,55 @@ estimators (`dn_noalign` 0.792 / 0.788 / 0.783 / 0.782; `dn_stem` 0.737 three
 times), fixing measurement noise at **+-0.005** and making the -0.060 residual in
 section 7.5 twelve times the noise.
 
-**Design rule.** Set the adaptation memory longer than the protocol's class-block
-duration. This is computable from the experimental design before data collection,
-and it explains why offline Euclidean Alignment never meets this failure: a
-whole-recording estimate is the maximally slow setting.
+**A one-sided rule would be wrong.** The obvious reading of this table is "set
+the adaptation memory longer than the class-block duration, and when in doubt go
+slower." Cohort B alone supports it. Section 7.5 tests it on cohort A and it
+fails: the same change that recovers +0.097 there costs -0.077 here. The rule is
+two-sided, and we state it in its corrected form in 7.5 rather than here.
 
-### 7.5 The residual
+### 7.5 The rate is two-sided, and that explains the residual
 
-Even correctly configured, alignment contributes **-0.060** on cohort B against
-**+0.051** on cohort A. At +-0.005 noise that residual is twelve times the
-measurement error and therefore real. The operating condition is **necessary but
-not sufficient**, and the remaining factor is unidentified. We state this rather
-than propose a third mechanism: two diagnoses in this work each looked convincing
-on inspection, and the first was wrong while the second was incomplete.
+Applying the same momentum change to cohort A produces the **opposite** result:
+
+| cohort | m = 0.20 | m = 0.01 | delta |
+|---|---|---|---|
+| A (ds007788), class blocks 18 windows | **0.878** | 0.801 | **-0.077** |
+| B (MoBI), class blocks 309 windows | 0.626 | **0.723** | **+0.097** |
+
+We predicted cohort A would be roughly neutral, on the grounds that its class
+blocks sit far below even the fastest setting's memory so the estimate was
+already class-mixed. It is not neutral: slowing adaptation costs 0.077 there.
+**There is no universal setting, and error in either direction costs 0.08-0.10.**
+
+The mechanism is therefore two-sided. The running estimate tracks whatever varies
+on its own timescale, and two different things vary:
+
+| adaptation rate | tracks session drift | tracks the streaming class |
+|---|---|---|
+| fast | **yes** -- the intended behaviour | yes, *if class blocks are long* -- the failure |
+| slow | no -- the benefit is lost | no |
+
+The rate must be **fast enough to track drift and slow enough not to track
+class**. Cohort A satisfies both: 18-window class blocks leave a wide admissible
+band, and fast adaptation captures genuine weeks-long drift, so momentum 0.2 is
+correct there and slowing costs the drift tracking.
+
+**This explains the -0.060 residual on cohort B** without a third mechanism. Its
+309-window class blocks force the rate slow enough to avoid class tracking -- at
+which point the estimate is also too slow to track drift. The layer has nothing
+left to contribute and adds only estimation noise. The residual is not an
+unexplained remainder; it is what the layer costs when no admissible rate exists.
+
+**Stateable condition.** A valid adaptation rate exists only where the
+class-block timescale is shorter than the drift timescale. Where class blocks are
+long relative to drift, the admissible band is empty and the layer should be
+omitted rather than tuned. Both quantities are measurable from the recording
+protocol before any model is fitted.
+
+This also sharpens why offline Euclidean Alignment does not encounter the
+failure: a whole-recording estimate is maximally slow, so it never tracks class
+-- and it never tracks within-recording drift either, which is precisely the
+capability an in-network version is introduced to add.
 
 ### 7.6 Reference points
 
@@ -337,9 +380,26 @@ which we produced by acting on that assumption ourselves:
 4. The leakage probe used to judge invariance rises with accuracy whether or not
    the decoder touches the nuisance (R² = +0.863 for a decoder that cannot).
 
+5. We predicted, on record and before running it, that slowing adaptation would
+   be neutral on cohort A because its class blocks already sit far inside the
+   fastest memory. It cost 0.077 -- the prediction failed because it accounted
+   only for the harm the estimate can do and not for the benefit it was
+   delivering.
+
 The common structure: each metric is a property of the *representation's
 distribution*, and each was improved successfully. None predicted the task
-outcome, and optimising against them was actively harmful in three of four cases.
+outcome, and optimising against them was actively harmful in three of five cases.
+
+The fifth is the one that completes the picture. A distribution-level metric is
+not merely an unreliable proxy for task performance -- it is typically
+*one-sided*, scoring a single failure it was designed to detect. Drift reduction
+measures how much non-stationarity the layer removes; it has no term for what the
+layer destroys. Our block-length diagnosis inherited that one-sidedness: it
+correctly identified when adaptation is too fast, and was silent on when it is
+too slow. Only testing the correction on a cohort where it should have been free
+revealed the other side. **A proxy metric can be right about its own failure mode
+and still mislead, because the quantity that matters is the balance of two
+effects and the metric sees one.**
 
 ## 9. Limitations
 
@@ -351,7 +411,9 @@ outcome, and optimising against them was actively harmful in three of four cases
   Ablations here are seed 0; multi-seed replication is incomplete.
 - Cohort B uses 2 s windows against cohort A's 4 s, so the context pathway spans
   a shorter duration there.
-- The -0.060 residual on cohort B is unexplained.
+- The two-sided account is fitted to two cohorts with opposite block structure;
+  it predicts an interior optimum, but we have not measured one. A cohort whose
+  admissible band is narrow but non-empty would test it properly.
 - The per-window covariance correction was regression-tested on cohort A with
   one arm only (dn_full, 0.878 -> 0.862).
 - Cross-epoch context and alignment both reverse sign between cohorts; neither
@@ -368,8 +430,8 @@ would take to reach a first-quartile venue (JNE, IEEE TNSRE, NeuroImage).
 |---|---|---|
 | Ablations are seed 0 only | split seed moves accuracy +-0.01-0.02, the same order as several reported effects. The headline ablation must be multi-seed or a reviewer will discount it. | 3 seeds x 5 arms x 2 cohorts, ~2 days compute |
 | The central finding is demonstrated only on our own code | sections 7.3, 7.5 and 8 show *we* made these errors. To claim the field does, published work using unconditioned nuisance probes or fast test-time adaptation must be identified and cited. Searches so far have NOT established this. | 1-2 days literature work |
-| The design rule is post-hoc | section 7.4 explains cohort B after seeing it fail. The rule predicts behaviour from block structure before running anything, so it should be *pre-registered* against a third cohort and then tested. | ~1 week: obtain a public gait/MI dataset with different block structure, state the prediction, run once |
-| The -0.060 residual is unexplained | leaves the mechanism incomplete | unknown |
+| The design rule is post-hoc | section 7.4 explains cohort B after seeing it fail. **Partly addressed:** we registered a prediction for cohort A before running it and it was falsified, which produced the two-sided rule in 7.5. That is a real out-of-sample test, but a failed one -- the *corrected* rule has still never predicted anything in advance. | ~1 week: obtain a public gait/MI dataset with different block structure, state the prediction from block structure alone, run once |
+| ~~The -0.060 residual is unexplained~~ | **CLOSED.** Section 7.5: cohort B's block structure leaves no rate that both avoids class-tracking and tracks drift, so a correctly configured layer has nothing left to contribute. | done |
 
 **What the paper cannot be.** An architecture paper. DriftNet fails external
 validation and its novel component reverses sign; that is documented here and in

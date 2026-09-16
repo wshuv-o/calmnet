@@ -92,6 +92,13 @@ DRIFT_ARMS = {
 MODEL = os.environ.get("CX_MODEL", "atcplus")
 if MODEL == "driftnet":
     ARMS = DRIFT_ARMS
+# CX_ARMS restricts the run to named arms. Used when a question only needs a
+# subset -- e.g. "does slow adaptation hold on cohort A" is answered by
+# dn_full vs dn_noalign alone, and the other three arms are already measured
+# at the default momentum.
+_sel = [a for a in os.environ.get("CX_ARMS", "").split(",") if a]
+if _sel:
+    ARMS = {k: v for k, v in ARMS.items() if k in _sel}
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN, WIN, STEP = 3, 4.0, 0.5
 K_CTX, S_CTX = 8, 3
