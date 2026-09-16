@@ -479,10 +479,14 @@ B (treadmill)   & 7   & 309 & 2211 \\
 
 \subsection{Preprocessing and training}
 
-Signals are band-pass filtered to 0.5--40\,Hz and resampled to 100\,Hz using
-MNE-Python \citep{gramfort}. No artefact rejection, ICA decomposition or
-channel interpolation is applied, so that the alignment layer is evaluated on
-the shift it is meant to correct, on an uncleaned signal. Amplitude
+Signals are band-pass filtered to 8--30\,Hz and resampled to 100\,Hz. Cohort A
+uses a zero-phase FIR filter in MNE-Python \citep{gramfort}, after which the
+EOG channels, filtered to the same band, are regressed linearly out of the EEG.
+Cohort B uses a zero-phase fourth-order Butterworth filter and has no EOG
+step. No other artefact rejection, ICA decomposition or channel interpolation
+is applied, so that the alignment layer is evaluated on the shift it is meant
+to correct. The band also excludes the gait cycle, near 1--2\,Hz, and most
+electromyographic power above 30\,Hz. Amplitude
 normalisation is applied globally per recording, before the squaring stage, for
 the reason given in Section~\ref{sec:stem}.
 
@@ -501,14 +505,15 @@ except where the cohort definition differs.}
 \toprule
 Setting & Value \\
 \midrule
-Band-pass / resample & 0.5--40\,Hz, 100\,Hz \\
-Artefact rejection & none (deliberate) \\
+Band-pass / resample & 8--30\,Hz, 100\,Hz (zero-phase) \\
+Artefact correction & EOG regression (A); none (B) \\
 Amplitude normalisation & global, per recording \\
 Window / stride & 4\,s / 0.5\,s (A), 2\,s (B) \\
 Context length $K$, stride & 8 epochs, 3 (14.5\,s span) \\
-Optimiser & Adam \citep{adam}, lr $10^{-3}$ \\
+Optimiser & AdamW \citep{adam}, lr $3\times10^{-4}$, weight decay $10^{-2}$, one-cycle schedule \\
 Batch size $N$ & 32 \\
-Epochs & 30 \\
+Epochs & at most 30; early stopping after 12 without improvement \\
+Gradient clipping & norm 1.0 \\
 Loss & cross-entropy, inverse-frequency weighted \\
 Selective coverage target & 0.90 \\
 Adaptation momentum $m$ & 0.2 (swept in \S\ref{sec:rate}) \\
@@ -557,13 +562,22 @@ output and the nuisance are driven by the class label. Movement leakage is
 therefore measured conditional on the class label throughout, by centring the
 nuisance features within class before regression.
 
-We bound the residual contamination by injecting a known fraction $f$ of the
-movement signal into the EEG and measuring the accuracy response. Accuracy
-rises monotonically with $f$: $0.763$ at $f=0$, then $0.819$, $0.873$, $0.892$
-and $0.913$ at $f = 0.001$, $0.005$, $0.01$ and $0.05$. The observed clean
-accuracy therefore corresponds to $f < 0.005$, so any genuine movement
-contamination accounts for under $0.5\,\%$ of the signal power the decoder
-uses.
+We calibrate the probe by injecting the recorded movement signal into the EEG,
+spatially mixed with a fixed per-participant gain matrix, at a known fraction
+$f$ of signal power. The calibration uses the tangent-space representation.
+Accuracy rises monotonically with $f$: $0.763$ at $f=0$, then $0.819$, $0.873$,
+$0.892$ and $0.913$ at $f = 0.001$, $0.005$, $0.01$ and $0.05$. The conditional
+probe rises with it, from $-0.112$ at $f=0$ through $+0.015$ at $f=0.005$ to
+$+0.067$ at $f=0.02$, where accuracy is $0.903$. Reaching an accuracy near
+$0.90$ through injected movement therefore moves the probe to about $+0.07$.
+The proposed \textit{align + gate} decoder reaches $0.901$ with a conditional
+probe of $-0.068$, and all eight cohort-A arms lie between $-0.066$ and
+$-0.082$, on the uncontaminated side of the calibration curve. Two limits
+apply. The calibration was performed on a different representation from the
+decoder it is compared with, and the conditional probe cannot register artefact
+information that is constant within each class. The comparison is therefore
+evidence against movement-driven accuracy, and a bound would require
+re-evaluation after artefact removal (Section~\ref{sec:limits}).
 
 \subsection{Statistical treatment and measurement noise}
 \label{sec:noise}

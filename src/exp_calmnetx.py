@@ -310,8 +310,15 @@ def main():
                 try:
                     if seed != seeds[0]:
                         d = loader(sub, seed)
+                    t_sub = time.time()
                     rows.append(run(d, name, seed))
                     subs_done.append(sub)
+                    # Per-subject progress. Without this an arm is silent for
+                    # hours between start and finish, and liveness can only be
+                    # checked by attaching a profiler to the process.
+                    print("    %s/%s seed=%d  acc %.3f  (%.0fs, %d/%d)"
+                          % (sub, name, seed, rows[-1]["acc"],
+                             time.time() - t_sub, len(rows), len(D)), flush=True)
                 except Exception as e:
                     print("    [fail] %s/%s: %s: %s"
                           % (sub, name, type(e).__name__, str(e)[:100]), flush=True)
