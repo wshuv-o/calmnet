@@ -376,37 +376,13 @@ after the square destroys the ratio in which ERD is defined \citep{erd}.
 
 This ordering is load-bearing rather than cosmetic, and the evidence is a
 dose--response across representations that differ in how much marginal power
-they carry (Table~\ref{tab:norm}). Removing per-window amplitude normalisation
+they carry (Table~\ref{tab:repr}). Removing per-window amplitude normalisation
 is worth $+0.134$ and $+0.174$ on band-power features, which are pure marginal
 power; $-0.016$ and $+0.029$ on tangent-space features, which carry power only
 through the covariance diagonal; and $-0.004$ and $+0.000$ on a correlation-only
 representation, which is scale-free by construction and therefore cannot respond.
 A representation that carries no marginal power shows no effect, which is what
 identifies the mechanism rather than merely demonstrating it.
-
-\begin{table}[t]
-\caption{Amplitude-normalisation dose--response. $z_1$ applies per-window
-$z$-scoring before feature extraction, $z_0$ omits it. The effect scales with
-how much marginal power the representation carries, and vanishes for the
-scale-free representation.}
-\label{tab:norm}
-\centering
-\begin{tabular}{llrrr}
-\toprule
-Representation & Power content & $z_1$ & $z_0$ & $\Delta$ \\
-\midrule
-\multicolumn{5}{l}{\textit{Cohort A}}\\
-Band power     & full        & 0.625 & 0.760 & $\mathbf{+0.134}$ \\
-Tangent space  & partial     & 0.762 & 0.746 & $-0.016$ \\
-Correlation    & \textbf{none} & 0.738 & 0.734 & $-0.004$ \\
-\midrule
-\multicolumn{5}{l}{\textit{Cohort B}}\\
-Band power     & full        & 0.574 & 0.748 & $\mathbf{+0.174}$ \\
-Tangent space  & partial     & 0.675 & 0.704 & $+0.029$ \\
-Correlation    & \textbf{none} & 0.701 & 0.702 & $\mathbf{+0.000}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 A separate sweep over where normalisation is applied in the network confirms the
 ordering at the architecture level: on cohort A with 4\,s windows, per-window
@@ -512,38 +488,11 @@ Model selection & best held-out balanced accuracy \\
 Section~\ref{sec:stem}, we screened 19 published decoders from the
 \textit{braindecode} library on a three-participant subset of cohort A
 (sub-01, sub-03, sub-06) under identical preprocessing
-(Table~\ref{tab:backbones}). The spread is wide, from chance to $0.827$, and
+(Table~\ref{tab:landscape}). The spread is wide, from chance to $0.827$, and
 several architectures that perform well on motor-imagery benchmarks sit near
 chance on this task. We report this as a screening result on three participants
-rather than a benchmark, and it is not comparable to Table~\ref{tab:compare},
+rather than a benchmark, and it is not comparable to Table~\ref{tab:landscape},
 which uses all seven participants.
-
-\begin{table}[t]
-\caption{Backbone screening on three participants of cohort A, single seed,
-identical preprocessing. A screening result, not a benchmark; the full-cohort
-comparison is Table~\ref{tab:compare}. EEGNeX failed with a numerical error
-under this configuration and is recorded as such.}
-\label{tab:backbones}
-\centering
-\small
-\begin{tabular}{lrlr}
-\toprule
-Model & Acc & Model & Acc \\
-\midrule
-EEG Conformer   & \textbf{0.827} & FBCNet        & 0.685 \\
-TSception       & 0.789 & ShallowFBCSPNet       & 0.655 \\
-MSVTNet         & 0.778 & SincShallowNet        & 0.627 \\
-EEGSimpleConv   & 0.763 & IFNet                 & 0.600 \\
-EEGInceptionMI  & 0.758 & EEGNet                & 0.573 \\
-FBLightConvNet  & 0.751 & Deep4Net              & 0.536 \\
-FBMSNet         & 0.690 & CTNet                 & 0.532 \\
-SCCNet          & 0.698 & BDTCN                 & 0.521 \\
-                &       & EEGITNet              & 0.509 \\
-                &       & EEG-TCNet             & 0.500 \\
-                &       & EEGNeX                & error \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Outcome measures}
 
@@ -562,24 +511,9 @@ nuisance features within class before regression.
 
 We bound the residual contamination by injecting a known fraction $f$ of the
 movement signal into the EEG and measuring the accuracy response
-(Table~\ref{tab:sensitivity}). Accuracy rises monotonically with $f$ and the
+(Table~\ref{tab:repr}). Accuracy rises monotonically with $f$ and the
 observed clean accuracy corresponds to $f < 0.005$, so any genuine movement
 contamination accounts for under $0.5\,\%$ of the signal power the decoder uses.
-
-\begin{table}[t]
-\caption{Leakage sensitivity. A known fraction $f$ of the movement signal is
-mixed into the EEG before decoding; $f=0$ is the unmodified recording. The
-observed clean accuracy places an upper bound on real contamination.}
-\label{tab:sensitivity}
-\centering
-\begin{tabular}{lrrrrrr}
-\toprule
-$f$ & 0 & 0.001 & 0.005 & 0.01 & 0.05 & 0.5 \\
-\midrule
-Acc & 0.763 & 0.819 & 0.874 & 0.892 & 0.913 & 0.917 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Statistical treatment and measurement noise}
 \label{sec:noise}
@@ -595,23 +529,6 @@ running estimator. For them the momentum and the estimator version are inert, so
 every run is a true repeat and they measure the noise floor directly
 (Table~\ref{tab:noise}).
 
-\begin{table}[t]
-\caption{Run-to-run spread on arms where the manipulated variable is inert.
-Because alignment is disabled, neither momentum nor estimator version can affect
-these arms, so all variation is run-to-run.}
-\label{tab:noise}
-\centering
-\begin{tabular}{llrrr}
-\toprule
-Arm & Transformer & $n$ & Spread & SD \\
-\midrule
-Stem only, cohort B      & no  & 3 & \textbf{0.0000} & 0.0000 \\
-No-align, cohort A       & yes & 3 & 0.0069 & 0.0039 \\
-No-align, cohort B       & yes & 4 & 0.0107 & 0.0049 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 The stem-only arm reproduces $0.7375$ bit-for-bit across three runs; the arms
 containing the cross-epoch transformer do not, and the attention path is the
 only structural difference between them. We attribute the variation to
@@ -619,33 +536,17 @@ non-deterministic reductions in scaled dot-product attention on GPU.
 
 Run-to-run variation at a fixed split seed is a lower bound on the relevant
 noise. Repeating the two strongest arms at a second split seed
-(Table~\ref{tab:seeds}) gives a between-seed spread of $0.012$ to $0.020$, about
+(Table~\ref{tab:noise}) gives a between-seed spread of $0.012$ to $0.020$, about
 twice the fixed-seed figure. The published baselines are worse: over three
 seeds in the same pipeline, ShallowFBCSPNet spans $0.053$ and ATCNet $0.041$
-(Table~\ref{tab:merge}). This is the quantity that governs whether two models
+(Table~\ref{tab:rejected}). This is the quantity that governs whether two models
 can be ranked, and it is why no single-seed ranking is reported in this paper.
-
-\begin{table}[t]
-\caption{Two-seed replication on cohort A, original estimator. Seed changes the
-fit/test split assignment. The spread is the quantity that governs whether two
-models can be separated.}
-\label{tab:seeds}
-\centering
-\begin{tabular}{lrrrr}
-\toprule
-Arm & Seed 0 & Seed 1 & Mean & Spread \\
-\midrule
-align + gate       & 0.901 & 0.882 & 0.892 & 0.020 \\
-align + ctx + gate & 0.878 & 0.866 & 0.872 & 0.012 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 Three consequences follow. Any arm containing the transformer carries
 approximately $0.010$ run-to-run noise at fixed seed and up to $0.020$ across
 seeds, so differences below $0.02$ are not interpreted anywhere in this paper.
-The effects we do interpret ($+0.090$ to $+0.098$ in Table~\ref{tab:sweep},
-$-0.060$ in Table~\ref{tab:twosided}) are three to five times the between-seed
+The effects we do interpret ($+0.090$ to $+0.098$ in Table~\ref{tab:rate},
+$-0.060$ in Table~\ref{tab:rate}) are three to five times the between-seed
 spread. And an exact null in the deterministic arm is stronger evidence than one
 merely within noise, because that arm has no noise to hide in.
 
@@ -658,6 +559,8 @@ therefore report the two groups separately and never compare across them.
 
 %=============================================================================
 \section{Results}
+
+\input{tables_auto}
 
 \subsection{The drift mechanism}
 \label{sec:mechanism}
@@ -678,59 +581,10 @@ never updates its estimate, shows no reduction.}
 \label{fig:drift}
 \end{figure*}
 
-\begin{table}[t]
-\caption{Session-drift reduction. The no-op control shares every code path but
-never updates its estimate. Reduction is mean $\pm$ SD over participants; $p$
-from a two-sided paired $t$-test.}
-\label{tab:drift}
-\centering
-\begin{tabular}{lrrrl}
-\toprule
-Cohort & Raw & Aligned & No-op & Reduction \\
-\midrule
-A ($n{=}7$) & 8.372 & 4.082 & 9.173 & $52.0\pm4.5\,\%$ \\
-B ($n{=}8$) & 6.479 & 1.074 & 6.309 & $83.9\pm3.9\,\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[t]
-\caption{Per-participant session drift. $\delta$ is the Riemannian distance
-(\ref{eq:riem}) between the fitting-session mean covariance and the mean over
-held-out sessions. The no-op control shares every code path but never updates
-its estimate. Every participant improves.}
-\label{tab:persubject}
-\centering
-\begin{tabular}{lrrrr}
-\toprule
-Participant & Raw & No-op & Aligned & Reduction \\
-\midrule
-\multicolumn{5}{l}{\textit{Cohort A, 6 held-out sessions each}}\\
-sub-01 & 7.154 & 7.938 & 3.144 & $56.1\,\%$ \\
-sub-02 & 12.832 & 16.522 & 7.013 & $45.3\,\%$ \\
-sub-03 & 6.092 & 6.228 & 2.827 & $53.6\,\%$ \\
-sub-04 & 11.035 & 11.981 & 4.840 & $56.1\,\%$ \\
-sub-05 & 5.336 & 4.906 & 2.346 & $56.0\,\%$ \\
-sub-06 & 7.016 & 6.644 & 3.399 & $51.5\,\%$ \\
-sub-07 & 9.139 & 9.990 & 5.007 & $45.2\,\%$ \\
-\midrule
-\multicolumn{5}{l}{\textit{Cohort B, 2 held-out trials each}}\\
-SL01 & 5.845 & 5.450 & 1.039 & $82.2\,\%$ \\
-SL02 & 7.795 & 8.850 & 1.451 & $81.4\,\%$ \\
-SL03 & 6.030 & 5.934 & 0.713 & $88.2\,\%$ \\
-SL04 & 8.158 & 4.486 & 1.933 & $76.3\,\%$ \\
-SL05 & 5.823 & 6.799 & 0.666 & $88.6\,\%$ \\
-SL06 & 6.482 & 7.722 & 0.888 & $86.3\,\%$ \\
-SL07 & 4.738 & 4.849 & 0.653 & $86.2\,\%$ \\
-SL08 & 6.966 & 6.378 & 1.250 & $82.1\,\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 Drift is reduced in 15 of 15 participants ($t=-9.14$, $p=1\times10^{-4}$ for
 cohort A; $t=-20.59$, $p<1\times10^{-5}$ for cohort B), with per-participant
 reductions spanning $45.2$ to $56.1\,\%$ on cohort A and $76.3$ to $88.6\,\%$ on
-cohort B (Table~\ref{tab:persubject}). No participant regresses, and the
+cohort B (Table~\ref{tab:drift}). No participant regresses, and the
 reduction is not carried by one or two outliers. The no-op control shows
 no reduction in either cohort, which establishes that the effect comes from
 adaptation rather than from the whitening operation or from the measurement
@@ -803,35 +657,8 @@ $53\,\%$ of its parameters. No point from the other pipeline appears here.}
 \label{fig:efficiency}
 \end{figure}
 
-\begin{table}[t]
-\caption{Cohort A comparison. Groups are separated by training pipeline and must
-not be compared across the rule; ATCNet appears in both and differs by $0.032$.
-Pipeline C is single seed; pipeline F is the mean of 2 seeds with the per-seed
-range in brackets.}
-\label{tab:compare}
-\centering
-\begin{tabular}{lrl}
-\toprule
-Model & Params & Bal. acc. \\
-\midrule
-\multicolumn{3}{l}{\textit{Pipeline C (this work), seed 0}}\\
-ATCNet \citep{atcnet}                & 45{,}280 & \textbf{0.913} \\
-ATCNet, rate-matched kernels         & 45{,}280 & 0.908 \\
-\textbf{Ours, align + gate}          & \textbf{24{,}181} & 0.901 \\
-Ours, align + ctx + gate             & 618{,}997 & 0.878 \\
-Ours, stem only                      & 6{,}768  & 0.827 \\
-\midrule
-\multicolumn{3}{l}{\textit{Pipeline F (earlier), mean of 2 seeds}}\\
-ATCNet \citep{atcnet}                & 45{,}280 & 0.879 [0.876--0.881] \\
-EEGNeX \citep{eegnex}                & 58{,}082 & 0.876 [0.855--0.896] \\
-ShallowFBCSPNet \citep{schirrmeister}& 97{,}120 & 0.867 [0.856--0.877] \\
-EEG Conformer \citep{conformer}      & 440{,}706 & 0.843 [0.834--0.852] \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 In the pipeline where both were measured, ATCNet scores $0.913$ against $0.901$
-at seed 0 and $0.892$ for our two-seed mean (Table~\ref{tab:seeds}). The gap of
+at seed 0 and $0.892$ for our two-seed mean (Table~\ref{tab:noise}). The gap of
 $0.012$ to $0.021$ sits inside the $0.020$ between-seed spread of
 Section~\ref{sec:noise}, so two seeds cannot separate the two models. We report
 it as a loss rather than as a tie because the point estimate favours ATCNet in
@@ -841,27 +668,10 @@ both seeds we ran.
 context modules were generally useful, attaching them to a stronger backbone
 should help. They do not: stock ATCNet with our cross-epoch context and
 selective head scores $0.894$ against $0.913$ for stock ATCNet alone, a loss of
-$0.018$ (Table~\ref{tab:atcours}). The modules improve calibration
+$0.018$ (Table~\ref{tab:landscape}). The modules improve calibration
 ($\mathrm{ECE}$ $0.058$, and an abstention point at $0.849$) and cost accuracy,
 which is the same trade seen within our own architecture in
 Table~\ref{tab:ablation}, and it is a trade, not an improvement.
-
-\begin{table}[t]
-\caption{Attaching our two modules to a stronger backbone, cohort A, single
-seed. Stock ATCNet has no selection head, so no abstention operating point is
-defined for it.}
-\label{tab:atcours}
-\centering
-\begin{tabular}{lrrr}
-\toprule
-Model & Acc & ECE & Acc@90 \\
-\midrule
-Stock ATCNet \citep{atcnet}    & \textbf{0.913} & --- & --- \\
-ATCNet + ctx + selective head  & 0.894 & 0.058 & 0.849 \\
-ATCNet, rate-matched kernels   & 0.908 & --- & --- \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 What the configuration offers
 instead is parity with the strongest baseline at $53\,\%$ of its parameters and
@@ -919,38 +729,13 @@ here and rejected by their own controls (Table~\ref{tab:rejected}). We report
 them because each control is what distinguishes a mechanism from a correlation,
 and because two of them looked convincing until the control was run.
 
-\begin{table}[t]
-\caption{Interventions tested and rejected, each by a pre-specified control.
-Cohort A unless stated. The motion-cancellation row is the clearest case: the
-module scored $0.905$ with the inertial channel present and chance with it
-zeroed, so it was an inertial classifier, not an EEG one.}
-\label{tab:rejected}
-\centering
-\small
-\begin{tabular}{lll}
-\toprule
-Intervention & Control & Outcome \\
-\midrule
-Motion cancellation & inertial input zeroed & $0.905 \rightarrow 0.501$ \\
-                    & inertial input shuffled & $0.905 \rightarrow 0.529$ \\
-Amplitude side-channel & label-shuffled control & control matches \\
-ShallowFBCSP $\times$ ATCNet & vs EEG Conformer & $0.848$ vs $0.843$ \\
-Capacity scaling & 19k--441k parameters & no trend \\
-MRCP dual-band pathway & vs ERD alone & $0.742$ vs $0.775$ \\
-Within-epoch attention & ablate the attention & $+0.024$ to remove \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 Three of those controls are worth the space, because each is multi-seed and
 each tests a component the architecture could plausibly have kept.
-
-\input{tables_auto}
 
 \paragraph{Temporal smoothing survives its control; the attention block does
 not} Applying an HMM forward filter over the decoder's output improves cohort A
 by $+0.024$ over four seeds, and Viterbi decoding by $+0.038$
-(Table~\ref{tab:temporal}). The control applies the same filter after shuffling
+(Table~\ref{tab:rejected}). The control applies the same filter after shuffling
 window order, which preserves the operation and destroys the temporal structure:
 it falls to $0.665$, \textbf{0.113 below} the unsmoothed baseline. A smoothing
 operation that helped for any reason other than genuine persistence would not
@@ -958,28 +743,28 @@ behave that way. This is the measurement that justifies the cross-epoch pathway
 of Section~\ref{sec:rate} as a real effect even though it costs accuracy.
 
 By contrast, merging the power stem with a within-epoch attention block
-(Table~\ref{tab:merge}) is improved by $0.024$ when the attention is
+(Table~\ref{tab:rejected}) is improved by $0.024$ when the attention is
 \emph{removed}, across three seeds. The block was dropped.
 
 \paragraph{An independent architecture reproduces the alignment result} We built
 a separate SPD-manifold decoder in which alignment can be fixed (Euclidean
-Alignment), learned, or omitted (Table~\ref{tab:spdnet}). Over three seeds the
+Alignment), learned, or omitted (Table~\ref{tab:rejected}). Over three seeds the
 three variants span $0.814$ to $0.823$, and omitting alignment entirely costs
 $0.002$, far inside the $\pm0.02$ to $\pm0.03$ seed spread. A different backbone,
 a different alignment parameterisation, and the same conclusion: the alignment
 stage is not what carries the performance.
 
 \paragraph{Per-window normalisation is wrong at the architecture level too}
-Table~\ref{tab:pubnorm} repeats the normalisation comparison across seven
+Table~\ref{tab:repr} repeats the normalisation comparison across seven
 published decoders. Per-window normalisation is the best choice for none of
 them and the worst for four, which is the architecture-level counterpart of the
-representation-level dose--response in Table~\ref{tab:norm}.
-Table~\ref{tab:ampctrl} reports the control that retired the amplitude
+representation-level dose--response in Table~\ref{tab:repr}.
+Table~\ref{tab:repr} reports the control that retired the amplitude
 side-channel: supplying a per-window amplitude feature and supplying the same
 feature with its window assignment shuffled differ by less than $0.01$ for five
 of six models.
 
-Tables~\ref{tab:features} and \ref{tab:archsweep} report the representation and
+Tables~\ref{tab:repr} and \ref{tab:rejected} report the representation and
 architecture sweeps that preceded the design. The tangent-space representation
 is the strongest single feature family, which is what motivated a
 covariance-based alignment stage; and no structural change in the 24-configuration
@@ -1029,26 +814,6 @@ should restore cohort B. The memory is approximately 160, 640 and 3200 windows
 at $m=0.2$, $0.05$ and $0.01$, so the crossing of
 $\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
 
-\begin{table}[t]
-\caption{Momentum sweep, cohort B, all five arms, single seed. ``At crossing''
-is $m{=}0.20 \rightarrow 0.05$, where the estimator memory passes the 309-window
-class block. Every arm that uses alignment gains; neither arm that omits it
-responds.}
-\label{tab:sweep}
-\centering
-\begin{tabular}{lrrrrc}
-\toprule
-Arm & $0.20$ & $0.05$ & $0.01$ & At crossing & Aligns \\
-\midrule
-align+ctx+gate & 0.626 & 0.724 & 0.723 & $\mathbf{+0.098}$ & yes \\
-align+gate     & 0.581 & 0.671 & 0.696 & $\mathbf{+0.090}$ & yes \\
-align+ctx      & 0.606 & 0.700 & 0.726 & $\mathbf{+0.094}$ & yes \\
-ctx+gate       & 0.792 & 0.782 & 0.783 & $-0.010$ & no \\
-stem only      & 0.737 & 0.737 & 0.737 & $\mathbf{0.000}$ & no \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_rate.pdf}
@@ -1064,7 +829,7 @@ pinned.}
 \end{figure*}
 
 Every arm that uses alignment gains $+0.090$ to $+0.098$ as the memory crosses
-the class-block length (Table~\ref{tab:sweep}). Neither arm that omits alignment
+the class-block length (Table~\ref{tab:rate}). Neither arm that omits alignment
 responds: the no-align arm moves $-0.010$, within its $0.0107$ run-to-run spread
 (Table~\ref{tab:noise}), and the stem-only arm reproduces $0.7375$ exactly at
 every setting despite a 160-fold change in the adaptation rate. Because that arm
@@ -1079,23 +844,7 @@ would not produce.
 We predicted, and recorded the prediction before running it, that the same
 change would be free on cohort A, whose blocks sit far inside even the fastest
 memory so that the estimate was already class-mixed. It is not
-(Table~\ref{tab:twosided}).
-
-\begin{table}[t]
-\caption{The same momentum change applied to both cohorts at matched estimator
-version, single seed. Deltas are computed at full precision, not from the
-rounded cells.}
-\label{tab:twosided}
-\centering
-\begin{tabular}{lrrr}
-\toprule
-Cohort & $m=0.20$ & $m=0.01$ & $\Delta$ \\
-\midrule
-A ($\tau_{\mathrm{blk}}=18$)  & \textbf{0.862} & 0.801 & $\mathbf{-0.060}$ \\
-B ($\tau_{\mathrm{blk}}=309$) & 0.631 & \textbf{0.723} & $\mathbf{+0.092}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+(Table~\ref{tab:rate}).
 
 The optima are opposite, and error in either direction costs $0.060$ to $0.092$,
 six to nine times the noise floor. The prediction failed because it accounted
@@ -1166,14 +915,14 @@ not the decoder can access the nuisance.}
 \begin{enumerate}
 \item The adaptation rate was originally selected because it maximised drift
       reduction ($60\,\%$ against $25\,\%$). That choice cost $0.092$ accuracy
-      on cohort B (Table~\ref{tab:sweep}).
+      on cohort B (Table~\ref{tab:rate}).
 \item The cohort in which more drift was removed ($83.9\,\%$ against
       $52.0\,\%$, Table~\ref{tab:drift}) is the cohort in which accuracy fell by
       $0.166$ (Table~\ref{tab:external}).
 \item A verified correction to a genuine covariance-estimation bias moved
       decoding by $+0.005$ and $-0.016$ (Section~\ref{sec:rejected}).
 \item A prediction registered from our own diagnosis was falsified
-      (Table~\ref{tab:twosided}), because the diagnosis accounted only for the
+      (Table~\ref{tab:rate}), because the diagnosis accounted only for the
       harm the estimate can do.
 \item The nuisance-leakage probe rises with accuracy whether or not the decoder
       can access the nuisance, measuring $R^2=+0.863$ for one that cannot.
@@ -1199,7 +948,7 @@ reservoirs and stabilised objectives as remedies. Our result is compatible with
 that line and adds two things specific to the blocked-protocol case. First, the
 relevant quantity is a ratio of timescales rather than a qualitative property of
 the stream, and the threshold location is predicted rather than fitted
-(Table~\ref{tab:sweep}). Second, the constraint is two-sided, because in a
+(Table~\ref{tab:rate}). Second, the constraint is two-sided, because in a
 longitudinal deployment the same estimator that can track the class is also the
 one that tracks the drift, so the remedies that slow adaptation trade one
 failure for the other rather than removing both.
@@ -1214,7 +963,7 @@ constraint on what the results support.
 \textbf{Single seed.} The ablations are seed 0. With a $0.010$ noise floor on
 transformer-containing arms (Table~\ref{tab:noise}), single-seed rankings of
 closely spaced models are not interpretable, and we avoid making them: the
-$0.012$ gap to ATCNet in Table~\ref{tab:compare} is reported as a loss rather
+$0.012$ gap to ATCNet in Table~\ref{tab:landscape} is reported as a loss rather
 than resolved in either direction. The effects we do interpret ($+0.090$ to
 $+0.098$, $-0.060$) are six to ten times that floor. Multi-seed replication of
 the headline ablation remains outstanding.
@@ -1244,7 +993,7 @@ Proposition~\ref{prop:band} properly.
 \textbf{The rule is post-hoc.} Proposition~\ref{prop:band} was derived after
 observing cohort B fail. One prediction from it has since been tested
 out-of-sample, and that test falsified the one-sided form
-(Table~\ref{tab:twosided}), which is how the two-sided form arose. The corrected
+(Table~\ref{tab:rate}), which is how the two-sided form arose. The corrected
 form has not yet predicted anything in advance.
 
 \textbf{Window length differs between cohorts.} Cohort B uses 2\,s windows
