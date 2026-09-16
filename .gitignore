@@ -18,3 +18,7 @@ __pycache__/
 # OS junk
 .DS_Store
 Thumbs.db
+tools/tex/tectonic.exe
+tools/tex/tectonic.zip
+tools/tex/els.zip
+tools/tex/els/
