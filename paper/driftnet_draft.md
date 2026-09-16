@@ -163,8 +163,34 @@ exceed the class-block duration of the recording protocol.** Classical Euclidean
 Alignment never encounters this because it estimates from a whole recording,
 which is the maximally slow setting.
 
-`[PENDING: momentum 0.01 / 0.05 on MoBI -- does slowing adaptation below the
-block rate restore decoding?]`
+**Tested directly.** Slowing adaptation below MoBI's class-block rate recovers
+most of the deficit, confirming the mechanism:
+
+| MoBI, contribution of alignment | value |
+|---|---|
+| momentum 0.20 (memory ~160 windows, shorter than a class block) | **-0.166** |
+| momentum 0.01 (memory ~3200 windows, longer than a class block) | **-0.060** |
+| run-to-run variation of the alignment-free arm | +-0.005 |
+
+The alignment-free arm was measured three times independently across different
+estimators and momenta (0.792 / 0.788 / 0.783) -- it should be invariant, since
+alignment is off in all three, and it is. That fixes the measurement noise at
++-0.005 and makes the residual interpretable.
+
+So the operating condition is **necessary but not sufficient**. Setting the rate
+correctly recovers 0.106 of the 0.166 deficit, but the remaining -0.060 is twelve
+times the measurement noise and therefore real. A second factor remains
+unidentified. This draft states that rather than proposing a third mechanism:
+two diagnoses tonight (power-weighted covariance, then adaptation rate) each
+looked convincing, and the first was wrong while the second was incomplete.
+
+Summary of the layer's behaviour:
+
+| condition | contribution of alignment |
+|---|---|
+| ds007788 (short class blocks, 26 % minority) | **+0.051**, and necessary -- removing it collapses the model to the bare stem |
+| MoBI, adaptation rate mis-set | -0.166 |
+| MoBI, adaptation rate correct | -0.060 |
 
 Note also that the estimate must be updated in batches to converge: a single
 whole-recording update moves it by one momentum step and removes almost nothing

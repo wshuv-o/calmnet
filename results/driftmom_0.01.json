@@ -9,5 +9,16 @@
   "missed_onsets": 0.0,
   "n_true_onsets": 2.0,
   "acc_sd": 0.11969436824715476
+ },
+ "dn_noalign|s0": {
+  "acc": 0.7828465514904889,
+  "ece": 0.11279541756556544,
+  "acc_at_90": 0.6608108482932757,
+  "cond_r2": -0.025426688702562712,
+  "false_onsets_per_min": 4.814884866297811,
+  "latency_s": 1.5625,
+  "missed_onsets": 0.0,
+  "n_true_onsets": 2.0,
+  "acc_sd": 0.1045392780902193
  }
 }
