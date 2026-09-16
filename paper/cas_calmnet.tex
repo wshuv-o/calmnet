@@ -771,7 +771,15 @@ The control applies the same filter after shuffling
 window order, which preserves the operation and destroys the temporal structure:
 it falls to $0.665$, \textbf{0.113 below} the unsmoothed baseline. A smoothing
 operation that helped for any reason other than genuine persistence would not
-behave that way. The cross-epoch pathway of Section~\ref{sec:rate} is therefore
+behave that way. Participant-paired Wilcoxon signed-rank tests over the seven
+participants, with seeds averaged within participant and Holm correction across
+the three comparisons, place the forward filter at $+0.024$ (better in 6 of 7,
+$p_{\mathrm{Holm}}=0.063$), Viterbi at $+0.038$ (6 of 7,
+$p_{\mathrm{Holm}}=0.063$) and the shuffled control at $-0.113$ (worse in 7 of
+7, $p_{\mathrm{Holm}}=0.047$). \textbf{Only the control clears $0.05$}: with
+$n=7$ the smallest attainable two-sided $p$ is $0.016$, so the smoothing gains
+are consistent in sign but underpowered, while the control's collapse is not.
+The cross-epoch pathway of Section~\ref{sec:rate} is therefore
 a real effect even though it costs accuracy.
 
 By contrast, merging the power stem with a within-epoch attention block
