@@ -1243,12 +1243,9 @@ transformer-containing arms (Table~\ref{tab:noise}), single-seed rankings of clo
 $0.012$ gap to ATCNet in Table~\ref{tab:landscape} is reported as a loss, and we leave the direction unresolved. The effects we do interpret ($+0.090$ to
 $+0.098$, $-0.060$) are six to ten times that floor. The headline ablation was not replicated across seeds.
 
-\textbf{No paired significance tests on accuracy.} Per-participant accuracies
-were not retained, only the mean and between-subject SD, so the accuracy
-comparisons carry dispersion but not paired tests. The drift results
-(Table~\ref{tab:drift}) are paired and tested; the accuracy comparisons are not.
+\textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the component ablation and the rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}) and the cohort~C predictions (Section~\ref{sec:prereg}).
 
-\textbf{Cohort size.} Seven and eight participants. This is typical for
+\textbf{Cohort size.} Seven, eight and twenty participants. This is typical for
 exoskeleton BCI studies \citep{he_exo} but small, and the between-subject SD of
 $0.06$ to $0.13$ (Table~\ref{tab:ablation}) is large relative to the differences
 between arms.
@@ -1261,13 +1258,13 @@ optimistic.
 
 \textbf{The upper bound is only bracketed.}
 $\tau_{\mathrm{drift}}$ in (\ref{eq:band}) is bounded by cohort A performing
-well at a 160-window memory and poorly at 3200. We have not measured an interior
-optimum, and a cohort whose admissible band is narrow but non-empty would test
-Condition~\ref{prop:band} properly.
+well at a 160-window memory and poorly at 3200. We have not measured an interior optimum, and a cohort whose admissible band is narrow but non-empty would test Condition~\ref{prop:band} properly. A direct estimate of $\tau_{\mathrm{drift}}$ from block-wise covariance distances within a session is dominated by class alternation where blocks are short. On cohort~A it returns about 18 windows, which is the class-block length, so it is not reported.
 
 \textbf{Condition~\ref{prop:band} is hypothesis-generating.} It was formulated after observing cohort B fail. One prediction from it has since been tested
 out-of-sample, and that test falsified the one-sided form
-(Table~\ref{tab:rate}), which is how the two-sided form arose. Prospective validation of the corrected form is required.
+(Table~\ref{tab:rate}), which is how the two-sided form arose. The corrected form has since been tested prospectively on cohort~C (Section~\ref{sec:prereg}), where both registered predictions held. That test covers the lower bound and the contrast with cohort~B; the upper bound has not been tested in advance.
+
+\textbf{Artefact.} Retraining after ICA cleaning lowers accuracy by $0.051$, concentrated in three participants (Section~\ref{sec:artefact}). The losses do not follow the amount of muscle activity removed. With seven participants, and with re-referencing part of the cleaning, the control still falls short of establishing that the accuracy is neural. ICLabel is also not trained on gait-related artefact specifically.
 
 \textbf{Window length differs between cohorts.} Cohort B uses 2\,s windows
 against cohort A's 4\,s, so the context pathway spans a shorter duration there.
