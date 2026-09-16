@@ -373,8 +373,8 @@ else:
 
 # ═══ 13 · NEGATIVE RESULTS ═══
 s = slide(); header(s, "Results Reported as Negative")
-cards = [("Abstention", "Declining uncertain windows lowers accuracy in 14 of 18 arms, by 0.045 on average. "
-                        "The trained gate ranks windows worse than no ranking at all."),
+cards = [("The selective head", "Declining uncertain windows lowers accuracy in 14 of 18 arms. "
+                               "It adds no accuracy either: alignment alone reaches 0.883, with the head 0.884."),
          ("The no-op control", "It is not inert. It moves distance by −28.8 % to +45.0 % per participant, because "
                                "trace normalisation after a fixed map breaks affine invariance."),
          ("Temporal smoothing", "Its gains are consistent in sign, 6 of 7 participants, but do not survive Holm "
