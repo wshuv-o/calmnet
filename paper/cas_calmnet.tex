@@ -979,6 +979,17 @@ six to nine times the noise floor. The prediction failed because it accounted
 only for the harm a fast estimate can do and not for the benefit it was
 delivering, which is tracking genuine session drift.
 
+That cost was first measured on \textit{align + ctx + gate}, which is not the
+configuration this paper proposes. Repeating it on the proposed
+\textit{align + gate} arm gives a larger figure, not a smaller one: slowing to
+$m=0.01$ takes cohort A from $0.884$ to $0.799 \pm 0.087$ (SD across the seven
+participants), a cost of $\mathbf{-0.085}$ under the trace-normalised
+estimator. Both numbers use the same estimator version; comparing the slow arm
+against the original-estimator $0.901$ would inflate the cost to $-0.102$ by
+mixing estimator versions, and we avoid that. The comparison is unpaired: the
+$m=0.2$ reference predates per-participant logging, so a signed-rank test on
+this pair must wait for the multi-seed re-run.
+
 \begin{condition}[Admissible rate band]
 \label{prop:band}
 Assume (i) the running estimate is an exponential moving average with effective
