@@ -490,7 +490,7 @@ It now points to this section.
 
 Build: 0 errors, 0 undefined, 19 pages; neither new table spills.
 
-### 03:45 — Abstract, contributions and conclusion updated
+### 03:33 — Abstract, contributions and conclusion updated
 
 **Abstract** rewritten: **369 words, down from 432**, while adding the
 prospective cohort-C test and the artefact control. Two errors fixed along the
