@@ -10,6 +10,7 @@
 \usepackage{multirow}
 
 \newtheorem{proposition}{Proposition}
+\newtheorem{condition}{Condition}
 \newdefinition{remark}{Remark}
 
 \begin{document}
@@ -171,7 +172,7 @@ Our contributions are:
 \item We derive an admissible band for the adaptation rate, bounded below by the
       class-block timescale and above by the drift timescale, and show the
       condition is two-sided by testing it in the direction where we predicted
-      no effect (Proposition~\ref{prop:band}, Section~\ref{sec:twosided}).
+      no effect (Condition~\ref{prop:band}, Section~\ref{sec:twosided}).
 \item We validate the mechanism separately from the task, reporting a
       $52.0\pm4.5\,\%$ and $83.9\pm3.9\,\%$ reduction in session-to-session
       covariance distance in 15 of 15 subjects against a no-op control
@@ -764,12 +765,14 @@ each tests a component the architecture could plausibly have kept.
 \paragraph{Temporal smoothing survives its control; the attention block does
 not} Applying an HMM forward filter over the decoder's output improves cohort A
 by $+0.024$ over four seeds, and Viterbi decoding by $+0.038$
-(Table~\ref{tab:rejected}). The control applies the same filter after shuffling
+(Table~\ref{tab:rejected}). Viterbi is reported for reference only: it needs the
+complete sequence and so cannot run in the causal setting this decoder targets.
+The control applies the same filter after shuffling
 window order, which preserves the operation and destroys the temporal structure:
 it falls to $0.665$, \textbf{0.113 below} the unsmoothed baseline. A smoothing
 operation that helped for any reason other than genuine persistence would not
-behave that way. This is the measurement that justifies the cross-epoch pathway
-of Section~\ref{sec:rate} as a real effect even though it costs accuracy.
+behave that way. The cross-epoch pathway of Section~\ref{sec:rate} is therefore
+a real effect even though it costs accuracy.
 
 By contrast, merging the power stem with a within-epoch attention block
 (Table~\ref{tab:rejected}) is improved by $0.024$ when the attention is
@@ -784,7 +787,7 @@ a different alignment parameterisation, and the same conclusion: the alignment
 stage is not what carries the performance.
 
 \paragraph{Per-window normalisation is wrong at the architecture level too}
-Table~\ref{tab:repr} repeats the normalisation comparison across seven
+Table~\ref{tab:norm} repeats the normalisation comparison across seven
 published decoders. Per-window normalisation is the best choice for none of
 them and the worst for four, which is the architecture-level counterpart of the
 representation-level dose--response in Table~\ref{tab:repr}.
@@ -850,7 +853,7 @@ $\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
 single seed; the shaded region is where the estimator memory is shorter than a
 class block. Measurement points are marked because the sweep is sparse. (b) The
 same change applied to both cohorts at matched estimator version, giving
-opposite signs. (c) The admissible band of Proposition~\ref{prop:band}, bounded
+opposite signs. (c) The admissible band of Condition~\ref{prop:band}, bounded
 below by $\tau_{\mathrm{blk}}$ and above by $\tau_{\mathrm{drift}}$; the upper
 bound is bracketed by cohort A being good at 160 windows and poor at 3200, not
 pinned.}
@@ -880,17 +883,23 @@ six to nine times the noise floor. The prediction failed because it accounted
 only for the harm a fast estimate can do and not for the benefit it was
 delivering, which is tracking genuine session drift.
 
-\begin{proposition}[Admissible rate band]
+\begin{condition}[Admissible rate band]
 \label{prop:band}
-A running covariance estimate with effective memory $\mu$ windows both avoids
-tracking the streaming class and tracks session drift only if
+Assume (i) the running estimate is an exponential moving average with effective
+memory $\mu$ windows; (ii) the within-class covariance is stationary over a
+block; (iii) the protocol presents classes in contiguous blocks of length
+$\tau_{\mathrm{blk}}$; and (iv) session drift acts as a congruence transform
+slow on the scale $\tau_{\mathrm{drift}}$. Under (i)--(iv) the estimate both
+avoids tracking the streaming class and tracks session drift only if
 \begin{equation}
 \tau_{\mathrm{blk}} \;<\; \mu \;<\; \tau_{\mathrm{drift}} .
 \label{eq:band}
 \end{equation}
 Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
-setting of $\mu$ satisfies both requirements.
-\end{proposition}
+setting of $\mu$ satisfies both requirements. This is a design condition, not a
+theorem: it states when the layer can work, and is established here
+empirically rather than proved.
+\end{condition}
 
 Cohort A satisfies (\ref{eq:band}) with a wide margin, so fast adaptation is
 both safe and useful there, and slowing it forfeits the drift tracking for no
@@ -1017,9 +1026,9 @@ optimistic.
 $\tau_{\mathrm{drift}}$ in (\ref{eq:band}) is bounded by cohort A performing
 well at a 160-window memory and poorly at 3200. We have not measured an interior
 optimum, and a cohort whose admissible band is narrow but non-empty would test
-Proposition~\ref{prop:band} properly.
+Condition~\ref{prop:band} properly.
 
-\textbf{The rule is post-hoc.} Proposition~\ref{prop:band} was derived after
+\textbf{The rule is post-hoc.} Condition~\ref{prop:band} was derived after
 observing cohort B fail. One prediction from it has since been tested
 out-of-sample, and that test falsified the one-sided form
 (Table~\ref{tab:rate}), which is how the two-sided form arose. The corrected
@@ -1049,7 +1058,7 @@ $\tau_{\mathrm{blk}}$ between roughly 100 and 200 windows would place the two
 bounds close together, and the prediction is that accuracy would peak at an
 intermediate momentum and fall on both sides. That experiment is pre-registrable
 from the protocol alone, and it is the test we would want before treating
-Proposition~\ref{prop:band} as established rather than as a description of two
+Condition~\ref{prop:band} as established rather than as a description of two
 cohorts.
 
 A second direction follows from the residual. If a single running estimate
