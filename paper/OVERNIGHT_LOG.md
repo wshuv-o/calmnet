@@ -154,3 +154,43 @@ Also added two arms: `dn_gate` (no alignment, no context), required by the
 pre-registration so that alignment is the only differing factor; and
 `dn_align` (alignment alone), for the selective-head question.
 
+### 02:10 — Evaluation committed before any result (`7200b65`, 02:10:10)
+
+`src/eval_overnight.py` applies the pre-registered P1/P2 thresholds literally.
+Wilcoxon tests and direction counts are reported but cannot change a verdict.
+With the decision rule committed as code before results exist, it cannot be
+adjusted afterwards.
+
+### 02:12 — Presentation deck built (`presentation/build_update_deck.py`)
+
+15 slides in the midterm deck's style: serif type, black on white, ruled
+tables. Slide titles have no colons. The deck reads tonight's results from
+`results/overnight_eval.json` when it is built, so rebuilding fills in the
+pending slides.
+
+The midterm deck said "the reported accuracy is largely the confound" and put
+invariant decoding at ~0.65. The updated paper reports 0.901, so the audience
+will ask whether that accuracy is neural. Slide 8 answers it, and the ICA
+control is its centrepiece. Slide 2 explains the change directly: the
+leakage measure used at the midterm scored R² = 0.863 on a decoder carrying no
+movement information at all.
+
+Every slide was rendered through PowerPoint and checked visually. Slide 12's
+text crowded its table; slide 13's cards were oversized. Both fixed.
+
+### 02:17 — Removed the contradictory abstention label from Figure 1
+
+The architecture figure's selector box read `abstain / act  0.876 @ 90 %`,
+presenting as a feature the figure the paper reports as a negative result
+(0.876 is below the arm's own 0.901). It would have contradicted slide 13 in
+front of the audience.
+
+The committed `paper/fig_arch.drawio` is stale: `FIGURE1_README.md` records
+that `results/fig_arch.pdf` came from an edited source that was never checked
+in. Re-rendering would have replaced the new figure with the old layout, so
+the figure was not regenerated. It is a vector PDF, and the label is a single
+real text span (LiberationSans 8.6 pt), so only that span was redacted, with
+no fill and line art preserved. `abstain / act` stays, since it describes the
+component. Before/after renders confirmed nothing else moved and no white
+patch appeared. Original kept as `results/fig_arch_original_with_0876.pdf`.
+
