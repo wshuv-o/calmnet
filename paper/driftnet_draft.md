@@ -39,7 +39,7 @@ memory ~1/*m* batches -- and observed where predicted: slowing adaptation past t
 alignment, and 0.000, exactly, on both arms that do not.
 
 **The condition is two-sided.** Applying the same change to the primary cohort,
-where we predicted it would be free, instead costs 0.061. The rate must be fast
+where we predicted it would be free, instead costs 0.060. The rate must be fast
 enough to track drift and slow enough not to track class; the two cohorts' optima
 are opposite, each losing 0.06-0.09 at the other's setting. Where class blocks
 outlast the drift timescale the admissible band is empty, and the layer should be
@@ -68,7 +68,7 @@ two effects and the metric scores one.
 | On cohort A it is *necessary*: removing it collapses the model to its bare stem | **supported** | 0.827 = 0.827, ablation |
 | **The model beats published decoders on cohort A** | **NOT supported** | 0.884 vs ATCNet 0.881 at matched seed and estimator: +0.003, inside the +-0.005 noise. EEGNeX reaches 0.896 at seed 1. The 0.901 previously quoted used the pre-fix estimator and compared one seed against 2-seed means. |
 | The layer's adaptation memory must exceed the class-block duration | **supported** | predicted threshold, step of +0.090 to +0.098 on all 3 alignment arms, 0.000 on both alignment-free arms |
-| ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.092 on cohort B and **-0.061** on cohort A |
+| ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.092 on cohort B and **-0.060** on cohort A |
 | No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is 0.06-0.09 worse at the other's setting |
 | **The architecture generalises** | **NOT supported** | on cohort B the *bare stem* beats the full model, 0.737 vs 0.626 |
 | **Alignment helps decoding** | **NOT supported** | +0.051 on cohort A, -0.060 to -0.166 on cohort B |
@@ -95,7 +95,7 @@ evaluation protocol that preceded it:
    did not follow.
    A fourth case is the sharpest, because it is a *prediction we registered and
    lost*: we predicted slowing adaptation would be neutral on cohort A, since its
-   class blocks already sit far inside the fastest memory. It cost 0.061. The
+   class blocks already sit far inside the fastest memory. It cost 0.060. The
    estimate had been doing useful work we had not accounted for -- tracking
    genuine drift -- and the metric we were optimising could not see it.
 4. The movement-leakage probe used throughout the preceding work is confounded
@@ -395,7 +395,7 @@ section 7.5 twelve times the noise.
 **A one-sided rule would be wrong.** The obvious reading of this table is "set
 the adaptation memory longer than the class-block duration, and when in doubt go
 slower." Cohort B alone supports it. Section 7.5 tests it on cohort A and it
-fails: the same change that recovers +0.092 there costs -0.061 here. The rule is
+fails: the same change that recovers +0.092 there costs -0.060 here. The rule is
 two-sided, and we state it in its corrected form in 7.5 rather than here.
 
 ### 7.5 The rate is two-sided, and that explains the residual
@@ -404,18 +404,19 @@ Applying the same momentum change to cohort A produces the **opposite** result:
 
 | cohort | m = 0.20 | m = 0.01 | delta |
 |---|---|---|---|
-| A (ds007788), class blocks 18 windows | **0.862** | 0.801 | **-0.061** |
+| A (ds007788), class blocks 18 windows | **0.862** | 0.801 | **-0.060** |
 | B (MoBI), class blocks 309 windows | 0.631 | **0.723** | **+0.092** |
 
 Both cells in each row come from the same code version (the corrected per-window
 estimator of section 7.3). An earlier draft of this table quoted -0.077 and
-+0.097 by taking the m = 0.20 baselines from runs that predate that correction;
++0.097 by taking the m = 0.20 baselines from runs that predate that correction; deltas here are
+computed at full precision rather than from the rounded cell values;
 the direction and magnitude survive, the exact deltas do not. The mixed-version
 numbers should not be cited.
 
 We predicted cohort A would be roughly neutral, on the grounds that its class
 blocks sit far below even the fastest setting's memory so the estimate was
-already class-mixed. It is not neutral: slowing adaptation costs 0.061 there.
+already class-mixed. It is not neutral: slowing adaptation costs 0.060 there.
 **There is no universal setting, and error in either direction costs 0.06-0.09.**
 
 The mechanism is therefore two-sided. The running estimate tracks whatever varies
@@ -459,7 +460,13 @@ Same harness, full data, 2 seeds (`results/fullbench.json`):
 | ShallowFBCSPNet | 97 120 | 0.856 | 0.877 | 0.867 |
 | CALMNet-bare (ours, prior) | 3 946 | 0.878 | 0.838 | 0.858 |
 | EEGConformer | 440 706 | 0.834 | 0.852 | 0.843 |
-| **DriftNet, align + gate (ours)** | 619 k | **0.884** | *pending* | -- |
+| **DriftNet, align + gate (ours)** | **24 181** | **0.884** | *pending* | -- |
+
+**Parameter count.** The best configuration carries 24 181 parameters: the
+cross-epoch transformer accounts for 594 816 of the 618 997 in `dn_full`, and
+removing it both shrinks the model by 96 % and improves accuracy by 0.023. The
+remaining budget is 6 768 in the power stem, 12 608 in the frame embedding,
+4 161 in the selective head, and a single scalar in the alignment layer.
 
 **We do not claim an accuracy improvement.** At matched seed and matched
 estimator version, the best DriftNet configuration is +0.003 on ATCNet, inside
@@ -468,6 +475,12 @@ among the baselines reaches 0.041 (EEGNeX), which is an order of magnitude large
 than the gap. A single-seed ranking here would be meaningless, and the 0.901
 figure quoted in earlier drafts compounded two errors: it used the pre-fix
 estimator, and it compared one seed of ours against 2-seed means of theirs.
+
+What can be said is narrower and does not depend on winning a noisy comparison:
+the configuration reaches parity with the field at roughly half ATCNet's
+parameter count and 5 % of EEGConformer's. We report that as an efficiency
+observation, not a contribution, since no attempt was made to compress the
+baselines.
 
 The architecture is the vehicle for the rate finding, not a performance claim.
 Note also that the configuration that wins on cohort A (`align + gate`, the most
@@ -491,7 +504,7 @@ which we produced by acting on that assumption ourselves:
 
 5. We predicted, on record and before running it, that slowing adaptation would
    be neutral on cohort A because its class blocks already sit far inside the
-   fastest memory. It cost 0.061 -- the prediction failed because it accounted
+   fastest memory. It cost 0.060 -- the prediction failed because it accounted
    only for the harm the estimate can do and not for the benefit it was
    delivering.
 
