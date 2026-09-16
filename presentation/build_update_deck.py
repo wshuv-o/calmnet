@@ -185,7 +185,8 @@ items = [
     ("The contribution moved to longitudinal drift. ",
      "When an in-network alignment layer helps across sessions, and when it harms."),
     ("External validation was added. ",
-     "An independent second cohort, and a third cohort tested against a prediction registered before any model was trained."),
+     "An independent second cohort, and a third cohort tested against a prediction registered before any model "
+     "was trained. Both predictions held."),
 ]
 tf = box(s, Inches(0.7), Inches(1.7), Inches(11.93), Inches(5.3))
 for i, (b, d) in enumerate(items):
@@ -261,7 +262,7 @@ para(tf, [("0.901 at 53 % of ATCNet's parameters. ", {"size": 17, "bold": True})
 # ═══ 8 · IS THE ACCURACY NEURAL ═══
 s = slide(); header(s, "Is the Accuracy Neural")
 tf = box(s, Inches(0.7), Inches(1.6), Inches(5.9), Inches(5.4))
-para(tf, "Three separate lines of evidence", 18, BLK, bold=True, first=True, space=12)
+para(tf, "Four independent lines of evidence", 18, BLK, bold=True, first=True, space=12)
 para(tf, [("No motion input. ", {"size": 16, "bold": True}),
           ("The IMU is used only to score leakage after the fact.", {"size": 16, "color": GRY})], 16, space=10, lh=1.2)
 para(tf, [("8–30 Hz band. ", {"size": 16, "bold": True}),
