@@ -18,11 +18,11 @@
 \def\floatpagepagefraction{1}
 \def\textpagefraction{.001}
 
-\shorttitle{A parameter-efficient EEG decoder with in-network session adaptation}
+\shorttitle{An admissible rate band for in-network EEG alignment}
 \shortauthors{E. M. C. Abha et al.}
 
-\title[mode = title]{A parameter-efficient EEG decoder with in-network session
-adaptation, calibration and abstention for lower-limb exoskeleton control}
+\title[mode = title]{In-network covariance alignment tracks the streaming class:
+an admissible rate band for test-time adaptation in EEG under blocked protocols}
 
 %% TODO(authors): verify the CRediT role split below before submission.
 \author[1]{Esm E Moula Chowdhury Abha}
@@ -71,9 +71,12 @@ recording protocol before any model is fitted.
 
 \textbf{Results.} On a 7-subject, 9-session exoskeleton cohort recorded across
 weeks, the 24{,}181-parameter configuration reaches $0.901$ balanced accuracy
-with expected calibration error $0.039$ and $0.876$ accuracy at $90\,\%$
-coverage, at $53\,\%$ of the parameters of the strongest baseline evaluated in
-the same pipeline ($0.913$). The alignment layer reduces session-to-session
+with expected calibration error $0.039$, at $53\,\%$ of the parameters of the
+strongest baseline evaluated in the same pipeline ($0.913$). The trained
+selective head does not earn its place: declining the least-confident
+$10\,\%$ of windows \emph{lowers} balanced accuracy by $0.026$ here and in 14
+of the 18 arms measured, so we report abstention as a negative result rather
+than as a feature. The alignment layer reduces session-to-session
 covariance distance by $52.0 \pm 4.5\,\%$ and $83.9 \pm 3.9\,\%$ on two
 independent cohorts, in 15 of 15 subjects ($p \le 10^{-4}$), against a no-op
 control that shows no reduction. On the second cohort the architecture does not
@@ -92,8 +95,8 @@ predicts where in-network adaptation will fail before a model is trained.
 \end{abstract}
 
 \begin{highlights}
-\item A 24{,}181-parameter EEG decoder emitting class, calibrated confidence and
-      an abstention decision.
+\item A 24{,}181-parameter EEG decoder emitting class and calibrated
+      confidence.
 \item Label-free in-network alignment reduces session drift by 52--84\% in 15 of
       15 subjects.
 \item Test-time adaptation can track the streaming class and erase the signal it
@@ -395,6 +398,18 @@ representation, which is scale-free by construction and therefore cannot respond
 A representation that carries no marginal power shows no effect, which is what
 identifies the mechanism rather than merely demonstrating it.
 
+These are participant-paired comparisons, so they can be tested as such.
+Wilcoxon signed-rank tests over participants, Holm-corrected across the three
+representations within each cohort, give band power $+0.174$ (better in 7 of 8,
+$p_{\mathrm{Holm}}=0.047$) on cohort B and $+0.134$ (6 of 7,
+$p_{\mathrm{Holm}}=0.094$) on cohort A; tangent space $+0.029$ (5 of 8,
+$p_{\mathrm{Holm}}=0.500$) and $-0.016$ (2 of 7, $p_{\mathrm{Holm}}=0.750$);
+and the correlation-only control $+0.000$ (3 of 8, $p_{\mathrm{Holm}}=1.000$)
+and $-0.004$ (3 of 7, $p_{\mathrm{Holm}}=0.750$). \textbf{The effect reaches
+significance on the larger cohort and is null in the scale-free control, as
+the mechanism predicts}; cohort A is consistent in sign but underpowered at
+$n=7$, where the smallest attainable Holm-corrected $p$ is $0.047$.
+
 A separate sweep over where normalisation is applied in the network confirms the
 ordering at the architecture level: on cohort A with 4\,s windows, per-window
 normalisation scores $0.849$, global per-recording normalisation $0.878$, and no
@@ -615,10 +630,31 @@ Drift is reduced in 15 of 15 participants ($t=-9.14$, $p=1\times10^{-4}$ for
 cohort A; $t=-20.59$, $p<1\times10^{-5}$ for cohort B), with per-participant
 reductions spanning $45.2$ to $56.1\,\%$ on cohort A and $76.3$ to $88.6\,\%$ on
 cohort B (Table~\ref{tab:drift}). No participant regresses, and the
-reduction is not carried by one or two outliers. The no-op control shows
-no reduction in either cohort, which establishes that the effect comes from
-adaptation rather than from the whitening operation or from the measurement
-itself. The mechanism works as designed, and Section~\ref{sec:external} shows
+reduction is not carried by one or two outliers. The no-op control shows no
+systematic reduction in either cohort, which establishes that the effect comes
+from adaptation rather than from the whitening operation or from the
+measurement itself.
+
+It is worth being precise about what that control does, because it is not
+inert: per participant it moves the distance by $-28.8\,\%$ to $+45.0\,\%$,
+scattering in both directions about a mean of roughly zero. Two implementation
+facts explain this. First, the running estimate is primed by copying the first
+batch's covariance regardless of momentum, so at momentum $0$ the layer does
+not whiten by the identity -- it whitens by the fit-session covariance and then
+never updates. Second, the layer returns a gated blend
+$g\,Wx + (1-g)\,x$ with $g=\sigma(2.0)\approx0.88$, so the effective operation
+is the fixed linear map $M = gW + (1-g)I$. A fixed map applied to both
+covariances is a congruence, under which the affine-invariant distance is
+invariant; but the measurement normalises each covariance by its own trace
+\emph{after} the map, and $M$ scales the fit and held-out traces by different
+factors. The normalised pair is therefore no longer related by a congruence,
+and the residual scatter is that trace renormalisation, not adaptation. The
+eigenvalue clamp at $10^{-6}$ contributes on near-singular montages. The
+control is still the right one -- it isolates adaptation from whitening -- but
+its scatter should be read as the measurement's noise floor rather than as a
+null effect.
+
+The mechanism works as designed, and Section~\ref{sec:external} shows
 that this does not settle whether it helps the task.
 
 \subsection{Component ablation, cohort A}
@@ -628,7 +664,9 @@ that this does not settle whether it helps the task.
 \includegraphics[width=\textwidth]{../results/fig_ablation.pdf}
 \caption{Component ablation on cohort A, seed 0. (a) Balanced accuracy by arm;
 error bars are $\pm1$ SD across the 7 participants, not across seeds. (b)
-Accuracy recovered by declining the least-confident $10\,\%$ of windows. (c)
+Balanced accuracy at $90\,\%$ coverage, obtained by declining the
+least-confident $10\,\%$ of windows. It sits \emph{below} full-coverage
+accuracy for every arm with a trained gate. (c)
 Balanced accuracy against spurious activations per minute of standing, showing
 the cross-epoch context as a selectable operating point.}
 \label{fig:ablation}
@@ -658,6 +696,20 @@ The acc@90 value for the \textit{align + ctx} arm is withheld because with the
 selection head disabled the model emits near-constant confidence, so ranking by
 it selects the first $90\,\%$ of the test set in recording order. That number
 would be an ordering artefact, not a selective accuracy.
+
+\paragraph{The selective head is a negative result} Abstention is supposed to
+raise accuracy on the windows that are kept. It does not. Across the 18 arms in
+this work for which both quantities were computed on the same windows with the
+same metric, declining the least-confident $10\,\%$ \textbf{lowers} balanced
+accuracy in 14, by $0.045$ on average; the headline arm loses $0.026$
+($0.901 \rightarrow 0.876$) and the worst case loses $0.122$. The four arms
+where abstention helps are exactly those with no trained gate
+(\textit{align + ctx}, \textit{stem only}), where the ranking is arbitrary.
+A gate that is beaten by its own absence is not ranking windows by correctness,
+and we therefore report the selective head as a component that did not work
+rather than as a contribution. Fixing it -- for instance by thresholding a
+temperature-scaled softmax confidence instead of the learned gate -- is left
+open; the calibration result ($\mathrm{ECE}=0.039$) is separate and stands.
 
 \paragraph{Alignment is necessary, not additive} With alignment removed, the
 context and selection modules together contribute between $0.000$ and $0.007$:
