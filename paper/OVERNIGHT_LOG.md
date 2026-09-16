@@ -219,3 +219,35 @@ It stays in TODO_NEXT.md.
 The evaluation for queue 2 was added to `eval_overnight.py` before any of its
 results existed, including the reproducibility comparison.
 
+### 02:40 — Run 2 finished: the trace-normalised ablation is complete
+
+`dn_nogate` (align + context, no gate) under the trace-normalised estimator:
+**0.862** (ECE 0.065, cond R² −0.066), with per-subject rows. It took
+12,497 s, 3.5 h. The transformer arms run about 6.6× slower than the
+31-minute arms without it, which is worth knowing when planning seeds.
+
+That fills the last missing cell, and every cohort-A component arm now exists
+under the trace-normalised estimator:
+
+| arm | original | trace-normalised |
+|---|---|---|
+| align + gate | 0.901 | 0.884 |
+| align + ctx + gate | 0.878 | 0.862 |
+| align + ctx | 0.862 | 0.862 |
+| ctx + gate | 0.827 | 0.834 |
+| stem only | 0.827 | 0.827 (inert) |
+
+"Pick one estimator" (TODO 1.1) is now unblocked. The ordering is the same
+under both estimators, and alignment still adds to every arm.
+
+Per subject: 0.934, 0.904, 0.984, 0.942, 0.887, 0.813, **0.568**. Sub-07 is
+the weak participant in this arm too.
+
+One detail for the abstention count: in this no-gate arm acc@90 (0.860) sits
+0.002 below acc. All four arms where abstention helped had no trained gate,
+but not every no-gate arm is helped. The paper's statement concerns which arms
+helped, so it still holds.
+
+The queue started at once: ICA precompute (2 workers) and the uncleaned
+artefact-control arm.
+
