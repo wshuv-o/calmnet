@@ -145,6 +145,11 @@ def f3(v):
     return "%.3f" % v
 
 
+def sgn(v):
+    """Signed difference with a true minus sign, matching the typed values."""
+    return ("%+.3f" % v).replace("-", "−")
+
+
 # ---------------------------------------------------------------- data
 EV = load("overnight_eval.json")
 C3 = EV.get("cohort3", {})
@@ -273,13 +278,20 @@ para(bt, "ICA artefact control", 18, BLK, bold=True, first=True, space=10)
 para(bt, "ICLabel removes eye, muscle, heart, line-noise and channel-noise components, then the proposed decoder "
      "is retrained on the cleaned signal.", 15, GRY, space=12, lh=1.2)
 if done(ICAC):
-    para(bt, [("Uncleaned  ", {"size": 17, "color": GRY}), (f3(ICAC["mean_a"]), {"size": 17, "bold": True})],
+    para(bt, [("Uncleaned  ", {"size": 17, "color": GRY}), (f3(ICAC["mean_a"]), {"size": 17, "bold": True}),
+              ("      Cleaned  ", {"size": 17, "color": GRY}), (f3(ICAC["mean_b"]), {"size": 17, "bold": True})],
          17, space=4)
-    para(bt, [("Cleaned      ", {"size": 17, "color": GRY}), (f3(ICAC["mean_b"]), {"size": 17, "bold": True})],
-         17, space=4)
-    para(bt, [("Change       ", {"size": 17, "color": GRY}), ("%+.3f" % ICAC["mean_diff"], {"size": 17, "bold": True})],
-         17, space=10)
-    para(bt, "Paired over %d participants, training task only for both arms." % ICAC["n"],
+    para(bt, [("Change  ", {"size": 17, "color": GRY}),
+              (sgn(ICAC["mean_diff"]), {"size": 17, "bold": True}),
+              ("   p = %.2f, n = %d" % (ICAC.get("wilcoxon_p", float("nan")), ICAC["n"]), {"size": 14, "color": GRY})],
+         17, space=12)
+    para(bt, [("Most accuracy survives. ", {"size": 15, "bold": True}),
+              ("Four of seven participants are unchanged or improve.", {"size": 15, "color": GRY})],
+         15, space=8, lh=1.2)
+    para(bt, [("Losses do not track muscle. ", {"size": 15, "bold": True}),
+              ("The participant with the most muscle removed improves; one with almost none removed "
+               "loses most.", {"size": 15, "color": GRY})], 15, space=8, lh=1.2)
+    para(bt, "Seven participants: evidence against muscle dependence, short of proof.",
          13, GRY, italic=True, lh=1.15)
 else:
     para(bt, "Running overnight. Result pending.", 17, BLK, italic=True)
@@ -341,7 +353,7 @@ para(tf, [("Cohort C, PhysioNet EEGMMIDB. ", {"size": 17, "bold": True}),
 def pred_row(r, name, rule):
     if not done(r):
         return [name, rule, "pending", "pending"]
-    return [name, rule, "%+.3f" % r["mean_diff"], r["verdict"].capitalize()]
+    return [name, rule, sgn(r["mean_diff"]), r["verdict"].capitalize()]
 
 
 table(s, ["Prediction", "Rule", "Observed", "Verdict"],
