@@ -1,7 +1,62 @@
-# When in-network drift correction hurts: adaptation rate, class structure, and the limits of alignment in longitudinal EEG decoding
+# When test-time adaptation adapts to the class: a two-sided rate condition for in-network alignment in EEG decoding
 
 **Manuscript draft.** Every number is traceable to a JSON in `results/`.
-Experiments that failed are reported, not omitted.
+Experiments that failed are reported, not omitted. Author-facing notes on
+submission readiness are kept outside this file, in
+`paper/SUBMISSION_READINESS.md`.
+
+**Keywords:** brain-computer interface; test-time adaptation; domain adaptation;
+Euclidean alignment; covariate shift; selective prediction; lower-limb
+exoskeleton; EEG.
+
+---
+
+## Abstract
+
+A decoder for a wearable device is fitted once and must keep working weeks later,
+so correcting for session-to-session drift inside the network -- re-estimating the
+input distribution at inference and whitening by it, without labels -- is an
+appealing design. We implement this as an adaptive alignment layer: a running
+spatial-covariance estimate, an inverse-square-root transform, and a learned gate,
+updating in eval mode.
+
+**As a mechanism it works.** It removes 52 % and 84 % of session-to-session
+covariance drift on two independent cohorts, in 15 of 15 subjects, p <= 0.0001,
+against a no-op control that shows no reduction. On the primary cohort it is also
+necessary: disabling it returns the model exactly to its bare-stem score
+(0.827 = 0.827). Its best configuration is competitive with, but not better than,
+published decoders in the same harness (0.884 against ATCNet's 0.881 at matched
+seed) -- we make no accuracy claim.
+
+**It does not transfer.** On an independent cohort the bare stem beats the full
+model, 0.737 against 0.626. We trace this to a failure mode that the offline form
+of alignment cannot have: the running estimate tracks whatever is currently
+streaming, so when a protocol presents classes in blocks longer than the
+estimate's memory, the layer whitens away the class itself. The threshold is
+predicted from the protocol -- an exponential estimate with momentum *m* has
+memory ~1/*m* batches -- and observed where predicted: slowing adaptation past the
+309-window class block recovers +0.090 to +0.098 on every arm that uses
+alignment, and 0.000, exactly, on both arms that do not.
+
+**The condition is two-sided.** Applying the same change to the primary cohort,
+where we predicted it would be free, instead costs 0.061. The rate must be fast
+enough to track drift and slow enough not to track class; the two cohorts' optima
+are opposite, each losing 0.06-0.09 at the other's setting. Where class blocks
+outlast the drift timescale the admissible band is empty, and the layer should be
+omitted rather than tuned -- which is also why a correctly configured layer still
+costs 0.060 on the second cohort. Both timescales are computable from the
+recording protocol before any model is fitted.
+
+**The wider point concerns validation.** Five times in this system a
+distribution-level metric improved while the task did not follow: a rate tuned to
+maximise drift removal cost 0.092; the cohort where more drift was removed is the
+cohort where accuracy fell; a verified correction to a real estimator bias moved
+decoding by +0.005 and -0.016; a standard nuisance-decodability probe scored
+R^2 = +0.863 for a decoder that cannot access the nuisance; and a prediction we
+registered from our own diagnosis was falsified because that diagnosis, like the
+metric behind it, was one-sided. A proxy metric can be correct about the failure
+it was built to detect and still mislead, because what matters is a balance of
+two effects and the metric scores one.
 
 ---
 
@@ -11,7 +66,7 @@ Experiments that failed are reported, not omitted.
 |---|---|---|
 | A label-free alignment layer removes 52 % / 84 % of session-to-session covariance drift | **supported** | 15/15 subjects, two cohorts, p <= 0.0001, no-op control at zero |
 | On cohort A it is *necessary*: removing it collapses the model to its bare stem | **supported** | 0.827 = 0.827, ablation |
-| The resulting model reaches 0.901 on cohort A, above every published model in the same harness | **supported** | vs ATCNet 0.879, EEGNeX 0.876, ShallowFBCSPNet 0.867, EEGConformer 0.843 |
+| **The model beats published decoders on cohort A** | **NOT supported** | 0.884 vs ATCNet 0.881 at matched seed and estimator: +0.003, inside the +-0.005 noise. EEGNeX reaches 0.896 at seed 1. The 0.901 previously quoted used the pre-fix estimator and compared one seed against 2-seed means. |
 | The layer's adaptation memory must exceed the class-block duration | **supported** | predicted threshold, step of +0.090 to +0.098 on all 3 alignment arms, 0.000 on both alignment-free arms |
 | ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.092 on cohort B and **-0.061** on cohort A |
 | No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is 0.06-0.09 worse at the other's setting |
@@ -32,7 +87,7 @@ Four independent demonstrations, three from this architecture and one from the
 evaluation protocol that preceded it:
 
 1. The layer's adaptation rate was selected because it maximised drift reduction
-   (60 % against 25 %). That choice cost ~0.10 accuracy on cohort B.
+   (60 % against 25 %). That choice cost 0.092 accuracy on cohort B.
 2. The layer removes *more* drift on cohort B than on cohort A (84 % vs 52 %)
    while costing 0.166 accuracy there.
 3. A verified correction to a real covariance-estimation bias moved decoding by
@@ -192,9 +247,32 @@ whitening operation and not the measurement.
 
 ## 7. Results
 
+![Figure 1](../results/fig_driftnet.png)
+
+**Figure 1.** (a) Riemannian distance between the fit-session mean covariance and
+each held-out session, per subject, both cohorts, with the momentum-0 no-op
+control. (b) Component ablation on cohort A; `dn_noalign` and `dn_stem` coincide.
+(c) Accuracy against spurious activations per minute of standing, showing the
+cross-epoch context as an operating point rather than a failed module.
+
+![Figure 2](../results/fig_rate.png)
+
+**Figure 2.** The adaptation rate is two-sided. (a) Cohort B, five arms, three
+momenta: every arm using alignment steps up as the memory crosses the class-block
+length; neither alignment-free arm moves. (b) The same change applied to both
+cohorts, matched estimator version, giving opposite signs. (c) The admissible
+band, bounded below by the drift timescale and above by the class-block duration
+-- wide for cohort A, empty for cohort B.
+
+
 ### 7.1 Component ablation, cohort A
 
-Full data, 4 s windows, seed 0 (`results/driftnet_ds.json`).
+Full data, 4 s windows, seed 0 (`results/driftnet_ds.json`). **All cells in this
+table use the original estimator**, so the arms are mutually comparable; the
+per-window correction of section 7.3 was measured later and moves three of them
+(`dn_noctx` 0.901 -> 0.884, `dn_full` 0.878 -> 0.862, `dn_noalign` 0.827 -> 0.834,
+`results/driftfix_ds.json`). The ordering and the necessity result are unchanged.
+Comparisons against published decoders use the corrected numbers (section 7.6).
 
 | arm | components | acc | ECE | acc@90 | onsets/min |
 |---|---|---|---|---|---|
@@ -374,13 +452,27 @@ capability an in-network version is introduced to add.
 
 Same harness, full data, 2 seeds (`results/fullbench.json`):
 
-| model | params | balanced accuracy |
-|---|---|---|
-| ATCNet | 45 280 | 0.879 +- 0.002 |
-| EEGNeX | 58 082 | 0.876 +- 0.021 |
-| ShallowFBCSPNet | 97 120 | 0.867 +- 0.010 |
-| CALMNet-bare (ours, prior) | 3 946 | 0.858 +- 0.020 |
-| EEGConformer | 440 706 | 0.843 +- 0.009 |
+| model | params | seed 0 | seed 1 | mean |
+|---|---|---|---|---|
+| ATCNet | 45 280 | 0.881 | 0.876 | 0.879 |
+| EEGNeX | 58 082 | 0.855 | **0.896** | 0.876 |
+| ShallowFBCSPNet | 97 120 | 0.856 | 0.877 | 0.867 |
+| CALMNet-bare (ours, prior) | 3 946 | 0.878 | 0.838 | 0.858 |
+| EEGConformer | 440 706 | 0.834 | 0.852 | 0.843 |
+| **DriftNet, align + gate (ours)** | 619 k | **0.884** | *pending* | -- |
+
+**We do not claim an accuracy improvement.** At matched seed and matched
+estimator version, the best DriftNet configuration is +0.003 on ATCNet, inside
+the +-0.005 measurement noise, and below EEGNeX's seed-1 score. Per-seed spread
+among the baselines reaches 0.041 (EEGNeX), which is an order of magnitude larger
+than the gap. A single-seed ranking here would be meaningless, and the 0.901
+figure quoted in earlier drafts compounded two errors: it used the pre-fix
+estimator, and it compared one seed of ours against 2-seed means of theirs.
+
+The architecture is the vehicle for the rate finding, not a performance claim.
+Note also that the configuration that wins on cohort A (`align + gate`, the most
+alignment-dependent arm) is the one that fails hardest on cohort B -- 0.581, and
+0.696 even at its best rate, against 0.737 for the bare stem.
 
 ## 8. Discussion: mechanism validation is not performance validation
 
@@ -390,7 +482,7 @@ distance, a nuisance-decodability score -- with task performance assumed to
 follow. This work provides four counterexamples within a single system, three of
 which we produced by acting on that assumption ourselves:
 
-1. A hyperparameter tuned to maximise drift reduction cost ~0.10 accuracy.
+1. A hyperparameter tuned to maximise drift reduction cost 0.092 accuracy.
 2. The cohort where *more* drift was removed (84 % vs 52 %) is the cohort where
    accuracy fell (-0.166).
 3. Correcting a real, measured estimator bias changed decoding by +0.005 / -0.016.
@@ -436,33 +528,43 @@ effects and the metric sees one.**
 - Cross-epoch context and alignment both reverse sign between cohorts; neither
   should be deployed on a new protocol without re-validation.
 
-## 10. Submission readiness -- FOR THE AUTHORS, NOT FOR REVIEW
+## 10. Conclusion
 
-An honest assessment of what this manuscript can currently sustain, and what it
-would take to reach a first-quartile venue (JNE, IEEE TNSRE, NeuroImage).
+We set out to correct longitudinal drift inside the network and built a layer
+that does so measurably: 52 % and 84 % of session-to-session covariance drift
+removed, in every subject of both cohorts, against a no-op control at zero. The
+layer is not a normalisation artefact and its output demonstrably reaches the
+classifier.
 
-**Blocking gaps**
+It still made decoding worse on an independent cohort, and the reason is
+specific rather than incidental. An estimate that adapts at test time tracks
+whatever is currently streaming. Under a protocol that presents classes in long
+contiguous blocks, that is the class, and the layer removes the signal it was
+inserted to protect. The effect appears exactly where the timescale argument
+places it, scales with the arm's dependence on alignment, and is precisely zero
+in the two arms that never invoke the estimator.
 
-| gap | why it blocks | work required |
-|---|---|---|
-| Ablations are seed 0 only | split seed moves accuracy +-0.01-0.02, the same order as several reported effects. The headline ablation must be multi-seed or a reviewer will discount it. | 3 seeds x 5 arms x 2 cohorts, ~2 days compute |
-| The central finding is demonstrated only on our own code | sections 7.3, 7.5 and 8 show *we* made these errors. To claim the field does, published work using unconditioned nuisance probes or fast test-time adaptation must be identified and cited. Searches so far have NOT established this. | 1-2 days literature work |
-| The design rule is post-hoc | section 7.4 explains cohort B after seeing it fail. **Partly addressed:** we registered a prediction for cohort A before running it and it was falsified, which produced the two-sided rule in 7.5. That is a real out-of-sample test, but a failed one -- the *corrected* rule has still never predicted anything in advance. | ~1 week: obtain a public gait/MI dataset with different block structure, state the prediction from block structure alone, run once |
-| ~~The -0.060 residual is unexplained~~ | **CLOSED.** Section 7.5: cohort B's block structure leaves no rate that both avoids class-tracking and tracks drift, so a correctly configured layer has nothing left to contribute. | done |
+The condition governing it is two-sided, which we learned by predicting wrongly:
+the rate must be fast enough to follow drift and slow enough not to follow class.
+Where those two requirements cross -- where class blocks outlast the drift
+timescale -- no admissible rate exists, and the layer should be left out rather
+than tuned. This is checkable from the recording protocol before a model is
+fitted, which is the practical content of the paper.
 
-**What the paper cannot be.** An architecture paper. DriftNet fails external
-validation and its novel component reverses sign; that is documented here and in
-the repository and cannot be presented otherwise.
+We make no accuracy claim. Our best configuration matches ATCNet within
+measurement noise on one cohort and loses to a bare convolutional stem on the
+other, and the configuration that wins on the first is the one that fails hardest
+on the second. The architecture is the instrument, not the result.
 
-**What it can be.** A methods-and-cautionary paper, with the architecture as the
-worked example. The four demonstrations in section 8 share one structure and were
-produced by acting on the assumption they refute, which is stronger than
-observing it in someone else's system.
-
-**Realistic positioning today:** workshop paper, or second-quartile journal.
-**After the seeds and the literature grounding:** plausible at JNE or TNSRE.
-**With the third-cohort prediction confirmed:** the design rule becomes a tested
-hypothesis rather than an explanation, which is the version worth submitting.
+What the work does support is a caution about how components like this are
+justified. Five times here, a distribution-level quantity was improved
+successfully and the task did not follow -- three times because we acted on the
+assumption that it would. Such metrics are one-sided by construction: they score
+the failure they were designed to detect and carry no term for the capability
+they remove. Reporting that a method reduces a divergence, increases invariance,
+or lowers a nuisance-decodability score is therefore not evidence that it helps,
+even when the reduction is real, large, and reproducible. It is evidence about
+the representation, and the two can point in opposite directions.
 
 ## 11. Reproducibility
 
@@ -474,3 +576,63 @@ ShallowFBCSPNet x ATCNet merge (equivalent to EEGConformer), capacity scaling
 single-trial against 0.775 for ERD; combining them scored worse than ERD alone),
 and within-epoch attention (+0.024 to remove). Configurations and results are in
 `results/` and `FINDINGS_temporal.md`.
+
+## 12. References
+
+*Bibliographic details below should be verified against the publisher record
+before submission; DOIs are omitted here.*
+
+1. Altaheri, H., Muhammad, G., Alsulaiman, M. (2023). Physics-informed attention
+   temporal convolutional network for EEG-based motor imagery classification.
+   *IEEE Transactions on Industrial Informatics*, 19(2), 2249-2258. [ATCNet]
+2. Barachant, A., Bonnet, S., Congedo, M., Jutten, C. (2012). Multiclass
+   brain-computer interface classification by Riemannian geometry. *IEEE
+   Transactions on Biomedical Engineering*, 59(4), 920-928.
+3. Chen, X., Teng, X., Chen, H., Pan, Y., Geyer, P. (2024). Toward reliable
+   signals decoding for electroencephalogram: A benchmark study to EEGNeX.
+   *Biomedical Signal Processing and Control*, 87, 105475.
+4. Geifman, Y., El-Yaniv, R. (2019). SelectiveNet: A deep neural network with an
+   integrated reject option. *Proceedings of the 36th International Conference on
+   Machine Learning (ICML)*, PMLR 97, 2151-2159.
+5. Gramfort, A., Luessi, M., Larson, E., et al. (2013). MEG and EEG data analysis
+   with MNE-Python. *Frontiers in Neuroscience*, 7, 267.
+6. He, H., Wu, D. (2020). Transfer learning for brain-computer interfaces: A
+   Euclidean space data alignment approach. *IEEE Transactions on Biomedical
+   Engineering*, 67(2), 399-410.
+7. Ioffe, S., Szegedy, C. (2015). Batch normalization: Accelerating deep network
+   training by reducing internal covariate shift. *ICML*, PMLR 37, 448-456.
+8. Lawhern, V.J., Solon, A.J., Waytowich, N.R., Gordon, S.M., Hung, C.P.,
+   Lance, B.J. (2018). EEGNet: A compact convolutional neural network for
+   EEG-based brain-computer interfaces. *Journal of Neural Engineering*, 15(5),
+   056013.
+9. Luu, T.P., Nakagome, S., He, Y., Contreras-Vidal, J.L. (2017). Real-time
+   EEG-based brain-computer interface to a virtual avatar enhances cortical
+   involvement in human treadmill walking. *Scientific Reports*, 7, 8895.
+   [cohort B]
+10. Pfurtscheller, G., Lopes da Silva, F.H. (1999). Event-related EEG/MEG
+    synchronization and desynchronization: basic principles. *Clinical
+    Neurophysiology*, 110(11), 1842-1857.
+11. Phan, H., Andreotti, F., Cooray, N., Chen, O.Y., De Vos, M. (2019).
+    SeqSleepNet: End-to-end hierarchical recurrent neural network for
+    sequence-to-sequence automatic sleep staging. *IEEE Transactions on Neural
+    Systems and Rehabilitation Engineering*, 27(3), 400-410.
+12. Phan, H., Chen, O.Y., Tran, M.C., Koch, P., Mertins, A., De Vos, M. (2021).
+    XSleepNet: Multi-view sequential model for automatic sleep staging. *IEEE
+    Transactions on Pattern Analysis and Machine Intelligence*, 44(9), 5903-5915.
+13. Schirrmeister, R.T., Springenberg, J.T., Fiederer, L.D.J., et al. (2017).
+    Deep learning with convolutional neural networks for EEG decoding and
+    visualization. *Human Brain Mapping*, 38(11), 5391-5420. [ShallowFBCSPNet,
+    Deep4Net, braindecode]
+14. Song, Y., Zheng, Q., Liu, B., Gao, X. (2023). EEG Conformer: Convolutional
+    transformer for EEG decoding and visualization. *IEEE Transactions on Neural
+    Systems and Rehabilitation Engineering*, 31, 710-719.
+15. Supratak, A., Guo, Y. (2020). TinySleepNet: An efficient deep learning model
+    for sleep staging using a single EEG channel. *42nd Annual International
+    Conference of the IEEE Engineering in Medicine and Biology Society (EMBC)*,
+    641-644.
+16. Zanini, P., Congedo, M., Jutten, C., Said, S., Berthoumieu, Y. (2018).
+    Transfer learning: A Riemannian geometry framework with applications to
+    brain-computer interfaces. *IEEE Transactions on Biomedical Engineering*,
+    65(5), 1107-1116.
+17. OpenNeuro dataset ds007788 (NeuroRex lower-limb exoskeleton EEG). [cohort A
+    -- cite per the dataset's own DOI and attribution record]
