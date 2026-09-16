@@ -362,8 +362,9 @@ table(s, ["Prediction", "Rule", "Observed", "Verdict"],
       0.7, 3.15, [4.13, 3.4, 2.2, 2.2], hh=0.52, dr=0.56, size=16)
 tf = box(s, Inches(0.7), Inches(5.05), Inches(11.93), Inches(2.0))
 para(tf, [("Why P2 matters. ", {"size": 17, "bold": True}),
-          ("On cohort B, slowing adaptation recovered 0.090. The condition predicts the same intervention does "
-           "nothing here, because there is no class tracking to stop.", {"size": 17, "color": GRY})],
+          ("On cohort B, slowing adaptation recovered 0.090. The condition predicts it brings no gain here, "
+           "because there is no class tracking to stop. Two further seeds agree, and show slowing "
+           "costs a little (0.016, p = 0.003).", {"size": 17, "color": GRY})],
      17, first=True, space=12, lh=1.22)
 if done(P1) and done(P2):
     para(tf, "Paired over %d participants. Direction counts and Wilcoxon tests are reported but do not change the verdict."
