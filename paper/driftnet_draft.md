@@ -5,6 +5,48 @@ No number appears here that a run has not produced.
 
 ---
 
+## READ THIS FIRST: what the experiments actually support
+
+**The architecture works on one cohort and fails on the other.** That is the
+finding, and this draft is organised around it rather than around the result that
+was intended.
+
+| claim | status |
+|---|---|
+| DriftNet reaches 0.901 on ds007788, above every published model in the same harness | **supported** |
+| Adaptive alignment is necessary there (removing it collapses the model to the bare stem: 0.827 = 0.827) | **supported** |
+| The layer removes 52 % / 84 % of session drift, 15/15 subjects, p <= 0.0001, no-op control at zero | **supported** |
+| DriftNet is a generally better architecture | **NOT supported** -- on cohort B the bare stem beats the full model, 0.737 vs 0.626 |
+| Adaptive alignment helps decoding | **NOT supported** -- +0.051 on one cohort, -0.060 to -0.166 on the other |
+| Cross-epoch context helps | **NOT supported** -- reverses sign between cohorts |
+
+The only component transferring across both cohorts is the selective head, which
+is SelectiveNet used as published and is not a contribution of this work.
+
+**The most defensible result is not the architecture.** It is this:
+
+> Optimising a component against a distribution-level metric can actively harm
+> the task it is meant to serve.
+
+Four independent demonstrations, three from this architecture and one from the
+evaluation protocol that preceded it:
+
+1. The adaptation rate was chosen to maximise drift reduction (60 % vs 25 %).
+   That choice cost ~0.1 accuracy on cohort B.
+2. The layer removes *more* drift on cohort B than on cohort A (84 % vs 52 %)
+   while costing 0.166 accuracy there.
+3. A verified fix to a real covariance-estimation bias changed decoding by
+   +0.005 -- the mechanism improved, performance did not follow.
+4. The movement-leakage probe used throughout this project is confounded with
+   accuracy: a decoder using no movement information measures R^2 = +0.863.
+
+The architecture is the worked example that motivates the thesis, not the
+contribution itself.
+
+---
+
+---
+
 ## Abstract
 
 Brain-computer interfaces for lower-limb exoskeletons face a problem that
