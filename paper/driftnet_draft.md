@@ -71,7 +71,8 @@ two effects and the metric scores one.
 | ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.092 on cohort B and **-0.060** on cohort A |
 | No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is 0.06-0.09 worse at the other's setting |
 | **The architecture generalises** | **NOT supported** | on cohort B the *bare stem* beats the full model, 0.737 vs 0.626 |
-| **Alignment helps decoding** | **NOT supported** | +0.051 on cohort A, -0.060 to -0.166 on cohort B |
+| **Alignment helps decoding** | **NOT supported** | +0.028 (corrected estimator) to +0.051 (original) on cohort A; -0.060 to -0.166 on cohort B |
+| The best configuration reaches field parity at 24 181 parameters | **supported** | 0.884 against ATCNet 0.881 / 45 280 and EEGConformer 0.834 / 440 706; stated as efficiency, not accuracy |
 | **Cross-epoch context helps** | **NOT supported** | reverses sign between cohorts |
 
 The only component that transfers across both cohorts is the selective head,
@@ -83,24 +84,31 @@ contribution of this work.
 > Optimising a component against a distribution-level metric can actively harm
 > the task that component is meant to serve.
 
-Four independent demonstrations, three from this architecture and one from the
+Five independent demonstrations -- four from this architecture, one from the
 evaluation protocol that preceded it:
 
-1. The layer's adaptation rate was selected because it maximised drift reduction
-   (60 % against 25 %). That choice cost 0.092 accuracy on cohort B.
-2. The layer removes *more* drift on cohort B than on cohort A (84 % vs 52 %)
-   while costing 0.166 accuracy there.
-3. A verified correction to a real covariance-estimation bias moved decoding by
-   +0.005 on cohort B and -0.016 on cohort A. The mechanism improved; performance
-   did not follow.
-   A fourth case is the sharpest, because it is a *prediction we registered and
-   lost*: we predicted slowing adaptation would be neutral on cohort A, since its
-   class blocks already sit far inside the fastest memory. It cost 0.060. The
-   estimate had been doing useful work we had not accounted for -- tracking
-   genuine drift -- and the metric we were optimising could not see it.
-4. The movement-leakage probe used throughout the preceding work is confounded
-   with accuracy: a decoder using no movement information whatsoever measures
-   R^2 = +0.863.
+1. **The rate was tuned on the wrong metric.** The adaptation rate was selected
+   because it maximised drift reduction (60 % against 25 %). That choice cost
+   0.092 accuracy on cohort B.
+2. **More correction, worse decoding.** The layer removes *more* drift on cohort
+   B than on cohort A (84 % vs 52 %) while costing 0.166 accuracy there.
+3. **Fixing a real bias changed nothing.** A verified correction to a genuine
+   covariance-estimation bias moved decoding by +0.005 on cohort B and -0.016 on
+   cohort A. The mechanism improved; performance did not follow.
+4. **A registered prediction failed.** We predicted slowing adaptation would be
+   neutral on cohort A, since its class blocks already sit far inside the fastest
+   memory. It cost 0.060. The estimate had been doing useful work we had not
+   accounted for -- tracking genuine drift -- and neither the metric nor the
+   diagnosis derived from it had a term for that.
+5. **The leakage probe rises with accuracy.** The movement-leakage probe used
+   throughout the preceding work is confounded with accuracy: a decoder using no
+   movement information whatsoever measures R^2 = +0.863.
+
+Item 4 is the one that generalises the rest. Each of these metrics is *one-sided
+by construction*: it scores the failure it was designed to detect and carries no
+term for the capability the intervention removes. That is why improving them is
+not evidence of anything, and why a diagnosis inherited from one of them
+inherits its blind spot.
 
 The architecture is the worked example that establishes the finding.
 
