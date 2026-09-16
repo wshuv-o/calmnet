@@ -509,9 +509,9 @@ from TSception ($0.788$ on three participants) to FBLightConvNet ($0.766$ on
 seven). The sharpest case is EEG Conformer \citep{conformer}, which ranked
 first on three participants at $0.827$ and fails to converge on seven. Selecting
 a backbone from the three-participant screen would therefore have selected a
-model that does not run on the full cohort. We report this because it is the
-same lesson as Section~\ref{sec:noise} in a different guise: a cheap
-measurement that ranks models is not a cheap version of an expensive one.
+model that does not run on the full cohort. A cheap
+measurement that ranks models is not a cheap version of an expensive one
+(Section~\ref{sec:noise}).
 
 \textbf{On the four failures.} ATCNet cannot be run in this harness at all: its
 final layer is a \texttt{ModuleList} that the backbone adapter cannot consume,
@@ -664,8 +664,14 @@ context and selection modules together contribute between $0.000$ and $0.007$:
 the no-align arm spans $0.827$--$0.834$ across repeats (Table~\ref{tab:noise})
 while the stem-only arm is deterministic at $0.827$. Against the $0.010$ noise
 floor that is indistinguishable from nothing, and an order of magnitude below
-alignment's own contribution of $+0.028$ to $+0.051$ depending on estimator
-version. The modules do not stack; they depend on the alignment stage to be
+alignment's own contribution: $+0.051$ under the original estimator
+($0.878$ against $0.827$, Table~\ref{tab:ablation}) and $+0.028$ under the
+trace-normalised one ($0.862$ against $0.834$) from the estimator-fix run of
+Section~\ref{sec:rejected}. The lower figure should be read with care: the
+no-align arm is inert to the estimator, so its $0.834$ differs from $0.827$
+only by run-to-run variation, and part of the gap between the two figures is
+that noise rather than an estimator effect. The
+modules do not stack; they depend on the alignment stage to be
 useful at all.
 
 \paragraph{Cross-epoch context is an operating point} Adding it costs $0.023$
@@ -759,8 +765,8 @@ here and rejected by their own controls (Table~\ref{tab:rejected}). We report
 them because each control is what distinguishes a mechanism from a correlation,
 and because two of them looked convincing until the control was run.
 
-Three of those controls are worth the space, because each is multi-seed and
-each tests a component the architecture could plausibly have kept.
+Three are multi-seed and test a component the architecture could plausibly
+have kept.
 
 \paragraph{Temporal smoothing survives its control; the attention block does
 not} Applying an HMM forward filter over the decoder's output improves cohort A
@@ -833,7 +839,7 @@ covariances.
 Correcting it changed decoding by $+0.005$ on cohort B and $-0.016$ on cohort A.
 The estimator improved and the task did not follow, so we reject this as the
 explanation for the inversion while retaining the correction, which is
-independently right. We report it because it is the first of five cases in this
+independently right. It is the first of five cases in this
 work where a distribution-level quantity improved without the task following
 (Section~\ref{sec:discussion}).
 
