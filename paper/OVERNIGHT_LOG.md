@@ -425,3 +425,46 @@ non-reproducible counts are recorded for TODO_NEXT.md.
 
 Build: 0 errors, 0 undefined references, 19 pages.
 
+### 03:26 — ICA artefact control: mixed, and read as mixed
+
+Align + gate, cohort A, training task only, the same seven participants in
+both arms, differing only in ICA + ICLabel cleaning:
+
+| subject | uncleaned | cleaned | change | muscle comps removed / recording |
+|---|---|---|---|---|
+| sub-01 | 0.969 | 0.955 | −0.014 | 2.9 |
+| sub-02 | 0.898 | 0.914 | +0.016 | 7.1 |
+| sub-03 | 0.955 | 0.841 | −0.114 | 2.3 |
+| sub-04 | 0.835 | 0.817 | −0.018 | 1.9 |
+| sub-05 | 0.839 | 0.893 | +0.053 | 1.3 |
+| sub-06 | 0.673 | 0.548 | −0.124 | 0.3 |
+| sub-07 | 0.680 | 0.525 | −0.155 | 2.3 |
+| **mean** | **0.835** | **0.785** | **−0.051** | |
+
+Wilcoxon p = 0.22; 2 higher, 5 lower. The leakage probe is on the clean side in
+both arms (−0.088 uncleaned, −0.077 cleaned).
+
+**What it supports.** Most of the accuracy survives cleaning. 0.785 is far
+above chance, and four of seven participants are essentially unchanged or
+improve.
+
+**What it does not show.** The losses fall on three participants, 0.11-0.16
+each, and the control alone cannot tell accuracy that depended on the removed
+activity from brain signal ICLabel removed with it.
+
+**The per-subject muscle count points away from muscle dependence.** If
+accuracy relied on muscle artefact, the most muscle removed should cost the
+most. Instead sub-02, with the most muscle removed (7.1 per recording),
+*improves*, while sub-06, with almost none (0.3), loses 0.124. Spearman ρ
+between muscle components removed and accuracy change is +0.22: the wrong sign
+for artefact dependence. Two of the three largest losses are sub-06 and
+sub-07, the two lowest-baseline participants (0.673 and 0.680), where estimates
+are noisiest.
+
+**Limit.** n = 7, and that correlation is weak evidence (p = 0.64). The fair
+statement is that the pattern does not look like dependence on muscle
+artefact. It does not prove the accuracy is neural. The cleaning also includes
+re-referencing to the average, a second change between the arms.
+
+Align-only (full data) started.
+
