@@ -92,7 +92,10 @@
   "wilcoxon_p": 0.21875
  },
  "align_only": {
-  "status": "pending"
+  "align_only_acc": 0.8826408976645407,
+  "align_gate_acc": 0.8841623361578639,
+  "gate_contribution": 0.0015214384933232017,
+  "note": "unpaired: the align+gate reference predates per-subject logging"
  },
  "dn_nogate_fixed": {
   "acc": 0.8617366197564917

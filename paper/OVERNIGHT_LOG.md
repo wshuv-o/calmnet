@@ -521,3 +521,29 @@ compress but inverts", now removed. Result: 0 "rather than", 0 "X, not Y",
 
 Build: 0 errors, 0 undefined, 19 pages.
 
+### 03:57 — Align-only: the selective head adds no accuracy. Reverses my earlier advice.
+
+Queue 1 finished (QUEUE DONE 03:56:42), and queue 2 started at once.
+
+Align-only, cohort A, full data, trace-normalised estimator: **0.883**
+(ECE 0.038; per subject 0.959, 0.842, 0.986, 0.916, 0.862, 0.811, 0.804).
+
+| comparison, one estimator throughout | without head | with head | head adds |
+|---|---|---|---|
+| align vs align + gate | 0.883 | 0.884 | **+0.002** |
+| align + ctx vs align + ctx + gate | 0.862 | 0.862 | **0.000** |
+
+**This reverses advice I gave in the evening.** Asked whether to delete the
+abstention part, I said no, because the best configuration contains the head
+and it appeared to add +0.016, perhaps by regularising the representation. That
++0.016 came from the original estimator, on arms containing the transformer,
+at 1.6× their noise floor. Under a single consistent estimator the head adds
+0.002 and 0.000, and calibration is unchanged. **On this single-seed evidence
+the selective head could be removed with no loss of accuracy or calibration.**
+Removing it would need re-running the headline arm without the head and
+changing the architecture, the figure and the text. That is a decision for the
+authors, not something to do overnight.
+
+The paper's "regulariser" reading is replaced by these results. The head stays
+in the reported arms so they remain comparable with the ablation.
+
