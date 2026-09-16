@@ -252,16 +252,24 @@ cohort B has 7 blocks of median 309.
 An EMA with momentum *m* has effective memory ~1/*m* batches; at batch size 32
 that is 160 / 640 / 3200 windows for *m* = 0.2 / 0.05 / 0.01.
 
-| momentum | memory | vs 309-window block | cohort B dn_full |
-|---|---|---|---|
-| 0.20 | ~160 | **shorter** -- tracks the class | 0.626 |
-| 0.05 | ~640 | longer -- tracks the session | **0.724** |
-| 0.01 | ~3200 | longer | **0.723** |
+| momentum | memory | vs 309-window block | dn_full | dn_noctx |
+|---|---|---|---|---|
+| 0.20 | ~160 | **shorter** -- tracks the class | 0.626 | 0.581 |
+| 0.05 | ~640 | longer -- tracks the session | **0.724** | 0.671 |
+| 0.01 | ~3200 | longer | 0.723 | 0.696 |
 
-The transition falls exactly at the crossing point and **saturates immediately
-after**. A generic "more smoothing helps" account predicts continued improvement;
-a crossing-point mechanism predicts a step then a plateau. We observe the step
-and the plateau.
+**The bulk of the gain is realised as the memory crosses the block length**
+(momentum 0.20 -> 0.05: +0.098 and +0.090), which is where the mechanism predicts
+it. Beyond the crossing the behaviour is arm-dependent: `dn_full` is flat
+(+0.001, within the +-0.005 measurement noise) while `dn_noctx` continues to rise
+(+0.025).
+
+An earlier version of this section claimed the effect "saturates immediately
+after" the threshold. That was written from `dn_full` alone and the second arm
+does not support it. The threshold *location* is predicted correctly and the step
+is large; the sharpness of the plateau is not established, and a purely
+monotonic "slower is better" account cannot be excluded for every arm on three
+points.
 
 **Dose-response across arms** confirms the momentum acts only through alignment:
 
@@ -338,7 +346,35 @@ outcome, and optimising against them was actively harmful in three of four cases
 - Cross-epoch context and alignment both reverse sign between cohorts; neither
   should be deployed on a new protocol without re-validation.
 
-## 10. Reproducibility
+## 10. Submission readiness -- FOR THE AUTHORS, NOT FOR REVIEW
+
+An honest assessment of what this manuscript can currently sustain, and what it
+would take to reach a first-quartile venue (JNE, IEEE TNSRE, NeuroImage).
+
+**Blocking gaps**
+
+| gap | why it blocks | work required |
+|---|---|---|
+| Ablations are seed 0 only | split seed moves accuracy +-0.01-0.02, the same order as several reported effects. The headline ablation must be multi-seed or a reviewer will discount it. | 3 seeds x 5 arms x 2 cohorts, ~2 days compute |
+| The central finding is demonstrated only on our own code | sections 7.3, 7.5 and 8 show *we* made these errors. To claim the field does, published work using unconditioned nuisance probes or fast test-time adaptation must be identified and cited. Searches so far have NOT established this. | 1-2 days literature work |
+| The design rule is post-hoc | section 7.4 explains cohort B after seeing it fail. The rule predicts behaviour from block structure before running anything, so it should be *pre-registered* against a third cohort and then tested. | ~1 week: obtain a public gait/MI dataset with different block structure, state the prediction, run once |
+| The -0.060 residual is unexplained | leaves the mechanism incomplete | unknown |
+
+**What the paper cannot be.** An architecture paper. DriftNet fails external
+validation and its novel component reverses sign; that is documented here and in
+the repository and cannot be presented otherwise.
+
+**What it can be.** A methods-and-cautionary paper, with the architecture as the
+worked example. The four demonstrations in section 8 share one structure and were
+produced by acting on the assumption they refute, which is stronger than
+observing it in someone else's system.
+
+**Realistic positioning today:** workshop paper, or second-quartile journal.
+**After the seeds and the literature grounding:** plausible at JNE or TNSRE.
+**With the third-cohort prediction confirmed:** the design rule becomes a tested
+hypothesis rather than an explanation, which is the version worth submitting.
+
+## 11. Reproducibility
 
 All experiments including failures are in the repository. Five architectural
 interventions were tested and rejected by their own pre-registered controls: an
