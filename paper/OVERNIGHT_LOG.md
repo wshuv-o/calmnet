@@ -566,7 +566,7 @@ predicted was which side of the threshold a protocol falls on, not the
 threshold's exact location. The sentence now says exactly that and points to
 §6.10.
 
-### 04:10 — Scripted audit of every number added overnight: one error found and fixed
+### 04:02 — Scripted audit of every number added overnight: one error found and fixed
 
 `src/audit_overnight_numbers.py` recomputes each value added tonight from
 `results/*.json` or the ICA log, rounds it as the paper prints it, and checks
