@@ -139,19 +139,17 @@ def cref(m):
 
 
 def t_landscape():
-    """Full-cohort comparison.
+    """Every decoder evaluated in this work, one row per model.
 
-    Row groups are "This work" and "Published decoders". The ATCNet ablations
-    (rate-matched kernels, ATCNet carrying our two modules) are NOT listed
-    here: they are ablations of a baseline, they belong in tab:rejected, and
-    putting them beside our rows invited the reading that this architecture is
-    an ATCNet derivative. It is not; it shares no code with ATCNet.
+    Condition columns, left to right: the 3-participant screening sweep, then
+    the two full-cohort training pipelines, then the outputs only a selective
+    model can produce, then the seed spread.
 
-    ECE and accuracy-at-90%-coverage are marked n/a for the baselines rather
-    than dashed, because those models have no selective head and cannot
-    produce the quantity at all. A dash would wrongly suggest we did not run
-    it.
+    Two kinds of empty cell, deliberately distinguished:
+      ---   the experiment was not run for that model
+      n/a   the model cannot produce that quantity at all (no selective head)
     """
+    scr = L("backbone_selection.json")
     fb = L("fullbench.json")
     mrg = agg(["merge.json"], lambda k: k.split("|")[1])
     atc = L("atcplus.json")
@@ -163,18 +161,36 @@ def t_landscape():
         if a is not None:
             fbm.setdefault(k.split("|")[1], []).append(a)
 
+    scrv = {}
+    for k, v in scr.items():
+        if isinstance(v, (int, float)):
+            scrv[k] = v
+        elif isinstance(v, dict) and "acc" in v:
+            scrv[k] = v["acc"]
+        elif isinstance(v, dict) and "error" in v:
+            scrv[k] = "n/c"
+
     NA = BS + "textit{n/a}"
-    rows = [group("This work", 7)]
+
+    def spread_of(m):
+        mvs = mrg.get(m, [])
+        if len(mvs) > 1:
+            return max(mvs) - min(mvs)
+        f = fbm.get(m, [])
+        if len(f) > 1:
+            return max(f) - min(f)
+        return None
+
+    rows = [group("This work", 8)]
     for arm, name in (("dn_noctx", "Ours, align + gate"),
                       ("dn_full", "Ours, align + ctx + gate"),
                       ("dn_stem", "Ours, stem only")):
         c = g(dn, arm + "|s0")
         b = g(s1, arm + "|s1")
-        both = c is not None and b is not None
-        sp = abs(c - b) if both else None
+        sp = abs(c - b) if (c is not None and b is not None) else None
         best = arm == "dn_noctx"
         nm = (BS + "textbf{" + name + "}") if best else name
-        rows.append("%s & %s & %s & --- & %s & %s & %s %s" % (
+        rows.append("%s & %s & --- & %s & --- & %s & %s & %s %s" % (
             nm,
             (BS + "textbf{" + pnum(name) + "}") if best else pnum(name),
             f3(c),
@@ -182,92 +198,59 @@ def t_landscape():
             f3(g(dn, arm + "|s0", "acc_at_90"), best),
             "---" if sp is None else "%.3f" % sp, EOL))
 
+    models = set(scrv) | set(fbm) | {"ATCNet"}
+    models = {m for m in models if not m.startswith("PowerAttn")}
+
+    def rank(m):
+        vs = [fbm.get(m, [None])[0] if fbm.get(m) else None]
+        if m in fbm:
+            vs = [st.mean(fbm[m])]
+        if m == "ATCNet":
+            vs.append(g(atc, "base|s0"))
+        v = scrv.get(m)
+        if isinstance(v, float):
+            vs.append(v)
+        vs = [x for x in vs if isinstance(x, float)]
+        return -max(vs) if vs else 0.0
+
     rows.append(BS + "midrule")
-    rows.append(group("Published decoders", 7))
-    entries = {}
-    for m in fbm:
-        if not m.startswith("PowerAttn"):
-            entries[m] = {"F": st.mean(fbm[m])}
-    entries.setdefault("ATCNet", {})["C"] = g(atc, "base|s0")
-    for m in sorted(entries, key=lambda x: -max(
-            [v for v in entries[x].values() if v is not None] or [0])):
-        e = entries[m]
-        mvs = mrg.get(m, [])
-        if len(mvs) > 1:
-            sp = max(mvs) - min(mvs)
-        elif len(fbm.get(m, [])) > 1:
-            sp = max(fbm[m]) - min(fbm[m])
-        else:
-            sp = None
-        rows.append("%s%s & %s & %s & %s & %s & %s & %s %s" % (
-            m, cref(m), pnum(m),
-            f3(e.get("C"), e.get("C") is not None),
-            f3(e.get("F")), NA, NA,
+    rows.append(group("Published decoders", 8))
+    for m in sorted(models, key=rank):
+        sv = scrv.get(m)
+        sc = ("n/c" if sv == "n/c" else f3(sv)) if sv is not None else "---"
+        pc = f3(g(atc, "base|s0"), True) if m == "ATCNet" else "---"
+        pf = f3(st.mean(fbm[m])) if m in fbm else "---"
+        sp = spread_of(m)
+        rows.append("%s%s & %s & %s & %s & %s & %s & %s & %s %s" % (
+            m, cref(m), pnum(m), sc, pc, pf, NA, NA,
             "---" if sp is None else "%.3f" % sp, EOL))
 
     return table(
         "tab:landscape",
-        "Full-cohort comparison, $n=7$ participants, one row per model. "
-        "\textbf{Bold marks the best value in each column}. ATCNet leads on "
-        "balanced accuracy by 0.012; this architecture leads on parameter "
-        "count, calibration and the abstention operating point, and is the "
-        "only entry that can produce the last two at all, which is why the "
-        "baselines are \textit{n/a} there rather than dashed. Pipelines C "
-        "and F are different training pipelines: ATCNet is the one model run "
-        "in both and differs by 0.032, so \textbf{do not compare across those "
-        "two columns}. \textit{Spread} is the range over seeds; at 0.053 "
-        "it exceeds the 0.012 accuracy gap, so that gap is not resolved by the "
-        "seeds we ran. Parameter counts are instantiated at this study's input "
-        "shape rather than quoted from the source papers. ATCNet ablations "
-        "appear in Table~\ref{tab:rejected}, not here: this architecture "
-        "is not an ATCNet derivative and shares no code with it.",
-        "lrrrrrr",
-        "Model & Params & Pipe. C & Pipe. F & ECE $" + BS + "downarrow$ & "
-        "Acc@90 & Spread",
-        rows, wide=True, fill=True)
-
-
-def t_screen():
-    """The screening sweep: one number per model, so two model blocks per row
-    keeps it compact and avoids the empty cells a shared table would need."""
-    scr = L("backbone_selection.json")
-    vals = []
-    for k, v in scr.items():
-        if isinstance(v, (int, float)):
-            vals.append((v, k, None))
-        elif isinstance(v, dict) and "acc" in v:
-            vals.append((v["acc"], k, None))
-        elif isinstance(v, dict) and "error" in v:
-            vals.append((-1.0, k, "n/c"))
-    vals.sort(reverse=True)
-    half = (len(vals) + 1) // 2
-    left, right = vals[:half], vals[half:]
-    rows = []
-    for idx in range(half):
-        cells = []
-        for col in (left, right):
-            if idx < len(col):
-                a, m, err = col[idx]
-                cells += [m + cref(m), pnum(m),
-                          err if err else f3(a, idx == 0 and col is left)]
-            else:
-                cells += ["", "", ""]
-        rows.append(" & ".join(cells) + " " + EOL)
-    return table(
-        "tab:screen",
-        "Backbone screening: 19 published decoders on a 3-participant subset "
-        "of cohort A under identical preprocessing, single seed, sorted by "
-        "accuracy. \textbf{This is a screening result, not a benchmark}. "
-        "Three participants and one seed cannot rank these architectures, and "
-        "the full-cohort numbers differ substantially: ShallowFBCSPNet scores "
-        "0.655 here and 0.867 in Table~\ref{tab:landscape}. It is reported "
-        "to show the range of the field on this task, and to record that "
-        "several architectures competitive on motor-imagery benchmarks sit "
-        "near chance on walk/stop intent. Implementations from braindecode "
-        "\citep{braindecode_lib}. ``n/c'' did not converge. Parameters are "
-        "at this study's input shape.",
-        "lrrlrr",
-        "Model & Params & Acc & Model & Params & Acc",
+        "Every decoder evaluated in this work, one row per model. "
+        "\\textbf{Bold marks the best value in each column}. "
+        "\\textbf{The three accuracy columns are different experiments and must "
+        "not be compared across}: \\textit{Screen} is a 3-participant "
+        "subset, \\textit{Pipe. C} and \\textit{Pipe. F} are the full "
+        "7-participant cohort under two different training pipelines. Two "
+        "models make the point: ShallowFBCSPNet scores 0.655 screening against "
+        "0.867 on the full cohort, and ATCNet, the one model run in both "
+        "pipelines, differs by 0.032 between them. "
+        "\\textbf{---} means the experiment was not run for that model; "
+        "\\textit{n/a} means the model cannot produce that quantity, having "
+        "no selective head. ATCNet leads on balanced accuracy by 0.012 over "
+        "this architecture, which leads on parameter count, calibration and "
+        "the abstention operating point. \\textit{Spread} is the range over "
+        "seeds; at 0.053 it exceeds that 0.012 gap, so the gap is not resolved "
+        "by the seeds we ran. Parameter counts are instantiated at this "
+        "study's input shape, not quoted from the source papers. Screening "
+        "implementations from braindecode \citep{braindecode_lib}; ``n/c'' "
+        "did not converge. ATCNet ablations are in "
+        "Table~\\ref{tab:rejected}, not here: this architecture is not an "
+        "ATCNet derivative and shares no code with it.",
+        "lrrrrrrr",
+        "Model & Params & Screen & Pipe. C & Pipe. F & ECE $" + BS +
+        "downarrow$ & Acc@90 & Spread",
         rows, wide=True, fill=True)
 
 
@@ -559,7 +542,7 @@ def t_noise():
 
 def main():
     parts = ["%% Generated by src/make_tables.py -- do not edit by hand." + NL + NL,
-             t_landscape(), t_screen(), t_rate(), t_repr(), t_rejected(),
+             t_landscape(), t_rate(), t_repr(), t_rejected(),
              t_drift(),
              t_noise()]
     OUT.write_text("".join(parts), encoding="utf-8")
