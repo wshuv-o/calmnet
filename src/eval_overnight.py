@@ -86,6 +86,47 @@ def main():
     ng = arm("driftfix_ds_nogate.json", "dn_nogate|s0")
     out["dn_nogate_fixed"] = {"acc": ng["acc"]} if ng else {"status": "pending"}
 
+    # ---- Queue 2: gate vs align+gate, three seeds, per participant --------
+    # Each participant's accuracy is averaged over the seeds that ran before
+    # pairing, so run-to-run noise is removed from the pairing rather than
+    # counted as independent samples.
+    def seed_avg(fname, arm_name):
+        p = RES / fname
+        if not p.exists():
+            return None, []
+        d = json.loads(p.read_text())
+        runs = [v for k, v in d.items() if k.startswith(arm_name + "|s")]
+        if not runs:
+            return None, []
+        acc = {}
+        for r in runs:
+            for s, v in r.get("per_subject", {}).items():
+                acc.setdefault(s, []).append(float(v["acc"]))
+        means = [float(r["acc"]) for r in runs]
+        return {"per_subject": {s: {"acc": float(np.mean(a))} for s, a in acc.items()}}, means
+
+    for cohort, gfile, afile in (("A", "a_gate_3seed.json", "a_aligngate_3seed.json"),
+                                 ("B", "b_gate_aligngate_3seed.json", "b_gate_aligngate_3seed.json")):
+        g, gm = seed_avg(gfile, "dn_gate")
+        a, am = seed_avg(afile, "dn_noctx")
+        rec = paired(g, a, "cohort %s: align+gate minus gate, seed-averaged" % cohort)
+        rec["gate_seed_means"], rec["aligngate_seed_means"] = gm, am
+        if am:
+            rec["aligngate_mean_sd"] = [float(np.mean(am)), float(np.std(am, ddof=1)) if len(am) > 1 else 0.0]
+        if gm:
+            rec["gate_mean_sd"] = [float(np.mean(gm)), float(np.std(gm, ddof=1)) if len(gm) > 1 else 0.0]
+        out["multiseed_" + cohort] = rec
+
+    # Reproducibility: align+gate has no transformer and is reported
+    # bit-identical across repeats, so its seed-0 rerun should give 0.884.
+    rerun = arm("a_aligngate_3seed.json", "dn_noctx|s0")
+    orig = arm("driftfix_ds.json", "dn_noctx|s0")
+    if rerun and orig:
+        out["reproducibility"] = {"original": orig["acc"], "rerun": rerun["acc"],
+                                  "abs_diff": abs(rerun["acc"] - orig["acc"])}
+    else:
+        out["reproducibility"] = {"status": "pending"}
+
     (RES / "overnight_eval.json").write_text(json.dumps(out, indent=1))
 
     def show(r):
@@ -112,6 +153,14 @@ def main():
     ng_ = out["dn_nogate_fixed"]
     print("dn_nogate (trace-normalised)")
     print("    ", "pending" if "status" in ng_ else "%.3f" % ng_["acc"])
+    for c in ("A", "B"):
+        r = out["multiseed_" + c]
+        print("Multi-seed cohort %s, align+gate minus gate" % c)
+        print("    ", show(r))
+    rp = out["reproducibility"]
+    print("Reproducibility of align+gate seed 0")
+    print("    ", "pending" if "status" in rp else
+          "original %.4f  rerun %.4f  |diff| %.4f" % (rp["original"], rp["rerun"], rp["abs_diff"]))
 
 
 if __name__ == "__main__":

@@ -194,3 +194,28 @@ no fill and line art preserved. `abstain / act` stays, since it describes the
 component. Before/after renders confirmed nothing else moved and no white
 patch appeared. Original kept as `results/fig_arch_original_with_0876.pdf`.
 
+### 02:16 — Second queue so the GPU is not idle after ~04:40
+
+Queue 1 should finish around 04:40, which would leave the GPU idle for four
+hours. `tools/overnight_queue2.py` (pid 26912) starts when queue 1 logs
+QUEUE DONE and runs, in priority order:
+
+1. Cohort A, align+gate, seeds 0-2, per-subject rows. Removes "single seed"
+   for the headline. The arm has no transformer, and the paper reports such
+   arms bit-identical across repeats, so the seed-0 rerun should reproduce
+   0.884 exactly. That makes it a free reproducibility check.
+2. Cohort B, gate and align+gate, seeds 0-2.
+3. Cohort A, gate, seeds 0-2.
+
+The result is one design across all three cohorts: gate against align+gate,
+alignment the only differing factor, with paired tests. This is the same
+design the cohort C pre-registration uses, so A, B and C become directly
+comparable. No new job starts after 07:00, so integration always has time.
+
+Not pursued: published baselines on cohort B. `exp_published.py` has no cohort
+switch, and adapting a second training pipeline overnight is where bugs get in.
+It stays in TODO_NEXT.md.
+
+The evaluation for queue 2 was added to `eval_overnight.py` before any of its
+results existed, including the reproducibility comparison.
+
