@@ -1,36 +1,35 @@
-%=============================================================================
-% Applied Soft Computing (Elsevier) -- elsarticle, single column, review format.
-% Compile: pdflatex asc_calmnet.tex (twice)
-%
-% Every number is traceable to a JSON in ../results/. Experiments that failed
-% are reported, not omitted.
-%=============================================================================
-\documentclass[preprint,12pt]{elsarticle}
-
+%% Elsevier CAS double-column template (cas-dc), for Applied Soft Computing.
+%% Compile: tectonic -X compile cas_calmnet.tex
+\documentclass[a4paper,fleqn]{cas-dc}
+\usepackage[authoryear,longnamesfirst]{natbib}
 \usepackage{amsmath,amssymb}
-\usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{url}
-\usepackage{lineno}
-\usepackage[hidelinks]{hyperref}
-\linenumbers
-
-\journal{Applied Soft Computing}
 
 \begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
 
-\begin{frontmatter}
+\shorttitle{A parameter-efficient EEG decoder with in-network session adaptation}
+\shortauthors{Author Name}
 
-\title{A parameter-efficient EEG decoder with in-network session adaptation,
-calibration and abstention for lower-limb exoskeleton control}
+\title[mode = title]{A parameter-efficient EEG decoder with in-network session
+adaptation, calibration and abstention for lower-limb exoskeleton control}
 
-\author[inst1]{Author Name}
+\author[1]{Author Name}
+\cormark[1]
 \ead{wshuvo360@gmail.com}
-\affiliation[inst1]{organization={Department},
+\credit{Conceptualization, Methodology, Software, Validation, Formal analysis,
+Investigation, Data curation, Writing -- original draft, Writing -- review and
+editing, Visualization}
+
+\affiliation[1]{organization={Department},
             addressline={},
             city={},
             postcode={},
             country={}}
+
+\cortext[1]{Corresponding author}
 
 \begin{abstract}
 Decoding walk/stop intent from scalp EEG for lower-limb exoskeleton control
@@ -85,12 +84,12 @@ making this a design-time check rather than a post-hoc diagnosis.
       fitting.
 \end{highlights}
 
-\begin{keyword}
+\begin{keywords}
 brain--computer interface \sep EEG \sep test-time adaptation \sep covariate shift
 \sep selective prediction \sep calibration \sep lower-limb exoskeleton
-\end{keyword}
+\end{keywords}
 
-\end{frontmatter}
+\maketitle
 
 \section{Introduction}
 
@@ -136,39 +135,39 @@ and evaluate on two independent cohorts. Our contributions are:
 %-----------------------------------------------------------------------------
 \section{Related Work}
 
-\textbf{Convolutional decoders.} ShallowFBCSPNet and Deep4Net~\cite{schirrmeister}
+\textbf{Convolutional decoders.} ShallowFBCSPNet and Deep4Net~\citep{schirrmeister}
 established the $\mathrm{square} \rightarrow \mathrm{pool} \rightarrow \log$
-pipeline that our power stem descends from; EEGNet~\cite{lawhern} introduced the
+pipeline that our power stem descends from; EEGNet~\citep{lawhern} introduced the
 depthwise--separable formulation that makes compact EEG decoders practical.
-EEGNeX~\cite{eegnex} is a recent refinement of that family.
+EEGNeX~\citep{eegnex} is a recent refinement of that family.
 
-\textbf{Attention decoders.} ATCNet~\cite{atcnet} combines convolutional feature
+\textbf{Attention decoders.} ATCNet~\citep{atcnet} combines convolutional feature
 extraction with temporal convolution and multi-head attention and is, in our
 hands, the strongest baseline on the primary cohort. EEG
-Conformer~\cite{conformer} pairs a ShallowFBCSP-style stem with a transformer
+Conformer~\citep{conformer} pairs a ShallowFBCSP-style stem with a transformer
 encoder; we note explicitly that this combination is already published, and an
 independent implementation of it in our harness reproduced its score rather than
 improving on it (0.848 against 0.843).
 
-\textbf{Alignment and transfer.} Euclidean Alignment~\cite{hewu} whitens each
+\textbf{Alignment and transfer.} Euclidean Alignment~\citep{hewu} whitens each
 recording by the inverse square root of its mean covariance and is normally
 applied offline in preprocessing; Riemannian transfer
-methods~\cite{barachant,zanini} generalise this to the SPD manifold. Our
+methods~\citep{barachant,zanini} generalise this to the SPD manifold. Our
 contribution is not the transform but making it an in-network layer that adapts
 at inference without labels --- and the finding that doing so introduces a
 failure mode the offline version cannot have.
 
 \textbf{Epoch-sequence modelling} is standard in automatic sleep
-staging~\cite{seqsleepnet,xsleepnet}. Our cross-epoch pathway transfers that idea
+staging~\citep{seqsleepnet,xsleepnet}. Our cross-epoch pathway transfers that idea
 to intent decoding.
 
 \textbf{Selective prediction.} The abstention head follows
-SelectiveNet~\cite{selectivenet}, used as published.
+SelectiveNet~\citep{selectivenet}, used as published.
 
 %-----------------------------------------------------------------------------
 \section{Method}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_arch.png}
 \caption{The proposed architecture. The adaptive alignment layer maintains a
@@ -178,7 +177,7 @@ a normalisation layer. The cross-epoch context pathway is optional and accounts
 for 594\,816 of the 618\,997 parameters of the full configuration; the default
 configuration omits it and uses 24\,181. Parameter counts are exact.}
 \label{fig:arch}
-\end{figure}
+\end{figure*}
 
 \subsection{Overview}
 
@@ -196,7 +195,7 @@ a learned scalar gate. Two properties distinguish it from a normalisation layer.
 
 First, the update is \textbf{unsupervised}: it uses only the covariance of
 incoming windows and therefore runs at inference on unlabelled data. Second, the
-estimate updates in \textbf{eval mode}, unlike BatchNorm~\cite{batchnorm}.
+estimate updates in \textbf{eval mode}, unlike BatchNorm~\citep{batchnorm}.
 Freezing running statistics at test time is correct when train and test share a
 distribution; here they are weeks apart, and freezing discards exactly the
 adaptation the layer exists to provide.
@@ -229,7 +228,7 @@ $\mathrm{square} \rightarrow \mathrm{pool} \rightarrow \log$. Amplitude
 normalisation \textbf{precedes} the squaring so that log-power \emph{ratios}
 survive: scaling a window by $s$ shifts its log-power by a constant that a later
 affine layer absorbs, whereas normalising after the square destroys the ratio
-that event-related desynchronisation~\cite{erd} is expressed in.
+that event-related desynchronisation~\citep{erd} is expressed in.
 
 This ordering is not cosmetic. In a separate controlled experiment, correcting
 the normalisation order was worth $+0.134$ (cohort A) and $+0.174$ (cohort B) on
@@ -246,7 +245,7 @@ persistence in cohort A is high: self-transition probability 0.984 (Stop) and
 \subsection{Selective Head}
 
 A classifier paired with an abstention gate trained under a coverage constraint
-following~\cite{selectivenet}, with a full-coverage auxiliary term so that the
+following~\citep{selectivenet}, with a full-coverage auxiliary term so that the
 backbone continues to learn from every sample rather than only from the covered
 region.
 
@@ -261,7 +260,7 @@ labels from the exoskeleton controller state. Windows of 4\,s at 0.5\,s stride,
 approximately 5031 fitting windows per subject. Fitted on sessions 1--3, tested
 on sessions 4--9.
 
-\textbf{Cohort B --- treadmill MoBI~\cite{luu}.} 8 subjects $\times$ 3 trials;
+\textbf{Cohort B --- treadmill MoBI~\citep{luu}.} 8 subjects $\times$ 3 trials;
 64-channel EEG at 100\,Hz; walk/stand from treadmill phase. Fitted on trial 1,
 tested on trials 2--3; 2\,s windows. An independent laboratory, different
 sensors, a different task framing, and \textbf{reversed class balance} (Stop is
@@ -356,7 +355,7 @@ Arm & Components & Acc & ECE & Acc@90 & FA/min \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_operating.png}
 \caption{Outputs beyond the class label, cohort A. (a) Expected calibration
@@ -365,7 +364,7 @@ without the selective head are the worst. (b) Accuracy recovered by declining th
 least-confident 10\,\% of windows. (c) The trade the wearer experiences ---
 balanced accuracy against spurious activations per minute of standing.}
 \label{fig:operating}
-\end{figure}
+\end{figure*}
 
 \textbf{Alignment is necessary, not additive.} With alignment removed, the
 context and gate modules together contribute between 0.000 and 0.007 (the
@@ -403,24 +402,24 @@ not be compared across the rule. Parameter counts are exact.}
 Model & Params & Balanced acc. \\
 \midrule
 \multicolumn{3}{l}{\emph{Harness C (this work), seed 0}}\\
-ATCNet~\cite{atcnet}                & 45\,280 & \textbf{0.913} \\
+ATCNet~\citep{atcnet}                & 45\,280 & \textbf{0.913} \\
 ATCNet, rate-matched kernels        & 45\,280 & 0.908 \\
 \textbf{Ours, align + gate}         & \textbf{24\,181} & 0.901 \\
 Ours, align + ctx + gate            & 618\,997 & 0.878 \\
 Ours, stem only                     & 6\,768  & 0.827 \\
 \midrule
 \multicolumn{3}{l}{\emph{Harness F (earlier), mean of 2 seeds}}\\
-ATCNet~\cite{atcnet}                & 45\,280 & 0.879 \\
-EEGNeX~\cite{eegnex}                & 58\,082 & 0.876 \\
-ShallowFBCSPNet~\cite{schirrmeister}& 97\,120 & 0.867 \\
-EEG Conformer~\cite{conformer}      & 440\,706 & 0.843 \\
+ATCNet~\citep{atcnet}                & 45\,280 & 0.879 \\
+EEGNeX~\citep{eegnex}                & 58\,082 & 0.876 \\
+ShallowFBCSPNet~\citep{schirrmeister}& 97\,120 & 0.867 \\
+EEG Conformer~\citep{conformer}      & 440\,706 & 0.843 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{../results/fig_efficiency.png}
+\includegraphics[width=\columnwidth]{../results/fig_efficiency.png}
 \caption{Balanced accuracy against parameter count on cohort A, harness C only.
 The proposed configuration sits 0.012 below ATCNet at 53\,\% of its parameters.
 No point from the other harness appears here.}
@@ -458,7 +457,7 @@ B & 8 & 6.479 & 1.074 & 6.309 & $\mathbf{83.9 \pm 3.9\,\%}$ \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_driftnet.png}
 \caption{(a) Riemannian distance between the fitting-session mean covariance and
@@ -469,7 +468,7 @@ return the model to its bare-stem score. (c) Balanced accuracy against spurious
 activations per minute of standing, showing the cross-epoch context as a
 selectable operating point rather than a failed module.}
 \label{fig:drift}
-\end{figure}
+\end{figure*}
 
 Drift is reduced in \textbf{15 of 15 subjects} ($t=-9.14$, $p=10^{-4}$ for cohort
 A; $t=-20.59$, $p<10^{-5}$ for cohort B). The no-op control shows no reduction in
@@ -497,7 +496,7 @@ Ours & align + gate       & \textbf{0.901} & 0.581 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{../results/fig_inversion.png}
+\includegraphics[width=\columnwidth]{../results/fig_inversion.png}
 \caption{The same five arms on both cohorts. Solid lines use alignment, dashed
 lines do not. The ordering does not compress between cohorts --- it inverts, and
 the three alignment arms cross below both alignment-free arms.}
@@ -553,7 +552,7 @@ than an unresolved one. The manipulated variable therefore acts only through the
 component it controls, which an unrelated confound --- optimisation dynamics,
 regularisation, run-to-run variance --- would not produce.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_rate.png}
 \caption{The adaptation rate condition. (a) Cohort B, five arms, three momenta:
@@ -564,7 +563,7 @@ signs, so no single rate serves both protocols. (c) The admissible band of
 (\ref{eq:band}), bounded below by the class-block duration and above by the drift
 timescale: wide for cohort A, empty for cohort B.}
 \label{fig:rate}
-\end{figure}
+\end{figure*}
 
 \textbf{The condition is two-sided.} We predicted, before running it, that the
 same change would be free on cohort A, whose blocks sit far inside even the
@@ -603,7 +602,7 @@ no drift-tracking benefit left to collect. Both $\tau$ in~(\ref{eq:band}) are
 properties of the recording protocol and can be computed before a model is
 fitted.
 
-This also clarifies why offline Euclidean Alignment~\cite{hewu} does not meet
+This also clarifies why offline Euclidean Alignment~\citep{hewu} does not meet
 this failure: a whole-recording estimate is maximally slow, so it never tracks
 class --- and never tracks within-recording drift either, which is exactly the
 capability an in-network version is introduced to add.
@@ -635,7 +634,7 @@ produced by acting on that assumption ourselves.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{../results/fig_metrics.png}
+\includegraphics[width=\columnwidth]{../results/fig_metrics.png}
 \caption{The five counterexamples. In each row a distribution-level quantity was
 improved successfully (right, in green) and the task did not follow (left, in
 red). The final row has no accuracy change and therefore no bar: the leakage
@@ -684,6 +683,11 @@ than a post-hoc diagnosis.
 
 %-----------------------------------------------------------------------------
 
+\section*{CRediT authorship contribution statement}
+\textbf{Author Name}: Conceptualization, Methodology, Software, Validation,
+Formal analysis, Investigation, Data curation, Writing -- original draft,
+Writing -- review and editing, Visualization.
+
 \section*{Declaration of competing interest}
 The authors declare no known competing financial interests or personal
 relationships that could have appeared to influence the work reported in this
@@ -693,11 +697,7 @@ paper.
 Both datasets are publicly available. All code, configurations and result files,
 including those of experiments that failed, are in the accompanying repository.
 
-\section*{CRediT authorship contribution statement}
-\textbf{Author Name}: Conceptualization, Methodology, Software, Validation, Formal analysis, Investigation, Data curation, Writing -- original draft, Writing -- review and editing, Visualization.
-
-\bibliographystyle{elsarticle-num}
+\bibliographystyle{cas-model2-names}
 \bibliography{refs}
-
 
 \end{document}
