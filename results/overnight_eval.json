@@ -1,0 +1,79 @@
+{
+ "cohort3": {
+  "P1": {
+   "label": "P1: align+gate (m=0.2) minus gate",
+   "n": 20,
+   "mean_a": 0.7826666666666668,
+   "mean_b": 0.7846666666666666,
+   "mean_diff": 0.0020000000000000018,
+   "sd_diff": 0.040297141947324325,
+   "b_higher": 11,
+   "b_lower": 9,
+   "per_subject_diff": {
+    "S001": -0.036666666666666736,
+    "S002": -0.013333333333333308,
+    "S003": -0.05666666666666664,
+    "S004": 0.043333333333333446,
+    "S005": 0.020000000000000018,
+    "S006": 0.06333333333333324,
+    "S007": 0.01333333333333342,
+    "S008": -0.0033333333333334103,
+    "S009": 0.040000000000000036,
+    "S010": -0.08666666666666667,
+    "S011": -0.023333333333333317,
+    "S012": 0.05666666666666664,
+    "S013": 0.04999999999999993,
+    "S014": 0.0033333333333332993,
+    "S015": -0.006666666666666599,
+    "S016": 0.016666666666666607,
+    "S017": 0.029999999999999916,
+    "S018": 0.00666666666666671,
+    "S019": -0.029999999999999916,
+    "S020": -0.046666666666666634
+   },
+   "wilcoxon_p": 0.6812698457572635,
+   "threshold": "mean_diff > -0.05",
+   "verdict": "CONFIRMED"
+  },
+  "P2": {
+   "label": "P2: align+gate (m=0.01) minus align+gate (m=0.2)",
+   "status": "pending"
+  }
+ },
+ "ica_control": {
+  "label": "ICA-cleaned minus uncleaned (align+gate)",
+  "status": "pending"
+ },
+ "align_only": {
+  "status": "pending"
+ },
+ "dn_nogate_fixed": {
+  "acc": 0.8617366197564917
+ },
+ "multiseed_A": {
+  "label": "cohort A: align+gate minus gate, seed-averaged",
+  "status": "pending",
+  "gate_seed_means": [],
+  "aligngate_seed_means": []
+ },
+ "multiseed_B": {
+  "label": "cohort B: align+gate minus gate, seed-averaged",
+  "status": "pending",
+  "gate_seed_means": [],
+  "aligngate_seed_means": []
+ },
+ "cohort3_replication": {
+  "P1_seeds12": {
+   "label": "P1 replication, seeds 1-2: align+gate minus gate",
+   "status": "pending"
+  },
+  "P2_seeds12": {
+   "label": "P2 replication, seeds 1-2: m=0.01 minus m=0.2",
+   "status": "pending"
+  },
+  "note": "Seeds 1-2 only. The registered verdict is seed 0 and is not changed by these."
+ },
+ "reproducibility": {
+  "status": "pending"
+ }
+}

@@ -326,3 +326,31 @@ tau_drift completed at 02:49:38. Cohort A median tau = 17.9 windows (range
 no data. The result is kept in `results/tau_drift.json` for the record and does
 not enter the paper.
 
+### 03:13 — Pre-registered P1: CONFIRMED
+
+All 20 EEGMMIDB subjects entered (none skipped, as registered), ~420 fit
+windows each.
+
+| arm (cohort C, seed 0) | balanced acc. |
+|---|---|
+| gate, no alignment | 0.783 |
+| align + gate, m = 0.2 | 0.785 |
+
+**Mean difference +0.002, above the registered threshold of −0.05, so P1 is
+CONFIRMED.** Eleven of 20 participants were higher and 9 lower (Wilcoxon
+p = 0.68). The largest single loss was S010 at −0.087, and no participant
+approached cohort B's −0.211.
+
+Enabling alignment costs nothing on cohort C, where the same comparison cost
+0.211 on cohort B. The condition predicted this from the protocol alone:
+blocks of ~5 windows, far inside the 160-window memory, leave nothing for the
+estimator to track.
+
+Read with care: alignment does not *help* here either. That fits the band,
+since a single-session recording has little drift to correct, but the result
+shows the absence of harm and should not be reported as a benefit. The decoder
+reaches ~0.78 balanced accuracy on a third independent dataset, against 0.50
+chance.
+
+P2 (slowing to m = 0.01 gains less than 0.05) is running.
+
