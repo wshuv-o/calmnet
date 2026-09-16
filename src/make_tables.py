@@ -71,7 +71,7 @@ def f3(x, b=False):
 
 
 def table(label, caption, colspec, header, rows, wide=False, small=True,
-          note=None):
+          note=None, fill=False):
     env = "table*" if wide else "table"
     out = [BS + "begin{" + env + "}[t]",
            BS + "caption{" + caption + "}",
@@ -79,13 +79,17 @@ def table(label, caption, colspec, header, rows, wide=False, small=True,
            BS + "centering"]
     if small:
         out.append(BS + "small")
-    out.append(BS + "begin{tabular}{" + colspec + "}")
+    if fill:
+        out.append(BS + "begin{tabular*}{" + BS + "textwidth}{@{"
+                   + BS + "extracolsep{" + BS + "fill}}" + colspec + "@{}}")
+    else:
+        out.append(BS + "begin{tabular}{" + colspec + "}")
     out.append(BS + "toprule")
     out.append(header + " " + EOL)
     out.append(BS + "midrule")
     out += rows
     out.append(BS + "bottomrule")
-    out.append(BS + "end{tabular}")
+    out.append(BS + "end{tabular*}" if fill else BS + "end{tabular}")
     if note:
         out.append(NL + note)
     out.append(BS + "end{" + env + "}")
@@ -99,86 +103,138 @@ def group(text, ncol):
 
 # ===================================================================== mega 1
 def t_landscape():
+    """One row per model. Each column is a condition; a model that was run
+    under several conditions occupies one row with several filled cells,
+    rather than reappearing once per condition."""
     scr = L("backbone_selection.json")
     fb = L("fullbench.json")
+    pub = L("published.json")
     mrg = agg(["merge.json"], lambda k: k.split("|")[1])
     atc = L("atcplus.json")
-    dn = L("driftnet_ds.json")
-    dnf = L("driftfix_ds.json")
-    s1 = L("driftseed1_ds.json")
+    dn, s1 = L("driftnet_ds.json"), L("driftseed1_ds.json")
 
-    def fb2(model):
-        vs = [v["acc"] for k, v in fb.items()
-              if isinstance(v, dict) and "acc" in v and k.split("|")[1] == model]
-        return (st.mean(vs), max(vs) - min(vs)) if vs else (None, None)
+    PARAMS = {"ATCNet": "45\,280", "EEGNeX": "58\,082",
+              "ShallowFBCSPNet": "97\,120", "EEGConformer": "440\,706",
+              "Ours, align + gate": "24\,181",
+              "Ours, align + ctx + gate": "618\,997",
+              "Ours, stem only": "6\,768",
+              "ATCNet, rate-matched": "45\,280",
+              "ATCNet + our ctx + head": "45\,280"}
+
+    row = {}   # model -> {screen, pipeC, pipeF, multi, spread}
+
+    def put(m, k, v):
+        row.setdefault(m, {})[k] = v
+
+    # screening, 3 participants
+    for k, v in scr.items():
+        if isinstance(v, (int, float)):
+            put(k, "screen", v)
+        elif isinstance(v, dict) and "acc" in v:
+            put(k, "screen", v["acc"])
+        elif isinstance(v, dict) and "error" in v:
+            put(k, "screen", "n/c")
+
+    # pipeline C, full cohort
+    put("ATCNet", "pipeC", g(atc, "base|s0"))
+    put("ATCNet, rate-matched", "pipeC", g(atc, "rate|s0"))
+    put("ATCNet + our ctx + head", "pipeC",
+        g(L("atcours_ds.json"), "atc+ours|s0"))
+    for arm, name in (("dn_noctx", "Ours, align + gate"),
+                      ("dn_full", "Ours, align + ctx + gate"),
+                      ("dn_stem", "Ours, stem only")):
+        put(name, "pipeC", g(dn, arm + "|s0"))
+    for arm, name in (("dn_noctx", "Ours, align + gate"),
+                      ("dn_full", "Ours, align + ctx + gate")):
+        a, b = g(dn, arm + "|s0"), g(s1, arm + "|s1")
+        if a is not None and b is not None:
+            put(name, "multi", st.mean([a, b]))
+            put(name, "spread", abs(a - b))
+
+    # pipeline F, 2 seeds
+    fbm = {}
+    for k, v in fb.items():
+        a = acc(v)
+        if a is not None:
+            fbm.setdefault(k.split("|")[1], []).append(a)
+    for m, vs in fbm.items():
+        put(m, "pipeF", st.mean(vs))
+        if len(vs) > 1 and m not in mrg:
+            put(m, "spread", max(vs) - min(vs))
+
+    # 3-seed runs
+    for m, vs in mrg.items():
+        put(m, "multi", st.mean(vs))
+        put(m, "spread", max(vs) - min(vs))
+
+    # normalisation sweep also covers several published models
+    for k, v in pub.items():
+        a = acc(v)
+        if a is not None:
+            row.setdefault(k.split("|")[1], {})
+
+    def cell(v, b=False):
+        if v is None:
+            return "---"
+        if isinstance(v, str):
+            return v
+        return f3(v, b)
+
+    def best(d):
+        vs = [d.get(x) for x in ("pipeC", "pipeF", "multi", "screen")]
+        vs = [x for x in vs if isinstance(x, float)]
+        return max(vs) if vs else -1
+
+    ours = [m for m in row if m.startswith("Ours")]
+    atcv = [m for m in row if m.startswith("ATCNet")]
+    powr = [m for m in row if m.startswith("PowerAttn") or m.startswith("CALMNet")]
+    rest = [m for m in row if m not in ours + atcv + powr]
 
     rows = []
-    # -- group A: screening, 3 participants
-    rows.append(group("Screening, 3 participants, single seed "
-                      "(not comparable with the groups below)", 5))
-    sc = [(k, v) for k, v in scr.items() if isinstance(v, (int, float))]
-    sc += [(k, v["acc"]) for k, v in scr.items()
-           if isinstance(v, dict) and "acc" in v]
-    for k, v in sorted(sc, key=lambda kv: -kv[1]):
-        rows.append("%s & --- & %s & --- & --- %s" % (k, f3(v), EOL))
-    err = [k for k, v in scr.items() if isinstance(v, dict) and "error" in v]
-    for k in err:
-        rows.append("%s & --- & n/c & --- & --- %s" % (k, EOL))
 
-    # -- group B: full cohort, pipeline C
-    rows.append(BS + "midrule")
-    rows.append(group("Full cohort ($n=7$), pipeline C, single seed", 5))
-    for name, params, a in [
-            ("ATCNet", "45\\,280", g(atc, "base|s0")),
-            ("ATCNet, rate-matched", "45\\,280", g(atc, "rate|s0")),
-            ("ATCNet + our ctx + head", "45\\,280", g(L("atcours_ds.json"),
-                                                      "atc+ours|s0"))]:
-        rows.append("%s & %s & --- & %s & --- %s" % (name, params, f3(a), EOL))
-    ours = g(dn, "dn_noctx|s0")
-    ours1 = g(s1, "dn_noctx|s1")
-    om = st.mean([x for x in (ours, ours1) if x is not None])
-    rows.append("%s & %s & --- & %s & %s %s" % (
-        BS + "textbf{Ours, align + gate}", BS + "textbf{24\\,181}",
-        f3(ours, True), f3(om), EOL))
-    rows.append("Ours, align + ctx + gate & 618\\,997 & --- & %s & %s %s" % (
-        f3(g(dn, "dn_full|s0")),
-        f3(st.mean([x for x in (g(dn, "dn_full|s0"), g(s1, "dn_full|s1"))
-                    if x is not None])), EOL))
-    rows.append("Ours, stem only & 6\\,768 & --- & %s & --- %s"
-                % (f3(g(dn, "dn_stem|s0")), EOL))
+    def emit(m, bold=False):
+        d = row[m]
+        nm = BS + "textbf{" + m + "}" if bold else m
+        rows.append("%s & %s & %s & %s & %s & %s & %s %s" % (
+            nm, PARAMS.get(m, "---"), cell(d.get("screen")),
+            cell(d.get("pipeC"), bold), cell(d.get("pipeF")),
+            cell(d.get("multi")),
+            "---" if d.get("spread") is None else "%.3f" % d["spread"], EOL))
 
-    # -- group C: pipeline F, 2 seeds
+    rows.append(group("This work", 7))
+    for m in sorted(ours, key=lambda x: -best(row[x])):
+        emit(m, bold=(m == "Ours, align + gate"))
     rows.append(BS + "midrule")
-    rows.append(group("Full cohort, pipeline F, mean of 2 seeds "
-                      "(offset from pipeline C by 0.032 for ATCNet)", 5))
-    for m, params in [("ATCNet", "45\\,280"), ("EEGNeX", "58\\,082"),
-                      ("ShallowFBCSPNet", "97\\,120"),
-                      ("EEGConformer", "440\\,706")]:
-        mu, sp = fb2(m)
-        rows.append("%s & %s & --- & --- & %s %s" % (m, params, f3(mu), EOL))
-
-    # -- group D: 3-seed spreads
+    rows.append(group("ATCNet and variants", 7))
+    for m in sorted(atcv, key=lambda x: -best(row[x])):
+        emit(m)
     rows.append(BS + "midrule")
-    rows.append(group("Per-seed spread over 3 seeds, same pipeline "
-                      "(the noise floor for any ranking)", 5))
-    for m in ("ShallowFBCSPNet", "ATCNet", "PowerAttn-noattn"):
-        if m in mrg:
-            vs = mrg[m]
-            rows.append("%s & --- & --- & --- & %s (spread %s) %s" %
-                        (m, f3(st.mean(vs)), f3(max(vs) - min(vs)), EOL))
+    rows.append(group("Other published decoders", 7))
+    for m in sorted(rest, key=lambda x: -best(row[x])):
+        emit(m)
+    if powr:
+        rows.append(BS + "midrule")
+        rows.append(group("Merge study (this work, rejected)", 7))
+        for m in sorted(powr, key=lambda x: -best(row[x])):
+            emit(m)
 
     return table(
         "tab:landscape",
-        "Every published decoder evaluated in this work. \\textbf{The four "
-        "groups are not mutually comparable}: they differ in participant "
-        "count, training pipeline and seed count, and are separated by rules "
-        "for that reason. ATCNet appears in both full-cohort pipelines and "
-        "differs by 0.032, which bounds how much of any cross-group "
-        "difference is pipeline rather than model. ``n/c'' did not converge. "
-        "The rightmost column is a 2- or 3-seed mean where one was run.",
-        "lrrrr",
-        "Model & Params & Screen & Pipeline C & Multi-seed",
-        rows, wide=True)
+        "Every decoder evaluated in this work, one row per model. "
+        "\textbf{The condition columns are not mutually comparable}: "
+        "\textit{Screen} is 3 participants, \textit{Pipeline C} and "
+        "\textit{F} are the full 7-participant cohort under two different "
+        "training pipelines, and \textit{Multi-seed} is a 2- or 3-seed mean. "
+        "ATCNet is the one model present in both full-cohort pipelines and "
+        "differs by 0.032 between them, which bounds how much of any "
+        "cross-column gap is pipeline rather than model. \textit{Spread} is "
+        "the range across seeds and is the noise floor for any ranking: it "
+        "reaches 0.053, so no single-seed ordering in this table should be "
+        "read as a result. ``n/c'' did not converge.",
+        "lrrrrrr",
+        "Model & Params & Screen & Pipeline C & Pipeline F & Multi-seed & "
+        "Spread",
+        rows, wide=True, fill=True)
 
 
 # ===================================================================== mega 2
