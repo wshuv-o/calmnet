@@ -620,8 +620,10 @@ non-deterministic reductions in scaled dot-product attention on GPU.
 Run-to-run variation at a fixed split seed is a lower bound on the relevant
 noise. Repeating the two strongest arms at a second split seed
 (Table~\ref{tab:seeds}) gives a between-seed spread of $0.012$ to $0.020$, about
-twice the fixed-seed figure, which is the quantity that governs whether two
-models can be ranked.
+twice the fixed-seed figure. The published baselines are worse: over three
+seeds in the same pipeline, ShallowFBCSPNet spans $0.053$ and ATCNet $0.041$
+(Table~\ref{tab:merge}). This is the quantity that governs whether two models
+can be ranked, and it is why no single-seed ranking is reported in this paper.
 
 \begin{table}[t]
 \caption{Two-seed replication on cohort A, original estimator. Seed changes the
@@ -939,6 +941,50 @@ Within-epoch attention & ablate the attention & $+0.024$ to remove \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Three of those controls are worth the space, because each is multi-seed and
+each tests a component the architecture could plausibly have kept.
+
+\input{tables_auto}
+
+\paragraph{Temporal smoothing survives its control; the attention block does
+not} Applying an HMM forward filter over the decoder's output improves cohort A
+by $+0.024$ over four seeds, and Viterbi decoding by $+0.038$
+(Table~\ref{tab:temporal}). The control applies the same filter after shuffling
+window order, which preserves the operation and destroys the temporal structure:
+it falls to $0.665$, \textbf{0.113 below} the unsmoothed baseline. A smoothing
+operation that helped for any reason other than genuine persistence would not
+behave that way. This is the measurement that justifies the cross-epoch pathway
+of Section~\ref{sec:rate} as a real effect even though it costs accuracy.
+
+By contrast, merging the power stem with a within-epoch attention block
+(Table~\ref{tab:merge}) is improved by $0.024$ when the attention is
+\emph{removed}, across three seeds. The block was dropped.
+
+\paragraph{An independent architecture reproduces the alignment result} We built
+a separate SPD-manifold decoder in which alignment can be fixed (Euclidean
+Alignment), learned, or omitted (Table~\ref{tab:spdnet}). Over three seeds the
+three variants span $0.814$ to $0.823$, and omitting alignment entirely costs
+$0.002$, far inside the $\pm0.02$ to $\pm0.03$ seed spread. A different backbone,
+a different alignment parameterisation, and the same conclusion: the alignment
+stage is not what carries the performance.
+
+\paragraph{Per-window normalisation is wrong at the architecture level too}
+Table~\ref{tab:pubnorm} repeats the normalisation comparison across seven
+published decoders. Per-window normalisation is the best choice for none of
+them and the worst for four, which is the architecture-level counterpart of the
+representation-level dose--response in Table~\ref{tab:norm}.
+Table~\ref{tab:ampctrl} reports the control that retired the amplitude
+side-channel: supplying a per-window amplitude feature and supplying the same
+feature with its window assignment shuffled differ by less than $0.01$ for five
+of six models.
+
+Tables~\ref{tab:features} and \ref{tab:archsweep} report the representation and
+architecture sweeps that preceded the design. The tangent-space representation
+is the strongest single feature family, which is what motivated a
+covariance-based alignment stage; and no structural change in the 24-configuration
+sweep reaches $0.06$ over the baseline, with widening the network worth less
+than changing the readout.
 
 The movement-related cortical potential (MRCP) pathway deserves a sentence
 because it is a physiologically motivated design that failed cleanly. Decoding
