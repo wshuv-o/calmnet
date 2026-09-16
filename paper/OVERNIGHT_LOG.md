@@ -490,3 +490,34 @@ It now points to this section.
 
 Build: 0 errors, 0 undefined, 19 pages; neither new table spills.
 
+### 03:45 — Abstract, contributions and conclusion updated
+
+**Abstract** rewritten: **369 words, down from 432**, while adding the
+prospective cohort-C test and the artefact control. Two errors fixed along the
+way. "A no-op control that shows no reduction" became "a control with no
+systematic reduction", since tonight showed the control scatters −29 % to
++45 % per participant. "The layer worth +0.074 on the first cohort costs
+−0.211" was ungrammatical. Every number in the abstract also appears in the
+body.
+
+**Contributions** gain the prospective test and the artefact control. "An
+external validation that fails" is replaced with the accurate description: the
+decoder transfers at 0.792, and the alignment layer inverts the ordering.
+
+**Conclusion** gains a paragraph on the correct advance prediction. The open
+question is widened to three cohorts, with the upper bound named as untested in
+advance.
+
+**Two broken sentences from my earlier mechanical rewrite** were found and
+repaired: "Under a blocked experimental protocol that includes the class label,
+and the layer then removes…" and "…as established, when it describes two
+cohorts". I should have read these back when I made them. Every other sentence
+from that pass has now been read back in full; none were broken, and two stilted
+ones were smoothed.
+
+A whole-paper scan found one surviving banned construction, "does not merely
+compress but inverts", now removed. Result: 0 "rather than", 0 "X, not Y",
+0 "not X but Y", 0 prose em dashes, 0 colon headings.
+
+Build: 0 errors, 0 undefined, 19 pages.
+
