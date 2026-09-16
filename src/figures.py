@@ -3,7 +3,9 @@
 One script and one style module for the whole document, so that a series has
 the same colour, marker and dash in every figure (FIGURE_RULES.md §11).
 
-  fig_arch        the architecture, with exact per-block parameter counts
+  (fig_arch is NOT built here: it is drawn in paper/fig_arch.drawio and
+   rendered by src/render_drawio.py, so the diagram stays editable in
+   draw.io rather than living as matplotlib coordinates.)
   fig_drift       per-subject session-drift reduction, both cohorts
   fig_ablation    component ablation with between-subject spread
   fig_rate        the two-sided adaptation-rate condition
@@ -41,90 +43,6 @@ def L(name):
 def g(d, arm, field="acc"):
     v = d.get(arm + "|s0")
     return v[field] if v and field in v else None
-
-
-# ===================================================================== fig 1
-def fig_arch():
-    fig, ax = plt.subplots(figsize=(FULL, 2.55))
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.axis("off")
-    Y, H = 0.30, 0.44
-    MID = Y + H / 2
-
-    def box(x, w, title, sub, params, color, dashed=False, y=Y, h=H):
-        for fc, ec, z in ((color, "none", 2), ("none", color, 3)):
-            ax.add_patch(FancyBboxPatch(
-                (x, y), w, h, boxstyle="round,pad=0.010,rounding_size=0.018",
-                linewidth=0.9, edgecolor=color if ec != "none" else color,
-                facecolor=fc if fc != "none" else "none",
-                alpha=0.10 if fc != "none" else 1.0,
-                linestyle=(0, (3, 2)) if dashed else "-", zorder=z))
-        ax.text(x + w / 2, y + h - 0.055, title, ha="center", va="top",
-                fontsize=7.6, fontweight="bold", color=color, zorder=4)
-        ax.text(x + w / 2, y + h / 2 - 0.035, sub, ha="center", va="center",
-                fontsize=6.3, color=INK, zorder=4, linespacing=1.45)
-        ax.text(x + w / 2, y + 0.035, params, ha="center", va="bottom",
-                fontsize=6.3, color=color, style="italic", zorder=4)
-
-    def arrow(x1, y1, x2, y2, color=INK, dashed=False, rad=0.0, lw=0.9):
-        ax.add_patch(FancyArrowPatch(
-            (x1, y1), (x2, y2), arrowstyle="-|>", mutation_scale=7,
-            linewidth=lw, color=color, zorder=5,
-            linestyle=(0, (3, 2)) if dashed else "-",
-            connectionstyle="arc3,rad=%s" % rad))
-
-    ax.text(0.030, MID + 0.035, "EEG" + NL + "window", ha="center", va="center",
-            fontsize=7.4, fontweight="bold", color=INK)
-    ax.text(0.030, MID - 0.085, r"$60 \times 400$" + NL + "4 s @ 100 Hz",
-            ha="center", va="center", fontsize=6.3, color=GREY)
-    arrow(0.068, MID, 0.092, MID)
-
-    box(0.094, 0.180, "Adaptive Alignment",
-        r"running covariance $\mathbf{M}$" + NL + r"whiten by $\mathbf{M}^{-1/2}$"
-        + NL + "learned raw/aligned blend", "1 parameter", OURS)
-    arrow(0.274, MID, 0.298, MID)
-    arrow(0.250, Y, 0.132, Y, color=OURS, dashed=True, rad=-0.62, lw=0.9)
-    S.note(ax, 0.191, Y - 0.135, "unsupervised update, active at inference",
-           ha="center", color=OURS, fontsize=6.3, style="italic")
-    S.note(ax, 0.191, Y - 0.205, "(eval mode, no labels, no target data)",
-           ha="center", fontsize=6.0)
-
-    box(0.300, 0.180, "Multi-Scale Power",
-        "64 / 128 / 256 ms branches" + NL + "depthwise spatial filters" + NL
-        + r"square $\rightarrow$ pool $\rightarrow$ log", "6 768 parameters", GREEN)
-    arrow(0.480, MID, 0.504, MID)
-
-    box(0.506, 0.126, "Frame Embed",
-        "norm + projection" + NL + "+ within-window" + NL + "attention pooling",
-        "12 737 parameters", GREEN)
-    arrow(0.632, MID, 0.648, MID)
-
-    box(0.650, 0.196, "Cross-Epoch Context",
-        "causal transformer," + NL + r"$K=8$ epochs (14.5 s)",
-        "594 816 parameters", PURPLE, dashed=True, y=0.815, h=0.165)
-    S.note(ax, 0.748, 0.995, "optional: $-$0.023 accuracy, $-$23 % false activations",
-           ha="center", color=PURPLE, fontsize=6.2, style="italic")
-    arrow(0.664, Y + H, 0.690, 0.815, color=PURPLE, dashed=True, rad=0.26)
-    arrow(0.820, 0.815, 0.846, Y + H, color=PURPLE, dashed=True, rad=0.26)
-
-    box(0.650, 0.196, "Selective Head",
-        "classifier + abstention" + NL + "under a coverage constraint",
-        "4 419 parameters", BLUE)
-    arrow(0.846, MID, 0.868, MID)
-
-    outs = [("Walk / Stop", MID + 0.150), ("calibrated confidence", MID),
-            ("abstain / act", MID - 0.150)]
-    ax.plot([0.870, 0.870], [MID - 0.150, MID + 0.150], lw=0.8, color=INK, zorder=4)
-    for name, yy in outs:
-        arrow(0.870, yy, 0.882, yy, lw=0.8)
-        ax.text(0.888, yy, name, ha="left", va="center", fontsize=6.8, color=INK)
-
-    ax.plot([0.094, 0.906], [0.085, 0.085], lw=0.5, color=FAINT)
-    ax.text(0.5, 0.020, "default configuration: 24 181 parameters "
-            "(53 % of ATCNet, 5 % of EEG Conformer)", ha="center", fontsize=6.6,
-            color=GREY)
-    S.save(fig, "fig_arch")
 
 
 # ===================================================================== fig 2
@@ -438,7 +356,6 @@ def fig_metrics():
 
 
 if __name__ == "__main__":
-    fig_arch()
     fig_drift()
     fig_ablation()
     fig_rate()
