@@ -182,10 +182,10 @@ so the figure stays consistent with the other six.
 
 The covariance caption reads `60x60, momentum M`. Two things are wrong with it
 and both are in the source, not the renderer: the multiplication sign is a
-literal `x` rather than `	imes`, and the momentum symbol is a capital `M`,
+literal `x` rather than `\times`, and the momentum symbol is a capital `M`,
 which collides with $\mathbf{M}$, the covariance matrix in the box directly
 below it. The manuscript uses lower-case italic $m$ for momentum throughout
-(equation 2 and Table 2). Fix the label to `$60 	imes 60$, momentum $m$` on
+(equation 2 and Table 2). Fix the label to `$60 \times 60$, momentum $m$` on
 the next export.
 
 ## Content check
