@@ -117,6 +117,22 @@ claim("headline probe", hd["cond_r2"], "conditional probe of $-%.3f$" % -hd["con
 armsA = [v["cond_r2"] for f in ("driftnet_ds.json", "driftfix_ds.json") for v in J(f).values()]
 claim("probe range", min(armsA), "between $-%.3f$ and $-%.3f$" % (-max(armsA), -min(armsA)))
 
+# ---- cohort C replication, seeds 1-2 --------------------------------------
+def seedavg(f, arm):
+    d = J(f); acc = {}
+    for k, v in d.items():
+        if k.startswith(arm + "|s"):
+            for sub, r in v["per_subject"].items():
+                acc.setdefault(sub, []).append(r["acc"])
+    return {sub: float(np.mean(v)) for sub, v in acc.items()}
+rg = seedavg("cohort3_rep_m0.2.json", "dn_gate")
+ra = seedavg("cohort3_rep_m0.2.json", "dn_noctx")
+rs = seedavg("cohort3_rep_m0.01.json", "dn_noctx")
+rsub = sorted(set(rg) & set(ra) & set(rs))
+r1 = np.array([ra[x] - rg[x] for x in rsub]); r2 = np.array([rs[x] - ra[x] for x in rsub])
+claim("C rep P1 diff", r1.mean(), "by $+%.3f$ (higher in %d participants, lower in %d; $p=%.2f$)" % (r1.mean(), (r1 > 0).sum(), (r1 < 0).sum(), wilcoxon(r1).pvalue))
+claim("C rep P2 diff", r2.mean(), "costs $%.3f$ (lower in %d of %d; $p=%.3f$)" % (-r2.mean(), (r2 < 0).sum(), len(r2), wilcoxon(r2).pvalue))
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:
