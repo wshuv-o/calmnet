@@ -77,6 +77,10 @@ ARMS = {
     "rate+ctx":  dict(rate=True,  use_ctx=True,  use_gate=False),
     "rate+gate": dict(rate=True,  use_ctx=False, use_gate=True),
     "full":      dict(rate=True,  use_ctx=True,  use_gate=True),
+    # Stock ATCNet kernels + our two modules. The rate-matched kernels HURT
+    # (0.9079 vs 0.9129 stock), so the honest test of whether context and gating
+    # add anything is to bolt them onto the unmodified backbone.
+    "atc+ours":  dict(rate=False, use_ctx=True,  use_gate=True),
 }
 # DriftNet ablation. `full` is the proposed architecture; each `no_*` arm
 # removes exactly one component so it has to earn its place. `no_align` is the
