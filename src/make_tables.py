@@ -149,7 +149,9 @@ def t_landscape():
       ---   the experiment was not run for that model
       n/a   the model cannot produce that quantity at all (no selective head)
     """
-    scr = L("backbone_selection.json")
+    # full-cohort screening run; backbone_selection.json is the earlier
+    # 3-participant version and is quoted in the text for comparison.
+    scr = L("backbone_full.json")
     fb = L("fullbench.json")
     mrg = agg(["merge.json"], lambda k: k.split("|")[1])
     atc = L("atcplus.json")
@@ -230,12 +232,11 @@ def t_landscape():
         "Every decoder evaluated in this work, one row per model. "
         "\\textbf{Bold marks the best value in each column}. "
         "\\textbf{The three accuracy columns are different experiments and must "
-        "not be compared across}: \\textit{Screen} is a 3-participant "
-        "subset, \\textit{Pipe. C} and \\textit{Pipe. F} are the full "
-        "7-participant cohort under two different training pipelines. Two "
-        "models make the point: ShallowFBCSPNet scores 0.655 screening against "
-        "0.867 on the full cohort, and ATCNet, the one model run in both "
-        "pipelines, differs by 0.032 between them. "
+        "not be compared across}: they are three different training "
+        "pipelines on the same 7 participants. ATCNet, the one model run in "
+        "two of them, differs by 0.032 between Pipe. C and Pipe. F, which "
+        "bounds how much of any cross-column gap is pipeline rather than "
+        "model. "
         "\\textbf{---} means the experiment was not run for that model; "
         "\\textit{n/a} means the model cannot produce that quantity, having "
         "no selective head. ATCNet leads on balanced accuracy by 0.012 over "
@@ -309,49 +310,34 @@ def t_rate():
 
 # ===================================================================== mega 3
 def t_repr():
-    z, zm = L("zscore.json"), L("zscore_mobi.json")
-    pub = L("published.json")
-    amp = L("amp_ablation.json")
-    feat = L("features.json")
-    sens = L("sensitivity.json")
-    rows = []
+    """Two-condition comparisons only: a condition, its control, and a delta.
 
-    rows.append(group("Per-window amplitude normalisation, by how much "
-                      "marginal power the representation carries", 5))
-    for rep, lab, power in [("bandpower", "band power", "full"),
+    Everything here has the same column meaning, which is why the
+    normalisation-mode sweep (three conditions) and the leakage sensitivity
+    (one condition) are not in this table.
+    """
+    z, zm = L("zscore.json"), L("zscore_mobi.json")
+    amp = L("amp_ablation.json")
+    rows = [group("Per-window amplitude normalisation, by how much marginal "
+                  "power the representation carries", 5)]
+    for rep, lab, power in (("bandpower", "band power", "full"),
                             ("tangent_ea", "tangent space", "partial"),
-                            ("corr_only", "correlation", BS + "textbf{none}")]:
+                            ("corr_only", "correlation",
+                             BS + "textbf{none}")):
         for coh, d in (("A", z), ("B", zm)):
-            k1, k0 = "w2.0|%s|z1" % rep, "w2.0|%s|z0" % rep
-            v1, v0 = g(d, k1), g(d, k0)
+            v1 = g(d, "w2.0|" + rep + "|z1")
+            v0 = g(d, "w2.0|" + rep + "|z0")
             if v1 is None or v0 is None:
                 continue
-            dd = v0 - v1
-            s = "%+.3f" % dd
+            ds = "%+.3f" % (v0 - v1)
             if rep == "corr_only":
-                s = BS + "textbf{" + s + "}"
+                ds = BS + "textbf{" + ds + "}"
             rows.append("%s, cohort %s & %s & %s & %s & %s %s" %
-                        (lab, coh, power, f3(v1), f3(v0), s, EOL))
+                        (lab, coh, power, f3(v1), f3(v0), ds, EOL))
 
     rows.append(BS + "midrule")
-    rows.append(group("Normalisation mode across published decoders "
-                      "(per-window / global / none)", 5))
-    seen = []
-    for k, v in pub.items():
-        p = k.split("|")
-        if p[1] not in seen:
-            seen.append(p[1])
-    for m in seen:
-        vals = {p.split("|")[2]: acc(v) for p, v in pub.items()
-                if p.split("|")[1] == m}
-        best = max((x for x in vals.values() if x is not None), default=None)
-        cells = [f3(vals.get(x), vals.get(x) == best)
-                 for x in ("perwindow", "global", "none")]
-        rows.append("%s & --- & %s & %s & %s %s" %
-                    (m, cells[0], cells[1], cells[2], EOL))
-
-    rows.append(BS + "midrule")
-    rows.append(group("Amplitude side-channel against its shuffled control", 5))
+    rows.append(group("Amplitude side-channel against its shuffled control",
+                      5))
     for k, v in amp.items():
         p = k.split("|")
         if p[4] != "amp-on":
@@ -363,29 +349,57 @@ def t_repr():
         rows.append("%s & --- & %s & %s & %+.3f %s" %
                     (p[1], f3(on), f3(sh), sh - on, EOL))
 
-    rows.append(BS + "midrule")
-    rows.append(group("Movement-leakage sensitivity: injected fraction $f$ of "
-                      "the movement signal", 5))
-    for f in ("0.0000", "0.0010", "0.0050", "0.0100", "0.0500"):
-        v = g(sens, "f" + f)
-        if v is not None:
-            rows.append("$f = %s$ & --- & %s & --- & --- %s"
-                        % (f.rstrip("0").rstrip(".") or "0", f3(v), EOL))
     return table(
         "tab:repr",
-        "Representation, normalisation and leakage controls. The first block "
-        "is the identifying evidence for the stem design: removing per-window "
-        "normalisation is worth $+0.134$ and $+0.174$ where the representation "
-        "is pure marginal power, and \\textbf{exactly $+0.000$ where it is "
-        "scale-free by construction}. The second block shows the same "
-        "conclusion at the architecture level across seven published decoders. "
-        "The third retired an amplitude side-channel: five of six models move "
-        "under 0.01 when the feature is shuffled. The fourth bounds real "
-        "movement contamination below $f=0.005$.",
-        "llrrr",
-        "Experiment & Power content & Condition A & Condition B & $" + BS +
+        "Two-condition comparisons. \\textbf{The first block is the identifying "
+        "evidence for the stem design}: removing per-window normalisation "
+        "is worth $+0.134$ and $+0.174$ where the representation is pure "
+        "marginal power, and \\textbf{exactly $+0.000$ where it is scale-free by "
+        "construction} and therefore cannot respond. An effect that scales "
+        "with power content and vanishes without it identifies the mechanism "
+        "rather than merely demonstrating it. The second block retired an "
+        "amplitude side-channel: supplying a per-window amplitude feature and "
+        "supplying the same feature with its window assignment shuffled differ "
+        "by under 0.02 for four of five models.",
+        "lllrr",
+        "Comparison & Power content & Condition & Control & $" + BS +
         "Delta$",
-        rows, wide=True)
+        rows, wide=False)
+
+
+def t_norm():
+    """Normalisation mode across decoders: three named conditions, so it needs
+    its own table rather than borrowing a delta column."""
+    pub = L("published.json")
+    order, tab = [], {}
+    for k, v in pub.items():
+        a = acc(v)
+        if a is None:
+            continue
+        p = k.split("|")
+        tab.setdefault(p[1], {})[p[2]] = a
+        if p[1] not in order:
+            order.append(p[1])
+    rows = []
+    for m in order:
+        vals = tab[m]
+        best = max([v for v in vals.values() if v is not None], default=None)
+        cells = [f3(vals.get(x), vals.get(x) == best)
+                 for x in ("perwindow", "global", "none")]
+        rows.append("%s%s & %s & %s & %s %s" %
+                    (m, cref(m), cells[0], cells[1], cells[2], EOL))
+    return table(
+        "tab:norm",
+        "Where amplitude normalisation is applied, across seven published "
+        "decoders on cohort A, single seed. All three columns are balanced "
+        "accuracies, not changes; best per row in bold. \\textbf{Per-window "
+        "normalisation is best for none of the seven and worst for four}, "
+        "which is the architecture-level counterpart of the "
+        "representation-level result in Table~\\ref{tab:repr} and the "
+        "reason the stem normalises globally before squaring.",
+        "lrrr",
+        "Model & Per-window & Global & None",
+        rows, wide=False)
 
 
 # ===================================================================== mega 4
@@ -542,7 +556,7 @@ def t_noise():
 
 def main():
     parts = ["%% Generated by src/make_tables.py -- do not edit by hand." + NL + NL,
-             t_landscape(), t_rate(), t_repr(), t_rejected(),
+             t_landscape(), t_rate(), t_repr(), t_norm(), t_rejected(),
              t_drift(),
              t_noise()]
     OUT.write_text("".join(parts), encoding="utf-8")

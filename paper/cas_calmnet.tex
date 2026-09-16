@@ -484,16 +484,32 @@ Model selection & best held-out balanced accuracy \\
 \end{tabular}
 \end{table}
 
-\paragraph{Backbone screening} Before settling on the stem described in
-Section~\ref{sec:stem}, we screened 19 published decoders from the
-\textit{braindecode} library \citep{braindecode_lib} on a three-participant subset of cohort A
-(sub-01, sub-03, sub-06) under identical preprocessing
-(Table~\ref{tab:landscape}). The spread is wide, from chance to $0.827$, and
-several architectures that perform well on motor-imagery benchmarks sit near
-chance on this task. We report this as a screening result on three participants
-rather than a benchmark: the screening column of Table~\ref{tab:landscape}
-is not comparable with its full-cohort columns, and the same table shows
-ShallowFBCSPNet at 0.655 screening against 0.867 on the full cohort.
+\paragraph{Backbone screening} Before settling on the stem of
+Section~\ref{sec:stem} we screened 19 published decoders from the
+\textit{braindecode} library \citep{braindecode_lib} under identical
+preprocessing (the \textit{Screen} column of Table~\ref{tab:landscape}).
+Sixteen converged, spanning $0.500$ to $0.766$; four did not.
+
+\textbf{The screen was first run on three participants, and repeating it on all
+seven changed the answer.} Across the fifteen models present in both runs the
+mean absolute change is $0.023$ and the largest is $0.061$, and
+\textbf{eleven of fifteen models change rank}. The first-ranked model changes
+from TSception ($0.788$ on three participants) to FBLightConvNet ($0.766$ on
+seven). The sharpest case is EEG Conformer \citep{conformer}, which ranked
+first on three participants at $0.827$ and fails to converge on seven. Selecting
+a backbone from the three-participant screen would therefore have selected a
+model that does not run on the full cohort. We report this because it is the
+same lesson as Section~\ref{sec:noise} in a different guise: a cheap
+measurement that ranks models is not a cheap version of an expensive one.
+
+\textbf{On the four failures.} ATCNet cannot be run in this harness at all: its
+final layer is a \texttt{ModuleList} that the backbone adapter cannot consume,
+which is why the original sweep excluded it. The other three (EEG Conformer,
+EEG-ITNet, FBMSNet) raise a not-a-number error during training. We verified that
+this is not a data fault: none of the seven participants' epoch tensors contains
+a not-a-number or infinite value. These are training divergences under this
+configuration, not properties of the architectures, and we record them as such
+rather than as evidence against those models.
 
 \subsection{Outcome measures}
 
@@ -511,10 +527,12 @@ therefore measured conditional on the class label throughout, by centring the
 nuisance features within class before regression.
 
 We bound the residual contamination by injecting a known fraction $f$ of the
-movement signal into the EEG and measuring the accuracy response
-(Table~\ref{tab:repr}). Accuracy rises monotonically with $f$ and the
-observed clean accuracy corresponds to $f < 0.005$, so any genuine movement
-contamination accounts for under $0.5\,\%$ of the signal power the decoder uses.
+movement signal into the EEG and measuring the accuracy response. Accuracy
+rises monotonically with $f$: $0.763$ at $f=0$, then $0.819$, $0.873$, $0.892$
+and $0.913$ at $f = 0.001$, $0.005$, $0.01$ and $0.05$. The observed clean
+accuracy therefore corresponds to $f < 0.005$, so any genuine movement
+contamination accounts for under $0.5\,\%$ of the signal power the decoder
+uses.
 
 \subsection{Statistical treatment and measurement noise}
 \label{sec:noise}
