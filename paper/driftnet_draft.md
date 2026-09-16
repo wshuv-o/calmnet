@@ -36,7 +36,8 @@ estimate's memory, the layer whitens away the class itself. The threshold is
 predicted from the protocol -- an exponential estimate with momentum *m* has
 memory ~1/*m* batches -- and observed where predicted: slowing adaptation past the
 309-window class block recovers +0.090 to +0.098 on every arm that uses
-alignment, and 0.000, exactly, on both arms that do not.
+alignment, and 0.000 on both arms that do not -- exactly so for the one arm that
+is bit-for-bit deterministic across repeats.
 
 **The condition is two-sided.** Applying the same change to the primary cohort,
 where we predicted it would be free, instead costs 0.060. The rate must be fast
@@ -65,8 +66,8 @@ two effects and the metric scores one.
 | claim | status | evidence |
 |---|---|---|
 | A label-free alignment layer removes 52 % / 84 % of session-to-session covariance drift | **supported** | 15/15 subjects, two cohorts, p <= 0.0001, no-op control at zero |
-| On cohort A it is *necessary*: removing it collapses the model to its bare stem | **supported** | 0.827 = 0.827, ablation |
-| **The model beats published decoders on cohort A** | **NOT supported** | 0.884 vs ATCNet 0.881 at matched seed and estimator: +0.003, inside the +-0.005 noise. EEGNeX reaches 0.896 at seed 1. The 0.901 previously quoted used the pre-fix estimator and compared one seed against 2-seed means. |
+| On cohort A it is *necessary*: removing it collapses the model to its bare stem | **supported** | context + gate add 0.000-0.007 without alignment, against a 0.010 noise floor |
+| **The model beats published decoders on cohort A** | **NOT supported** | 0.884 vs ATCNet 0.881 at matched seed and estimator: +0.003, far inside the ~0.010 noise floor. EEGNeX reaches 0.896 at seed 1. The 0.901 previously quoted used the pre-fix estimator and compared one seed against 2-seed means. |
 | The layer's adaptation memory must exceed the class-block duration | **supported** | predicted threshold, step of +0.090 to +0.098 on all 3 alignment arms, 0.000 on both alignment-free arms |
 | ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.092 on cohort B and **-0.060** on cohort A |
 | No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is 0.06-0.09 worse at the other's setting |
@@ -294,8 +295,13 @@ Comparisons against published decoders use the corrected numbers (section 7.6).
 constant confidence, so ranking by it selects the first 90 % of the test set in
 recording order. That number is an ordering artefact, not a selective accuracy.
 
-**Alignment is necessary, not additive.** `dn_noalign` (0.827) equals `dn_stem`
-(0.827): without alignment, context and gate together contribute nothing.
+**Alignment is necessary, not additive.** `dn_noalign` (0.827) and `dn_stem`
+(0.827) coincide here, but that exact equality is a coincidence: repeated runs
+put `dn_noalign` at 0.827-0.834 (section 7.4) while `dn_stem` is deterministic at
+0.827. The supportable claim is the interval, not the identity -- **without
+alignment, context and gate together contribute between 0.000 and 0.007**, which
+is indistinguishable from nothing and an order of magnitude below alignment's own
+contribution.
 
 **Cross-epoch context is an operating point, not a default.** Adding it costs
 0.023 accuracy and doubles calibration error while cutting spurious activations
@@ -354,7 +360,7 @@ that is 160 / 640 / 3200 windows for *m* = 0.2 / 0.05 / 0.01.
 **The bulk of the gain is realised as the memory crosses the block length**
 (momentum 0.20 -> 0.05: +0.098 and +0.090), which is where the mechanism predicts
 it. Beyond the crossing the behaviour is arm-dependent: `dn_full` is flat
-(+0.001, within the +-0.005 measurement noise) while `dn_noctx` continues to rise
+(+0.001, an order of magnitude inside this arm's ~0.010 run-to-run spread) while `dn_noctx` continues to rise
 (+0.025).
 
 An earlier version of this section claimed the effect "saturates immediately
@@ -377,8 +383,9 @@ experiment rather than a single comparison:
 
 Every arm that uses alignment gains +0.090 to +0.098 as the adaptation memory
 crosses the class-block length. Both arms that do not use it are unaffected --
-`dn_noalign` to within measurement noise, `dn_stem` *exactly*, to three decimals
-across all three settings.
+`dn_noalign` to within its run-to-run spread, `dn_stem` *exactly* -- 0.7375 at
+every setting, and that arm is deterministic, so the null is exact rather than
+merely unresolvable.
 
 **Version caveat on the m = 0.20 column.** Those runs were completed before the
 per-window estimator correction of section 7.3; the other two columns came after.
@@ -395,10 +402,28 @@ The adaptation rate therefore acts only through the component it controls, which
 is what the mechanism requires and what an unrelated confound (optimisation
 dynamics, regularisation, run-to-run variance) would not produce.
 
-The alignment-free arms were measured seven times in total across momenta and
-estimators (`dn_noalign` 0.792 / 0.788 / 0.783 / 0.782; `dn_stem` 0.737 three
-times), fixing measurement noise at **+-0.005** and making the -0.060 residual in
-section 7.5 twelve times the noise.
+**Measurement noise is not uniform, and the alignment-free arms measure it.**
+Neither `dn_noalign` nor `dn_stem` invokes the estimator, so momentum and
+estimator version are inert for both and every run of them is a true repeat:
+
+| arm | cross-epoch transformer | repeats | spread | sd |
+|---|---|---|---|---|
+| `dn_stem`, cohort B | **no** | 3 | **0.0000** | 0.0000 |
+| `dn_noalign`, cohort A | yes | 3 | 0.0069 | 0.0039 |
+| `dn_noalign`, cohort B | yes | 4 | 0.0107 | 0.0049 |
+
+`dn_stem` reproduces 0.7375 bit-for-bit across three runs; `dn_noalign` does not,
+and the only structural difference between them is the attention path. We
+attribute the variation to non-deterministic reductions in scaled dot-product
+attention on GPU rather than to anything the experiment manipulates.
+
+Two consequences. First, **any arm containing the transformer carries ~+-0.010
+run-to-run noise**, twice the +-0.005 an earlier draft quoted uniformly; the
+-0.060 residual of section 7.5 is therefore about six times the noise, not
+twelve, and effects below ~0.02 in transformer arms should not be interpreted.
+Second, `dn_stem`'s exact invariance across momenta is stronger evidence than
+"within noise": that arm has no noise to hide in, so its 0.0000 response to a
+160-fold change in adaptation rate is an exact null.
 
 **A one-sided rule would be wrong.** The obvious reading of this table is "set
 the adaptation memory longer than the class-block duration, and when in doubt go
@@ -478,7 +503,7 @@ remaining budget is 6 768 in the power stem, 12 608 in the frame embedding,
 
 **We do not claim an accuracy improvement.** At matched seed and matched
 estimator version, the best DriftNet configuration is +0.003 on ATCNet, inside
-the +-0.005 measurement noise, and below EEGNeX's seed-1 score. Per-seed spread
+the ~0.010 run-to-run noise floor of section 7.4, and below EEGNeX's seed-1 score. Per-seed spread
 among the baselines reaches 0.041 (EEGNeX), which is an order of magnitude larger
 than the gap. A single-seed ranking here would be meaningless, and the 0.901
 figure quoted in earlier drafts compounded two errors: it used the pre-fix
