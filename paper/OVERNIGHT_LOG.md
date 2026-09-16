@@ -178,7 +178,7 @@ movement information at all.
 Every slide was rendered through PowerPoint and checked visually. Slide 12's
 text crowded its table; slide 13's cards were oversized. Both fixed.
 
-### 02:17 — Removed the contradictory abstention label from Figure 1
+### 02:14 — Removed the contradictory abstention label from Figure 1
 
 The architecture figure's selector box read `abstain / act  0.876 @ 90 %`,
 presenting as a feature the figure the paper reports as a negative result
@@ -264,14 +264,14 @@ ICLabel decisions across the first 46 recordings: mean **6.5 of 30** components
 removed (median 6, range 1-16; 21.7 %). By class: **muscle 45 %**, eye blink
 40 %, channel noise 10 %, heart 4 %. Muscle is the largest class removed.
 
-### 02:49 — tau_drift scheduled behind ICA
+### 02:48 — tau_drift scheduled behind ICA
 
 `tools/run_tau_drift_after_ica.py` (pid 5660) waits for the ICA precompute to
 report DONE and then runs `exp_tau_drift.py` on both cohorts. It is CPU-only
 and loads one subject at a time, so it runs alongside the GPU queue without
 competing with the ICA workers for cores or commit charge.
 
-### 02:52 — tau_drift, as designed, measures the wrong thing on cohort A
+### 02:50 — tau_drift, as designed, measures the wrong thing on cohort A
 
 The ICA precompute finished cleanly: 7/7 subjects in 518 s, ~251 MB each,
 1.77 GB total as budgeted. The waiter started tau_drift only after DONE.
@@ -391,7 +391,7 @@ upper bound.
 
 ICA precompute exited rc=0. The cleaned artefact-control arm has started.
 
-### 03:25 — Manuscript integration started while queue 2 runs
+### 03:24 — Manuscript integration started while queue 2 runs
 
 Queue 2's last job would end ~07:40, which would leave about an hour for
 integration if everything waited. Integration therefore started with the
@@ -468,7 +468,7 @@ re-referencing to the average, a second change between the arms.
 
 Align-only (full data) started.
 
-### 03:35 — Artefact control integrated; correction to an earlier entry
+### 03:29 — Artefact control integrated; correction to an earlier entry
 
 **Correction.** At 02:47 I logged "muscle 45 %, eye 40 %: muscle is the
 largest class removed". That count came from 46 recordings while ICA was still
@@ -547,7 +547,7 @@ authors, not something to do overnight.
 The paper's "regulariser" reading is replaced by these results. The head stays
 in the reported arms so they remain comparable with the ablation.
 
-### 04:02 — Visual check of the new pages; one citation corrected
+### 04:00 — Visual check of the new pages; one citation corrected
 
 Rendered the pages holding tonight's additions. There are no overlaps, and both
 new tables fit their columns. The pre-registration table sits on the same page
@@ -582,4 +582,14 @@ estimators, the error I had specifically avoided in the slow-rate comparison
 earlier. Under one estimator the comparison is **0.038 without the head against
 0.042 with it**, so calibration is slightly better without the head, and
 "unchanged" was wrong. Corrected. Re-run: **all 43 values match.**
+
+
+### 04:03 — Log timestamps reconciled against git
+
+Six entry headings carried times later than the commit that recorded them,
+which cannot be right: I had written approximate times without reading the
+clock. Each is now set to its commit time from `git log`, and the headings run
+in order. The event times in entry bodies that quote a log or queue line
+(for example 01:59:52, 02:40:27) were already exact, having been copied from
+the source.
 
