@@ -566,3 +566,20 @@ predicted was which side of the threshold a protocol falls on, not the
 threshold's exact location. The sentence now says exactly that and points to
 §6.10.
 
+### 04:10 — Scripted audit of every number added overnight: one error found and fixed
+
+`src/audit_overnight_numbers.py` recomputes each value added tonight from
+`results/*.json` or the ICA log, rounds it as the paper prints it, and checks
+the printed string is present. It covers 43 values: both predictions, the
+artefact control and its per-participant table, the ICLabel statistics and the
+Spearman correlation, the align-only comparison, and the leakage-guard probe
+values.
+
+**It caught a real error.** The selective-head paragraph compared calibration as
+"ECE 0.038 against 0.039". The 0.038 is align-only under the trace-normalised
+estimator, but 0.039 is the *original* estimator's headline ECE. That mixes two
+estimators, the error I had specifically avoided in the slow-rate comparison
+earlier. Under one estimator the comparison is **0.038 without the head against
+0.042 with it**, so calibration is slightly better without the head, and
+"unchanged" was wrong. Corrected. Re-run: **all 43 values match.**
+
