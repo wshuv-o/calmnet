@@ -70,3 +70,87 @@ Also added a per-subject progress print to `exp_calmnetx.py` so every run from
 here on reports as it goes. Affects new runs only; the running arm had already
 loaded the old module.
 
+### 01:59 — Third cohort chosen and prediction registered first
+
+**EEGMMIDB** (PhysioNet motor movement/imagery). Public, independent lab and
+hardware, downloadable through MNE. Motor-execution runs as rest vs movement,
+the nearest analogue of walk vs stop. Its protocol alternates the classes every
+~4 s, sharply unlike cohort B's 309-window blocks.
+
+The prediction was committed at **01:59:52 (`b7ca694`)**, before any model
+touched the cohort. P1: enabling alignment costs less than 0.05. P2: slowing
+to m = 0.01 gains less than 0.05, where on cohort B it gained 0.090. P2 is the
+discriminating test. Thresholds and scope are fixed in
+`PREREGISTRATION_cohort3.md`.
+
+Afterwards, as a diagnostic that feeds no decision, the loader measured the
+median block length on S001: **5.0 windows**, exactly the value derived from
+the protocol description beforehand.
+
+### 02:00 — E: drive is not writable
+
+You authorised E: for the third cohort. Every folder on it returned access
+denied, from both Git Bash and PowerShell, with and without the sandbox. This
+is a Windows permission on the drive, not something fixable from here.
+Everything went to C: instead.
+
+### 02:03 — Made room on C:
+
+Removed 3.85 GB of regenerable caches: 31 files for settings no experiment
+tonight uses (2 s windows, z-scored, mu-only, beta-only, tangent features),
+including the corrupt sub-04 file. Those experiments are finished and their
+results are in `results/*.json`; each cache rebuilds itself on its next use.
+Exact list: `paper/cache_cleanup_0203.txt`. All 14 caches tonight's runs need
+were kept. Free space went from 1.4 GB to 5.0 GB.
+
+### 02:05 — ICA artefact control implemented
+
+`dataio._ica_clean`: average reference, 1-45 Hz fit copy, Picard extended
+(approximating the extended Infomax ICLabel was trained on), ICLabel, and
+removal of eye, muscle, heart, line-noise and channel-noise components. Brain
+and "other" are kept. Every recording's decision is logged to
+`results/ica_components.csv`.
+
+Tested on one real recording (sub-01 ses-01 trial01, 59 s). ICLabel removed
+**7 of 30 components: 5 muscle, 1 eye blink, 1 channel noise**, and **45 %**
+of the 8-30 Hz variance remained. Part of the drop is the average reference.
+Most of it is muscle. This recording is heavily muscle-contaminated even
+within the decoding band, so the control will be informative: accuracy that
+depended on muscle should fall once it is removed.
+
+**Scope decision.** Cleaning both cache sets would need 4.41 GB and leave
+~0.4 GB free on a drive that filled twice tonight. The control therefore runs on
+the training task only (`CX_FULL=0`) for **both** its arms, uncleaned and
+cleaned. They differ only in the cleaning step, and the pair needs 1.77 GB.
+
+### 02:05 — First ICA precompute failed on memory, safely
+
+With 3 workers, every subject failed with MemoryError, even on 12 MB
+allocations, while 5.2 GB of physical RAM was free. The cause is Windows commit
+charge: 34.6 GB committed against a 37.0 GB limit, because the pagefile cannot
+grow on a full C:. Run 2 alone holds 11.6 GB. The rest is spread across
+Chrome, VS Code and other applications, which I did not close, since they may
+hold your unsaved work.
+
+Nothing was damaged: run 2 is unaffected and no partial cache was written.
+The fix is sequencing. ICA now starts only after run 2 exits.
+
+### 02:08 — Overnight queue launched (`tools/overnight_queue.py`, pid 14268)
+
+Written in Python, because a shell `sleep` loop launched from this session was
+killed after a few seconds earlier tonight. Every wait is on a real condition
+with a timeout, and a failed job is logged and skipped.
+
+1. Wait for run 2 to exit.
+2. ICA precompute, 2 workers, on CPU.
+3. GPU: artefact control, uncleaned arm.
+4. Wait for the full EEGMMIDB download.
+5. GPU: third cohort, `gate` + `align+gate` at m = 0.2, then `align+gate` at
+   m = 0.01.
+6. Wait for ICA; GPU: artefact control, cleaned arm.
+7. GPU: align-only arm on full data.
+
+Also added two arms: `dn_gate` (no alignment, no context), required by the
+pre-registration so that alignment is the only differing factor; and
+`dn_align` (alignment alone), for the selective-head question.
+

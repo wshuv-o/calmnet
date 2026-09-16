@@ -92,6 +92,13 @@ DRIFT_ARMS = {
     "dn_noctx":    dict(use_align=True,  use_ctx=False, use_gate=True),
     "dn_nogate":   dict(use_align=True,  use_ctx=True,  use_gate=False),
     "dn_stem":     dict(use_align=False, use_ctx=False, use_gate=False),
+    # Selection head without alignment or context. Paired with dn_noctx it
+    # isolates alignment as the single differing factor, which the pre-registered
+    # third-cohort test (paper/PREREGISTRATION_cohort3.md) requires.
+    "dn_gate":     dict(use_align=False, use_ctx=False, use_gate=True),
+    # Alignment alone. Against dn_noctx (align + gate) it measures what the
+    # selection head adds to accuracy, separately from its failed ranking role.
+    "dn_align":    dict(use_align=True, use_ctx=False, use_gate=False),
 }
 MODEL = os.environ.get("CX_MODEL", "atcplus")
 if MODEL == "driftnet":
@@ -144,6 +151,31 @@ def load_mobi(sub, seed):
             "imu_t": test.motion, "vt": np.ones(len(test), bool)}
 
 
+def load_eegbci(sub, seed):
+    """Third cohort (EEGMMIDB), in the same dict shape.
+
+    Defined by paper/PREREGISTRATION_cohort3.md, committed before any model
+    touched this cohort: motor execution, rest against movement, fit runs
+    3/5/7/9, test runs 11/13. Blocks serve as segments, so the grouped hold-out
+    keeps each class block whole. No IMU exists, so the leakage probe is
+    skipped (vt all False) rather than filled with a meaningless value.
+    """
+    from dataio_eegbci import build_subject
+    p = build_subject(sub)
+    Xf, yf, rf, gf = p["fit"]
+    Xt, yt, rt, gt = p["test"]
+    ti, ci = grouped_split(gf, yf, frac=0.3, seed=seed)
+    ti, ci = np.sort(ti), np.sort(ci)      # keep time order for streams()
+    const = lambda n: np.array(["exec"] * n, object)
+    return {"Xf": Xf[ti], "yf": yf[ti], "sf": rf[ti], "tf": const(len(ti)),
+            "gf": gf[ti],
+            "Xc": Xf[ci], "yc": yf[ci], "sc": rf[ci], "tc": const(len(ci)),
+            "gc": gf[ci],
+            "Xt": Xt, "yt": yt, "st": rt, "tt": const(len(yt)), "gt": gt,
+            "imu_t": np.zeros((len(yt), 1), np.float32),
+            "vt": np.zeros(len(yt), bool)}
+
+
 def context_index(strm, n, k=K_CTX, s=S_CTX):
     """For every epoch, the indices of its k-1 predecessors at stride s.
 
@@ -166,8 +198,17 @@ def context_index(strm, n, k=K_CTX, s=S_CTX):
     return idx
 
 
-def load(sub, seed, full=True):
-    es = build_epochs(subject=sub, win=WIN, step=STEP, zscore=False)
+# Artefact control. CX_ICA=1 removes ICLabel-classified artefact components
+# before band-passing (dataio._ica_clean). CX_FULL=0 restricts fitting to the
+# training task, dropping the extra trial recordings; the ICA control uses it for
+# both of its arms, so the two differ only in the cleaning step.
+ICA = os.environ.get("CX_ICA", "0") == "1"
+FULL = os.environ.get("CX_FULL", "1") == "1"
+
+
+def load(sub, seed, full=None):
+    full = FULL if full is None else full
+    es = build_epochs(subject=sub, win=WIN, step=STEP, zscore=False, ica=ICA)
     valid = imu_valid_mask(es.imu_feats, es.session)
     pres = sorted(set(int(v) for v in np.unique(es.session)))
     sess = [s for s in list_sessions(sub) if s in pres]
@@ -182,7 +223,7 @@ def load(sub, seed, full=True):
          "imu_t": es.imu_feats[~tr], "vt": valid[~tr]}
     if full:
         ex = build_epochs(subject=sub, sessions=sess[:N_TRAIN], tasks=TRIALS,
-                          win=WIN, step=STEP, zscore=False)
+                          win=WIN, step=STEP, zscore=False, ica=ICA)
         d["Xf"] = np.concatenate([d["Xf"], ex.X])
         d["yf"] = np.concatenate([d["yf"], ex.y])
         d["sf"] = np.concatenate([d["sf"], ex.session])
@@ -287,6 +328,9 @@ def main():
     if COHORT.startswith("mobi"):
         from dataio_mobi import subjects as _ms
         subs, loader = _ms(), load_mobi
+    elif COHORT == "eegbci":
+        from dataio_eegbci import subjects as _es
+        subs, loader = _es(), load_eegbci
     else:
         subs, loader = SUBJECTS, load
     D = {}
