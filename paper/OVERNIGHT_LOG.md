@@ -593,3 +593,19 @@ in order. The event times in entry bodies that quote a log or queue line
 (for example 01:59:52, 02:40:27) were already exact, having been copied from
 the source.
 
+### 04:20 — P1 replicates on seeds 1-2
+
+Reported separately from the registered seed-0 verdict, which it cannot change.
+
+| cohort C, align + gate minus gate | gate | align + gate | difference |
+|---|---|---|---|
+| seed 0 (registered) | 0.783 | 0.785 | +0.002 |
+| seed 1 | 0.779 | 0.800 | +0.021 |
+| seed 2 | 0.797 | 0.803 | +0.006 |
+| seeds 1-2, participant-averaged | 0.788 | 0.802 | **+0.014** |
+
+Seeds 1-2 paired: 13 higher, 7 lower, Wilcoxon p = 0.17. Across all three seeds
+alignment on cohort C never costs accuracy; every difference is far above the
+−0.05 threshold. Seeds 1-2 show a small positive trend, which is not
+significant and is not reported as a benefit. P2's replication is running.
+
