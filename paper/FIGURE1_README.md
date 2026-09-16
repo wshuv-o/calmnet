@@ -1,8 +1,15 @@
 # Figure 1 (architecture) — reproduction
 
-The architecture diagram is authored in draw.io and rendered to vector PDF by a
-script in this repository. There is one source of truth: editing the `.drawio`
-and re-running the renderer is the only supported way to change the figure.
+The architecture diagram is authored in draw.io.
+
+> **Current state (read this first).** `results/fig_arch.pdf` is an export made
+> by draw.io itself, not by the fallback renderer in this repository. It was
+> produced from an edited version of `fig_arch.drawio` that is **not yet checked
+> in**: it has a different layout, an EEG signal inset, and MathJax-typeset
+> equations that the fallback renderer cannot produce. Until that edited source
+> is committed, `paper/fig_arch.drawio` will **not** regenerate the figure in
+> the paper. Re-export from draw.io, or commit the edited `.drawio`, rather than
+> re-running the fallback renderer over the stale source.
 
 ---
 
@@ -22,6 +29,18 @@ and re-running the renderer is the only supported way to change the figure.
 ---
 
 ## Regenerate
+
+**Preferred**, and how the current figure was made: open the `.drawio` in
+draw.io and export to PDF with crop enabled, then place the result at
+`results/fig_arch.pdf`.
+
+```
+File -> Export as -> PDF -> Crop, Transparent background off
+```
+
+**Fallback**, for a preview when draw.io is not available. This does not
+reproduce the committed figure (see the note above) and does not support
+MathJax or image insets:
 
 ```bash
 cd src
@@ -158,6 +177,16 @@ the content is the same. If you switch, regenerate at the same physical width
 so the figure stays consistent with the other six.
 
 ---
+
+## Known defect in the current export
+
+The covariance caption reads `60x60, momentum M`. Two things are wrong with it
+and both are in the source, not the renderer: the multiplication sign is a
+literal `x` rather than `	imes`, and the momentum symbol is a capital `M`,
+which collides with $\mathbf{M}$, the covariance matrix in the box directly
+below it. The manuscript uses lower-case italic $m$ for momentum throughout
+(equation 2 and Table 2). Fix the label to `$60 	imes 60$, momentum $m$` on
+the next export.
 
 ## Content check
 
