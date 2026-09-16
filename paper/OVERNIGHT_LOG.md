@@ -391,3 +391,37 @@ upper bound.
 
 ICA precompute exited rc=0. The cleaned artefact-control arm has started.
 
+### 03:25 — Manuscript integration started while queue 2 runs
+
+Queue 2's last job would end ~07:40, which would leave about an hour for
+integration if everything waited. Integration therefore started with the
+results that are final, and the rest is folded in as it lands.
+
+Added: the cohort C Data paragraph, and a new results subsection "A prediction
+registered before a third cohort" (`sec:prereg`), with its own table
+(`tab:prereg`) giving both verdicts, paired differences, direction counts and
+Wilcoxon p. It states the scope as registered, and says plainly that alignment
+shows no harm on C and no benefit.
+
+Two corrections made on the way:
+
+- **An overclaim about tau_drift.** The paper said tau_drift "is estimated from
+  the Riemannian distance between session covariances". The paper never
+  reports that measurement, and tonight showed a within-session block-wise
+  version is dominated by class alternation where blocks are short. The text
+  now says it can in principle be estimated, explains why the naive version
+  fails, says it is not reported, and points to the limitations.
+- **A sentence the editorial critique singled out:** "The failure mode is
+  created by the move that creates the benefit." Removed. The remark stands
+  without it.
+
+**Table 1 (block structure) was not extended.** Its cohort-A values
+(109 / 18 / 126) are hardcoded in the figure and table scripts, and the code
+that computed them is not in the repository. A reconstruction reproduced the
+median, tau_blk = 18, exactly, but not the block count or the longest block.
+A cohort-C row computed another way would be inconsistent within its own
+columns, so cohort C's tau_blk = 5 is given in the text instead. The
+non-reproducible counts are recorded for TODO_NEXT.md.
+
+Build: 0 errors, 0 undefined references, 19 pages.
+

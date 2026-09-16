@@ -459,7 +459,18 @@ an independent laboratory with different sensors, a different task framing, and
 reversed class balance: Stop is the minority class at approximately $12\,\%$
 here and the majority class in cohort A.
 
-The two protocols differ sharply in temporal structure, which
+\textbf{Cohort C (motor execution, PhysioNet EEGMMIDB).} Twenty participants,
+S001--S020, from the PhysioNet motor movement and imagery database
+\citep{schalk2004,goldberger2000}, recorded with 64-channel EEG at 160\,Hz and
+resampled to 100\,Hz. Only the motor-execution runs are used, and the task is
+rest against movement of the hands or feet. The model is fitted on runs 3, 5,
+7 and 9 and evaluated on runs 11 and 13, with 2\,s windows at 0.5\,s stride,
+each lying wholly inside one annotated period. The protocol alternates the two
+classes about every 4\,s, a median of 5 windows per class block. Its analysis
+plan was committed to version control before any model was trained on it
+(Section~\ref{sec:prereg}).
+
+The protocols differ sharply in temporal structure, which
 Section~\ref{sec:rate} shows to be decisive (Table~\ref{tab:blocks}).
 
 \begin{table}[t]
@@ -1034,14 +1045,68 @@ estimation noise.
 A whole-recording estimate, as in Euclidean Alignment \citep{hewu}, is the
 maximally slow setting. It therefore never tracks the class, and it never tracks
 within-recording drift either, which is exactly the capability an in-network
-version is introduced to add. The failure mode is created by the move that
-creates the benefit.
+version is introduced to add.
 \end{remark}
 
 Both bounds in (\ref{eq:band}) are properties of the recording protocol.
-$\tau_{\mathrm{blk}}$ is read off the trial structure, and $\tau_{\mathrm{drift}}$
-is estimated from the Riemannian distance between session covariances, which
-needs no labels. The condition is therefore checkable before a model is fitted.
+$\tau_{\mathrm{blk}}$ is read off the trial structure. $\tau_{\mathrm{drift}}$ can
+in principle be estimated without labels from the Riemannian distance between
+covariances over time, but a block-wise estimate taken within a session is
+dominated by class alternation wherever blocks are short, and that measurement
+is not reported here (Section~\ref{sec:limits}). The lower bound is therefore
+checkable before a model is fitted, and Section~\ref{sec:prereg} tests it on a
+cohort whose results were not available when the prediction was made.
+
+\subsection{A prediction registered before a third cohort}
+\label{sec:prereg}
+
+Condition~\ref{prop:band} was formulated after cohort~B failed, so on the two
+cohorts above it is an explanation written with their results in view. To test
+it in advance, predictions for a third cohort were committed to version control
+before any model was trained on it. The cohort, participants, data split,
+preprocessing, compared arms and decision thresholds were all fixed at that
+point.
+
+Cohort~C alternates rest and movement about every 4\,s. From the published
+protocol alone a class block holds about five windows, and the loader later
+measured a median of 5.0. Against an estimator memory of 160 windows at
+$m=0.2$, the lower bound of (\ref{eq:band}) is satisfied by a factor of about
+thirty, so the estimate cannot converge to either class. Two predictions
+follow. P1: enabling alignment costs less than $0.05$, where the same comparison
+cost $0.211$ on cohort~B. P2: slowing adaptation to $m=0.01$ gains less than
+$0.05$, where it recovered $0.090$ on cohort~B. The arms compared in P1 differ
+only in alignment, and those in P2 only in momentum.
+
+\begin{table}[t]
+\caption{Predictions registered before any model was trained on cohort~C.
+Balanced accuracy averaged over all 20 participants, seed 0. Differences are
+paired within participant.}
+\label{tab:prereg}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrl}
+\toprule
+Prediction & Arms compared & Difference & Threshold & Outcome \\
+\midrule
+P1 alignment costs little & $0.783$ / $0.785$ & $+0.002$ & $> -0.05$ & holds \\
+P2 slowing does not help  & $0.785$ / $0.779$ & $-0.006$ & $< +0.05$ & holds \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Both predictions hold (Table~\ref{tab:prereg}). Enabling alignment changes
+balanced accuracy by $+0.002$ (higher in 11 participants, lower in 9; Wilcoxon
+$p=0.68$), and slowing it changes accuracy by $-0.006$ (higher in 9, lower in
+10; $p=0.43$). The intervention that recovered $0.090$ on cohort~B has no effect
+here, as the protocol predicted. Alignment also brings no gain on this cohort,
+which is consistent with a single-session recording that has little drift to
+correct. The result therefore establishes the absence of harm and gives no
+evidence of benefit.
+
+The test covers the short-block side of Condition~\ref{prop:band} and its
+contrast with cohort~B. It does not test an empty band, which requires a
+protocol whose blocks outlast its drift.
 
 %=============================================================================
 \section{Discussion}
