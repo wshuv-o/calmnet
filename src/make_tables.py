@@ -164,7 +164,7 @@ def t_landscape():
             fbm.setdefault(k.split("|")[1], []).append(a)
 
     NA = BS + "textit{n/a}"
-    rows = [group("This work", 8)]
+    rows = [group("This work", 7)]
     for arm, name in (("dn_noctx", "Ours, align + gate"),
                       ("dn_full", "Ours, align + ctx + gate"),
                       ("dn_stem", "Ours, stem only")):
@@ -183,7 +183,7 @@ def t_landscape():
             "---" if sp is None else "%.3f" % sp, EOL))
 
     rows.append(BS + "midrule")
-    rows.append(group("Published decoders", 8))
+    rows.append(group("Published decoders", 7))
     entries = {}
     for m in fbm:
         if not m.startswith("PowerAttn"):
