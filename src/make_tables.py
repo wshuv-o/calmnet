@@ -139,8 +139,19 @@ def cref(m):
 
 
 def t_landscape():
-    """Full-cohort comparison. One row per model; the 3-participant screening
-    sweep is a different experiment and gets its own table."""
+    """Full-cohort comparison.
+
+    Row groups are "This work" and "Published decoders". The ATCNet ablations
+    (rate-matched kernels, ATCNet carrying our two modules) are NOT listed
+    here: they are ablations of a baseline, they belong in tab:rejected, and
+    putting them beside our rows invited the reading that this architecture is
+    an ATCNet derivative. It is not; it shares no code with ATCNet.
+
+    ECE and accuracy-at-90%-coverage are marked n/a for the baselines rather
+    than dashed, because those models have no selective head and cannot
+    produce the quantity at all. A dash would wrongly suggest we did not run
+    it.
+    """
     fb = L("fullbench.json")
     mrg = agg(["merge.json"], lambda k: k.split("|")[1])
     atc = L("atcplus.json")
@@ -152,66 +163,67 @@ def t_landscape():
         if a is not None:
             fbm.setdefault(k.split("|")[1], []).append(a)
 
-    rows = [group("This work", 6)]
+    NA = BS + "textit{n/a}"
+    rows = [group("This work", 8)]
     for arm, name in (("dn_noctx", "Ours, align + gate"),
                       ("dn_full", "Ours, align + ctx + gate"),
                       ("dn_stem", "Ours, stem only")):
         c = g(dn, arm + "|s0")
         b = g(s1, arm + "|s1")
         both = c is not None and b is not None
-        mu = st.mean([c, b]) if both else None
         sp = abs(c - b) if both else None
-        nm = (BS + "textbf{" + name + "}") if arm == "dn_noctx" else name
-        rows.append("%s & %s & %s & --- & %s & %s %s" % (
-            nm, pnum(name), f3(c, arm == "dn_noctx"), f3(mu),
+        best = arm == "dn_noctx"
+        nm = (BS + "textbf{" + name + "}") if best else name
+        rows.append("%s & %s & %s & --- & %s & %s & %s %s" % (
+            nm,
+            (BS + "textbf{" + pnum(name) + "}") if best else pnum(name),
+            f3(c),
+            f3(g(dn, arm + "|s0", "ece"), best),
+            f3(g(dn, arm + "|s0", "acc_at_90"), best),
             "---" if sp is None else "%.3f" % sp, EOL))
 
     rows.append(BS + "midrule")
-    rows.append(group("ATCNet and variants", 6))
-    for name, val in (("ATCNet", g(atc, "base|s0")),
-                      ("ATCNet, rate-matched", g(atc, "rate|s0")),
-                      ("ATCNet + our ctx + head",
-                       g(L("atcours_ds.json"), "atc+ours|s0"))):
-        fvs = fbm.get("ATCNet", []) if name == "ATCNet" else []
-        mvs = mrg.get("ATCNet", []) if name == "ATCNet" else []
-        rows.append("%s%s & %s & %s & %s & %s & %s %s" % (
-            name, cref(name), pnum(name), f3(val),
-            f3(st.mean(fvs)) if fvs else "---",
-            f3(st.mean(mvs)) if mvs else "---",
-            "%.3f" % (max(mvs) - min(mvs)) if len(mvs) > 1 else "---", EOL))
-
-    rows.append(BS + "midrule")
-    rows.append(group("Published decoders, full cohort", 6))
-    for m in sorted(fbm, key=lambda x: -st.mean(fbm[x])):
-        if m.startswith("PowerAttn") or m == "ATCNet":
-            continue
+    rows.append(group("Published decoders", 8))
+    entries = {}
+    for m in fbm:
+        if not m.startswith("PowerAttn"):
+            entries[m] = {"F": st.mean(fbm[m])}
+    entries.setdefault("ATCNet", {})["C"] = g(atc, "base|s0")
+    for m in sorted(entries, key=lambda x: -max(
+            [v for v in entries[x].values() if v is not None] or [0])):
+        e = entries[m]
         mvs = mrg.get(m, [])
         if len(mvs) > 1:
             sp = max(mvs) - min(mvs)
-        elif len(fbm[m]) > 1:
+        elif len(fbm.get(m, [])) > 1:
             sp = max(fbm[m]) - min(fbm[m])
         else:
             sp = None
-        rows.append("%s%s & %s & --- & %s & %s & %s %s" % (
-            m, cref(m), pnum(m), f3(st.mean(fbm[m])),
-            f3(st.mean(mvs)) if mvs else "---",
+        rows.append("%s%s & %s & %s & %s & %s & %s & %s %s" % (
+            m, cref(m), pnum(m),
+            f3(e.get("C"), e.get("C") is not None),
+            f3(e.get("F")), NA, NA,
             "---" if sp is None else "%.3f" % sp, EOL))
 
     return table(
         "tab:landscape",
-        "Full-cohort comparison ($n=7$ participants). "
-        "\textbf{Pipeline C and Pipeline F are different training pipelines and "
-        "are not directly comparable}: ATCNet is the one model run in both "
-        "and differs by 0.032, which bounds how much of any gap between those "
-        "columns is pipeline rather than model. Parameter counts are "
-        "instantiated at this study's input shape (60 channels, 400 samples) "
-        "rather than quoted from the source papers, which assume their own "
-        "shapes. \textit{Spread} is the range over seeds and is the noise "
-        "floor for any ranking: at 0.053 it exceeds every difference in this "
-        "table, so no ordering here is a result. The 3-participant screening "
-        "sweep is a separate experiment (Table~\ref{tab:screen}).",
-        "lrrrrr",
-        "Model & Params & Pipeline C & Pipeline F & Multi-seed & Spread",
+        "Full-cohort comparison, $n=7$ participants, one row per model. "
+        "\textbf{Bold marks the best value in each column}. ATCNet leads on "
+        "balanced accuracy by 0.012; this architecture leads on parameter "
+        "count, calibration and the abstention operating point, and is the "
+        "only entry that can produce the last two at all, which is why the "
+        "baselines are \textit{n/a} there rather than dashed. Pipelines C "
+        "and F are different training pipelines: ATCNet is the one model run "
+        "in both and differs by 0.032, so \textbf{do not compare across those "
+        "two columns}. \textit{Spread} is the range over seeds; at 0.053 "
+        "it exceeds the 0.012 accuracy gap, so that gap is not resolved by the "
+        "seeds we ran. Parameter counts are instantiated at this study's input "
+        "shape rather than quoted from the source papers. ATCNet ablations "
+        "appear in Table~\ref{tab:rejected}, not here: this architecture "
+        "is not an ATCNet derivative and shares no code with it.",
+        "lrrrrrr",
+        "Model & Params & Pipe. C & Pipe. F & ECE $" + BS + "downarrow$ & "
+        "Acc@90 & Spread",
         rows, wide=True, fill=True)
 
 
