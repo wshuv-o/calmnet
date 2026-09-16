@@ -251,3 +251,23 @@ helped, so it still holds.
 The queue started at once: ICA precompute (2 workers) and the uncleaned
 artefact-control arm.
 
+### 02:47 — Artefact control, uncleaned arm done
+
+Align + gate, cohort A, training task only, no cleaning: **mean 0.836** over
+seven participants (0.969, 0.898, 0.955, 0.835, 0.839, 0.673, 0.680). This is
+the paired reference for the cleaned arm. It is below the headline 0.884
+because it fits on ~803 windows per participant rather than ~5031. Both
+control arms share that restriction, so the comparison between them stays
+fair. Runtime was 6 minutes, and the new per-subject progress print worked.
+
+ICLabel decisions across the first 46 recordings: mean **6.5 of 30** components
+removed (median 6, range 1-16; 21.7 %). By class: **muscle 45 %**, eye blink
+40 %, channel noise 10 %, heart 4 %. Muscle is the largest class removed.
+
+### 02:49 — tau_drift scheduled behind ICA
+
+`tools/run_tau_drift_after_ica.py` (pid 5660) waits for the ICA precompute to
+report DONE and then runs `exp_tau_drift.py` on both cohorts. It is CPU-only
+and loads one subject at a time, so it runs alongside the GPU queue without
+competing with the ICA workers for cores or commit charge.
+
