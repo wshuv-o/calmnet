@@ -102,138 +102,160 @@ def group(text, ncol):
 
 
 # ===================================================================== mega 1
+# Parameter counts instantiated from braindecode at this study's input shape
+# (60 channels, 400 samples, 100 Hz). Computed rather than quoted from the
+# source papers, which assume their own input shapes.
+PARAMS = {
+    "ShallowFBCSPNet": 98802, "Deep4Net": 281577, "EEGConformer": 440706,
+    "EEGNeX": 58082, "EEGITNet": 3180, "EEGInceptionMI": 3708002,
+    "FBCNet": 22000, "IFNet": 15730, "EEGSimpleConv": 768954,
+    "SincShallowNet": 7810, "CTNet": 152282, "MSVTNet": 73468,
+    "TSception": 165074, "EEGTCNet": 4886, "FBMSNet": 26419, "SCCNet": 7228,
+    "BDTCN": 33752, "FBLightConvNet": 19000, "EEGNet": 2450,
+    "ATCNet": 45478, "ATCNet, rate-matched": 103770,
+    "ATCNet + our ctx + head": 45478,
+    "Ours, align + gate": 24181, "Ours, align + ctx + gate": 618997,
+    "Ours, stem only": 6768, "CALMNet-bare": 3946,
+}
+REFKEY = {
+    "ShallowFBCSPNet": "schirrmeister", "Deep4Net": "schirrmeister",
+    "EEGNet": "lawhern", "EEGConformer": "conformer", "EEGNeX": "eegnex",
+    "ATCNet": "atcnet", "ATCNet, rate-matched": "atcnet",
+    "ATCNet + our ctx + head": "atcnet", "EEGTCNet": "eegtcnet",
+    "TSception": "tsception", "FBCNet": "fbcnet", "EEGITNet": "eegitnet",
+    "SCCNet": "sccnet", "SincShallowNet": "sincshallow", "IFNet": "ifnet",
+    "FBMSNet": "fbmsnet", "CTNet": "ctnet",
+}
+
+
+def pnum(m):
+    v = PARAMS.get(m)
+    return "---" if v is None else "{:,}".format(v).replace(",", BS + ",")
+
+
+def cref(m):
+    k = REFKEY.get(m)
+    return "" if k is None else " " + BS + "citep{" + k + "}"
+
+
 def t_landscape():
-    """One row per model. Each column is a condition; a model that was run
-    under several conditions occupies one row with several filled cells,
-    rather than reappearing once per condition."""
-    scr = L("backbone_selection.json")
+    """Full-cohort comparison. One row per model; the 3-participant screening
+    sweep is a different experiment and gets its own table."""
     fb = L("fullbench.json")
-    pub = L("published.json")
     mrg = agg(["merge.json"], lambda k: k.split("|")[1])
     atc = L("atcplus.json")
     dn, s1 = L("driftnet_ds.json"), L("driftseed1_ds.json")
 
-    PARAMS = {"ATCNet": "45\,280", "EEGNeX": "58\,082",
-              "ShallowFBCSPNet": "97\,120", "EEGConformer": "440\,706",
-              "Ours, align + gate": "24\,181",
-              "Ours, align + ctx + gate": "618\,997",
-              "Ours, stem only": "6\,768",
-              "ATCNet, rate-matched": "45\,280",
-              "ATCNet + our ctx + head": "45\,280"}
-
-    row = {}   # model -> {screen, pipeC, pipeF, multi, spread}
-
-    def put(m, k, v):
-        row.setdefault(m, {})[k] = v
-
-    # screening, 3 participants
-    for k, v in scr.items():
-        if isinstance(v, (int, float)):
-            put(k, "screen", v)
-        elif isinstance(v, dict) and "acc" in v:
-            put(k, "screen", v["acc"])
-        elif isinstance(v, dict) and "error" in v:
-            put(k, "screen", "n/c")
-
-    # pipeline C, full cohort
-    put("ATCNet", "pipeC", g(atc, "base|s0"))
-    put("ATCNet, rate-matched", "pipeC", g(atc, "rate|s0"))
-    put("ATCNet + our ctx + head", "pipeC",
-        g(L("atcours_ds.json"), "atc+ours|s0"))
-    for arm, name in (("dn_noctx", "Ours, align + gate"),
-                      ("dn_full", "Ours, align + ctx + gate"),
-                      ("dn_stem", "Ours, stem only")):
-        put(name, "pipeC", g(dn, arm + "|s0"))
-    for arm, name in (("dn_noctx", "Ours, align + gate"),
-                      ("dn_full", "Ours, align + ctx + gate")):
-        a, b = g(dn, arm + "|s0"), g(s1, arm + "|s1")
-        if a is not None and b is not None:
-            put(name, "multi", st.mean([a, b]))
-            put(name, "spread", abs(a - b))
-
-    # pipeline F, 2 seeds
     fbm = {}
     for k, v in fb.items():
         a = acc(v)
         if a is not None:
             fbm.setdefault(k.split("|")[1], []).append(a)
-    for m, vs in fbm.items():
-        put(m, "pipeF", st.mean(vs))
-        if len(vs) > 1 and m not in mrg:
-            put(m, "spread", max(vs) - min(vs))
 
-    # 3-seed runs
-    for m, vs in mrg.items():
-        put(m, "multi", st.mean(vs))
-        put(m, "spread", max(vs) - min(vs))
+    rows = [group("This work", 6)]
+    for arm, name in (("dn_noctx", "Ours, align + gate"),
+                      ("dn_full", "Ours, align + ctx + gate"),
+                      ("dn_stem", "Ours, stem only")):
+        c = g(dn, arm + "|s0")
+        b = g(s1, arm + "|s1")
+        both = c is not None and b is not None
+        mu = st.mean([c, b]) if both else None
+        sp = abs(c - b) if both else None
+        nm = (BS + "textbf{" + name + "}") if arm == "dn_noctx" else name
+        rows.append("%s & %s & %s & --- & %s & %s %s" % (
+            nm, pnum(name), f3(c, arm == "dn_noctx"), f3(mu),
+            "---" if sp is None else "%.3f" % sp, EOL))
 
-    # normalisation sweep also covers several published models
-    for k, v in pub.items():
-        a = acc(v)
-        if a is not None:
-            row.setdefault(k.split("|")[1], {})
-
-    def cell(v, b=False):
-        if v is None:
-            return "---"
-        if isinstance(v, str):
-            return v
-        return f3(v, b)
-
-    def best(d):
-        vs = [d.get(x) for x in ("pipeC", "pipeF", "multi", "screen")]
-        vs = [x for x in vs if isinstance(x, float)]
-        return max(vs) if vs else -1
-
-    ours = [m for m in row if m.startswith("Ours")]
-    atcv = [m for m in row if m.startswith("ATCNet")]
-    powr = [m for m in row if m.startswith("PowerAttn") or m.startswith("CALMNet")]
-    rest = [m for m in row if m not in ours + atcv + powr]
-
-    rows = []
-
-    def emit(m, bold=False):
-        d = row[m]
-        nm = BS + "textbf{" + m + "}" if bold else m
-        rows.append("%s & %s & %s & %s & %s & %s & %s %s" % (
-            nm, PARAMS.get(m, "---"), cell(d.get("screen")),
-            cell(d.get("pipeC"), bold), cell(d.get("pipeF")),
-            cell(d.get("multi")),
-            "---" if d.get("spread") is None else "%.3f" % d["spread"], EOL))
-
-    rows.append(group("This work", 7))
-    for m in sorted(ours, key=lambda x: -best(row[x])):
-        emit(m, bold=(m == "Ours, align + gate"))
     rows.append(BS + "midrule")
-    rows.append(group("ATCNet and variants", 7))
-    for m in sorted(atcv, key=lambda x: -best(row[x])):
-        emit(m)
+    rows.append(group("ATCNet and variants", 6))
+    for name, val in (("ATCNet", g(atc, "base|s0")),
+                      ("ATCNet, rate-matched", g(atc, "rate|s0")),
+                      ("ATCNet + our ctx + head",
+                       g(L("atcours_ds.json"), "atc+ours|s0"))):
+        fvs = fbm.get("ATCNet", []) if name == "ATCNet" else []
+        mvs = mrg.get("ATCNet", []) if name == "ATCNet" else []
+        rows.append("%s%s & %s & %s & %s & %s & %s %s" % (
+            name, cref(name), pnum(name), f3(val),
+            f3(st.mean(fvs)) if fvs else "---",
+            f3(st.mean(mvs)) if mvs else "---",
+            "%.3f" % (max(mvs) - min(mvs)) if len(mvs) > 1 else "---", EOL))
+
     rows.append(BS + "midrule")
-    rows.append(group("Other published decoders", 7))
-    for m in sorted(rest, key=lambda x: -best(row[x])):
-        emit(m)
-    if powr:
-        rows.append(BS + "midrule")
-        rows.append(group("Merge study (this work, rejected)", 7))
-        for m in sorted(powr, key=lambda x: -best(row[x])):
-            emit(m)
+    rows.append(group("Published decoders, full cohort", 6))
+    for m in sorted(fbm, key=lambda x: -st.mean(fbm[x])):
+        if m.startswith("PowerAttn") or m == "ATCNet":
+            continue
+        mvs = mrg.get(m, [])
+        if len(mvs) > 1:
+            sp = max(mvs) - min(mvs)
+        elif len(fbm[m]) > 1:
+            sp = max(fbm[m]) - min(fbm[m])
+        else:
+            sp = None
+        rows.append("%s%s & %s & --- & %s & %s & %s %s" % (
+            m, cref(m), pnum(m), f3(st.mean(fbm[m])),
+            f3(st.mean(mvs)) if mvs else "---",
+            "---" if sp is None else "%.3f" % sp, EOL))
 
     return table(
         "tab:landscape",
-        "Every decoder evaluated in this work, one row per model. "
-        "\textbf{The condition columns are not mutually comparable}: "
-        "\textit{Screen} is 3 participants, \textit{Pipeline C} and "
-        "\textit{F} are the full 7-participant cohort under two different "
-        "training pipelines, and \textit{Multi-seed} is a 2- or 3-seed mean. "
-        "ATCNet is the one model present in both full-cohort pipelines and "
-        "differs by 0.032 between them, which bounds how much of any "
-        "cross-column gap is pipeline rather than model. \textit{Spread} is "
-        "the range across seeds and is the noise floor for any ranking: it "
-        "reaches 0.053, so no single-seed ordering in this table should be "
-        "read as a result. ``n/c'' did not converge.",
-        "lrrrrrr",
-        "Model & Params & Screen & Pipeline C & Pipeline F & Multi-seed & "
-        "Spread",
+        "Full-cohort comparison ($n=7$ participants). "
+        "\textbf{Pipeline C and Pipeline F are different training pipelines and "
+        "are not directly comparable}: ATCNet is the one model run in both "
+        "and differs by 0.032, which bounds how much of any gap between those "
+        "columns is pipeline rather than model. Parameter counts are "
+        "instantiated at this study's input shape (60 channels, 400 samples) "
+        "rather than quoted from the source papers, which assume their own "
+        "shapes. \textit{Spread} is the range over seeds and is the noise "
+        "floor for any ranking: at 0.053 it exceeds every difference in this "
+        "table, so no ordering here is a result. The 3-participant screening "
+        "sweep is a separate experiment (Table~\ref{tab:screen}).",
+        "lrrrrr",
+        "Model & Params & Pipeline C & Pipeline F & Multi-seed & Spread",
+        rows, wide=True, fill=True)
+
+
+def t_screen():
+    """The screening sweep: one number per model, so two model blocks per row
+    keeps it compact and avoids the empty cells a shared table would need."""
+    scr = L("backbone_selection.json")
+    vals = []
+    for k, v in scr.items():
+        if isinstance(v, (int, float)):
+            vals.append((v, k, None))
+        elif isinstance(v, dict) and "acc" in v:
+            vals.append((v["acc"], k, None))
+        elif isinstance(v, dict) and "error" in v:
+            vals.append((-1.0, k, "n/c"))
+    vals.sort(reverse=True)
+    half = (len(vals) + 1) // 2
+    left, right = vals[:half], vals[half:]
+    rows = []
+    for idx in range(half):
+        cells = []
+        for col in (left, right):
+            if idx < len(col):
+                a, m, err = col[idx]
+                cells += [m + cref(m), pnum(m),
+                          err if err else f3(a, idx == 0 and col is left)]
+            else:
+                cells += ["", "", ""]
+        rows.append(" & ".join(cells) + " " + EOL)
+    return table(
+        "tab:screen",
+        "Backbone screening: 19 published decoders on a 3-participant subset "
+        "of cohort A under identical preprocessing, single seed, sorted by "
+        "accuracy. \textbf{This is a screening result, not a benchmark}. "
+        "Three participants and one seed cannot rank these architectures, and "
+        "the full-cohort numbers differ substantially: ShallowFBCSPNet scores "
+        "0.655 here and 0.867 in Table~\ref{tab:landscape}. It is reported "
+        "to show the range of the field on this task, and to record that "
+        "several architectures competitive on motor-imagery benchmarks sit "
+        "near chance on walk/stop intent. Implementations from braindecode "
+        "\citep{braindecode_lib}. ``n/c'' did not converge. Parameters are "
+        "at this study's input shape.",
+        "lrrlrr",
+        "Model & Params & Acc & Model & Params & Acc",
         rows, wide=True, fill=True)
 
 
@@ -525,7 +547,8 @@ def t_noise():
 
 def main():
     parts = ["%% Generated by src/make_tables.py -- do not edit by hand." + NL + NL,
-             t_landscape(), t_rate(), t_repr(), t_rejected(), t_drift(),
+             t_landscape(), t_screen(), t_rate(), t_repr(), t_rejected(),
+             t_drift(),
              t_noise()]
     OUT.write_text("".join(parts), encoding="utf-8")
     n = sum(p.count(BS + "begin{table") for p in parts)
