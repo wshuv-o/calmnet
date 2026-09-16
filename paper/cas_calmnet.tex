@@ -79,8 +79,11 @@ of the 18 arms measured, so we report abstention as a negative result rather
 than as a feature. The alignment layer reduces session-to-session
 covariance distance by $52.0 \pm 4.5\,\%$ and $83.9 \pm 3.9\,\%$ on two
 independent cohorts, in 15 of 15 subjects ($p \le 10^{-4}$), against a no-op
-control that shows no reduction. On the second cohort the architecture does not
-transfer: the bare stem scores $0.737$ against $0.626$ for the full model.
+control that shows no reduction. On the second cohort, recorded in an
+independent laboratory with different sensors and reversed class balance, the
+decoder reaches $0.792$ balanced accuracy with the alignment layer disabled;
+enabling it drops the model to $0.626$. The layer worth $+0.074$ on the first
+cohort costs $-0.211$ on the second.
 Slowing adaptation past the class-block length recovers $+0.090$ to $+0.098$ on
 all three arms that use alignment and exactly $0.000$ on both arms that do not.
 Applying the same change to the first cohort costs $-0.060$, so the two optima
@@ -801,13 +804,40 @@ stem only          & 0.827 & 0.737 \\
 \end{tabular}
 \end{table}
 
-On cohort B the bare stem outperforms the full model, $0.737$ against $0.626$,
-and the best cohort-A configuration is the worst cohort-B one. The ordering does
-not merely compress; it inverts, and the three arms that use alignment fall
-below both arms that do not. We report this in full rather than restricting the
-paper to the cohort on which the architecture succeeds, and the remainder of the
+The decoder transfers: without the alignment layer it reaches $0.792$ on cohort
+B, against a majority-class floor of $0.500$ balanced accuracy on a cohort whose
+classes split $87.7/12.3$. What does not transfer is the alignment layer. The
+best cohort-A configuration is the worst cohort-B one, and the ordering does not
+merely compress but inverts, with all three arms that use alignment falling
+below both arms that do not. The layer is worth $+0.074$ on cohort A
+($0.901$ against $0.827$) and $-0.211$ on cohort B ($0.581$ against $0.792$).
+We report this in full rather than restricting the
+paper to the cohort on which the layer succeeds, and the remainder of the
 results explains it, because the explanation turns out to be the more
 transferable contribution.
+
+\paragraph{One model, one protocol-level switch} The two cohorts do not require
+two architectures. The admissible band of Condition~\ref{prop:band} is a switch
+whose position is fixed by the recording protocol: with the default estimator
+memory $\mu = 32/m = 160$ windows, cohort A's $\tau_{\mathrm{blk}}=18$ satisfies
+$\tau_{\mathrm{blk}} < \mu$ and cohort B's $\tau_{\mathrm{blk}}=309$ does not.
+Enabling alignment exactly when the band is satisfied selects $0.901$ on cohort
+A and $0.792$ on cohort B --- \textbf{the best available configuration on each},
+from one model and one rule evaluated before any training.
+
+\paragraph{Why the network cannot learn this switch itself} The architecture
+already contains a learnable version of it: the blend weight
+$g=\sigma(\mathrm{gate})$ in (\ref{eq:update}) is a trained parameter, so the
+model is free to close the gate and bypass alignment. On cohort B it does not,
+and scores $0.626$. The reason is structural rather than a failure of
+optimisation. The gate is trained on the fitting sessions, where the estimator
+sees interleaved windows and alignment is harmless; the class-tracking failure
+appears only at test time, when the estimator meets contiguous blocks longer
+than its memory. \textbf{No training signal contains the pathology, so no
+gradient can close the gate against it.} This is the argument for a
+protocol-level check rather than an end-to-end one: the quantity that decides
+whether the layer helps is a property of the evaluation stream, not of the
+fitting distribution.
 
 \subsection{Interventions tested and rejected}
 \label{sec:rejectedset}
@@ -1063,6 +1093,13 @@ failure for the other rather than removing both.
 
 We state the objections a reviewer should raise, because each is a real
 constraint on what the results support.
+
+\textbf{No published baseline on cohort B.} Every decoder in
+Table~\ref{tab:landscape} was run on cohort A. Nothing from the literature has
+been run on cohort B in this pipeline, so the $0.792$ reported there can be
+compared with our own arms and with the majority-class floor, but not with the
+field. We therefore claim that the decoder transfers, and do not claim it is
+competitive on that cohort.
 
 \textbf{Single seed.} The ablations are seed 0. With a $0.010$ noise floor on
 transformer-containing arms (Table~\ref{tab:noise}), single-seed rankings of
