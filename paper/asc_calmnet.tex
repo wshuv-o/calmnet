@@ -1,34 +1,37 @@
 %=============================================================================
-% IEEEtran conference manuscript.
-% Compile:  pdflatex ieee_calmnet.tex  (twice, for references)
+% Applied Soft Computing (Elsevier) -- elsarticle, single column, review format.
+% Compile: pdflatex asc_calmnet.tex (twice)
 %
-% Every number in this file is traceable to a JSON in ../results/.
-% Where two numbers exist for the same model they are BOTH reported and the
-% reason for the difference is stated, rather than the better one being chosen.
+% Every number is traceable to a JSON in ../results/. Experiments that failed
+% are reported, not omitted.
 %=============================================================================
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+\documentclass[preprint,12pt,authoryear]{elsarticle}
 
-\usepackage{cite}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{url}
+\usepackage{lineno}
 \usepackage[hidelinks]{hyperref}
+\linenumbers
+
+\journal{Applied Soft Computing}
 
 \begin{document}
 
-\title{A Parameter-Efficient EEG Decoder with In-Network Session Adaptation,
-Calibration and Abstention for Lower-Limb Exoskeleton Control}
+\begin{frontmatter}
 
-\author{\IEEEauthorblockN{Author Name}
-\IEEEauthorblockA{Department\\
-Institution\\
-Email: wshuvo360@gmail.com}}
+\title{A parameter-efficient EEG decoder with in-network session adaptation,
+calibration and abstention for lower-limb exoskeleton control}
 
-\maketitle
+\author[inst1]{Author Name}
+\ead{wshuvo360@gmail.com}
+\affiliation[inst1]{organization={Department},
+            addressline={},
+            city={},
+            postcode={},
+            country={}}
 
-%-----------------------------------------------------------------------------
 \begin{abstract}
 Decoding walk/stop intent from scalp EEG for lower-limb exoskeleton control
 requires more than per-epoch accuracy: the decoder is fitted once and must keep
@@ -38,30 +41,44 @@ that addresses all three in-network. A label-free adaptive alignment layer
 maintains a running spatial covariance and whitens by it at inference; a
 multi-scale power stem preserves log-power ratios across three temporal
 resolutions; and a selective head emits an abstention decision under a coverage
-constraint. The complete model uses \textbf{24\,181 parameters}, between one half
-and one eighteenth of the convolutional and transformer baselines we compare
-against. On a 7-subject, 9-session exoskeleton cohort it reaches 0.901 balanced
-accuracy with expected calibration error 0.039 and 0.876 accuracy at 90\,\%
-coverage, while removing 52\,\% of session-to-session covariance drift; on an
-independent 8-subject treadmill cohort the drift reduction is 84\,\%, significant
-in 15 of 15 subjects across both cohorts ($p \le 10^{-4}$) against a no-op
-control. We do not claim state-of-the-art accuracy: a strong attention baseline
-scores higher in the same harness, and we report that directly. What we do
-establish is a design condition for in-network adaptation. The running estimate
-tracks whatever is currently streaming, so the adaptation rate must be fast
-enough to follow session drift yet slow enough not to follow the class itself.
-We show the two cohorts' optimal rates are opposite, each losing 0.06--0.09 at
-the other's setting, and that where a protocol's class blocks outlast its drift
-timescale no valid rate exists. Both timescales are computable from the recording
-protocol before a model is fitted.
+constraint. The complete model uses 24{,}181 parameters, between one half and one
+eighteenth of the convolutional and transformer baselines we compare against. On
+a 7-subject, 9-session exoskeleton cohort it reaches 0.901 balanced accuracy with
+expected calibration error 0.039 and 0.876 accuracy at 90\% coverage, while
+removing 52\% of session-to-session covariance drift; on an independent
+8-subject treadmill cohort the drift reduction is 84\%, significant in 15 of 15
+subjects across both cohorts ($p \le 10^{-4}$) against a no-op control. We do not
+claim state-of-the-art accuracy: a strong attention baseline scores higher in the
+same harness, and we report that directly. What we establish is a design
+condition for in-network adaptation. The running estimate tracks whatever is
+currently streaming, so the adaptation rate must be fast enough to follow session
+drift yet slow enough not to follow the class itself. We show the two cohorts'
+optimal rates are opposite, each losing 0.06--0.09 at the other's setting, and
+that where a protocol's class blocks outlast its drift timescale no valid rate
+exists. Both timescales are computable from the recording protocol before a model
+is fitted.
 \end{abstract}
 
-\begin{IEEEkeywords}
-brain--computer interface, EEG, test-time adaptation, covariate shift, selective
-prediction, calibration, lower-limb exoskeleton
-\end{IEEEkeywords}
+\begin{highlights}
+\item A 24{,}181-parameter EEG decoder emitting class, calibrated confidence and
+      an abstention decision.
+\item Label-free in-network alignment removes 52--84\% of session drift in 15 of
+      15 subjects.
+\item Test-time adaptation can track the streaming class and erase the signal it
+      protects.
+\item The adaptation rate is two-sided: two cohorts' optima are opposite, costing
+      0.06--0.09.
+\item The admissible rate band is computable from the recording protocol before
+      fitting.
+\end{highlights}
 
-%-----------------------------------------------------------------------------
+\begin{keyword}
+brain--computer interface \sep EEG \sep test-time adaptation \sep covariate shift
+\sep selective prediction \sep calibration \sep lower-limb exoskeleton
+\end{keyword}
+
+\end{frontmatter}
+
 \section{Introduction}
 
 A brain--computer interface that drives a powered exoskeleton is not well
@@ -138,7 +155,7 @@ SelectiveNet~\cite{selectivenet}, used as published.
 %-----------------------------------------------------------------------------
 \section{Method}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_arch.png}
 \caption{The proposed architecture. The adaptive alignment layer maintains a
@@ -148,7 +165,7 @@ a normalisation layer. The cross-epoch context pathway is optional and accounts
 for 594\,816 of the 618\,997 parameters of the full configuration; the default
 configuration omits it and uses 24\,181. Parameter counts are exact.}
 \label{fig:arch}
-\end{figure*}
+\end{figure}
 
 \subsection{Overview}
 
@@ -326,7 +343,7 @@ Arm & Components & Acc & ECE & Acc@90 & FA/min \\
 \end{tabular}
 \end{table}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_operating.png}
 \caption{Outputs beyond the class label, cohort A. (a) Expected calibration
@@ -335,7 +352,7 @@ without the selective head are the worst. (b) Accuracy recovered by declining th
 least-confident 10\,\% of windows. (c) The trade the wearer experiences ---
 balanced accuracy against spurious activations per minute of standing.}
 \label{fig:operating}
-\end{figure*}
+\end{figure}
 
 \textbf{Alignment is necessary, not additive.} With alignment removed, the
 context and gate modules together contribute between 0.000 and 0.007 (the
@@ -390,7 +407,7 @@ EEG Conformer~\cite{conformer}      & 440\,706 & 0.843 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{../results/fig_efficiency.png}
+\includegraphics[width=\textwidth]{../results/fig_efficiency.png}
 \caption{Balanced accuracy against parameter count on cohort A, harness C only.
 The proposed configuration sits 0.012 below ATCNet at 53\,\% of its parameters.
 No point from the other harness appears here.}
@@ -428,7 +445,7 @@ B & 8 & 6.479 & 1.074 & 6.309 & $\mathbf{83.9 \pm 3.9\,\%}$ \\
 \end{tabular}
 \end{table}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_driftnet.png}
 \caption{(a) Riemannian distance between the fitting-session mean covariance and
@@ -439,7 +456,7 @@ return the model to its bare-stem score. (c) Balanced accuracy against spurious
 activations per minute of standing, showing the cross-epoch context as a
 selectable operating point rather than a failed module.}
 \label{fig:drift}
-\end{figure*}
+\end{figure}
 
 Drift is reduced in \textbf{15 of 15 subjects} ($t=-9.14$, $p=10^{-4}$ for cohort
 A; $t=-20.59$, $p<10^{-5}$ for cohort B). The no-op control shows no reduction in
@@ -467,7 +484,7 @@ Ours & align + gate       & \textbf{0.901} & 0.581 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{../results/fig_inversion.png}
+\includegraphics[width=\textwidth]{../results/fig_inversion.png}
 \caption{The same five arms on both cohorts. Solid lines use alignment, dashed
 lines do not. The ordering does not compress between cohorts --- it inverts, and
 the three alignment arms cross below both alignment-free arms.}
@@ -523,7 +540,7 @@ than an unresolved one. The manipulated variable therefore acts only through the
 component it controls, which an unrelated confound --- optimisation dynamics,
 regularisation, run-to-run variance --- would not produce.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_rate.png}
 \caption{The adaptation rate condition. (a) Cohort B, five arms, three momenta:
@@ -534,7 +551,7 @@ signs, so no single rate serves both protocols. (c) The admissible band of
 (\ref{eq:band}), bounded below by the class-block duration and above by the drift
 timescale: wide for cohort A, empty for cohort B.}
 \label{fig:rate}
-\end{figure*}
+\end{figure}
 
 \textbf{The condition is two-sided.} We predicted, before running it, that the
 same change would be free on cohort A, whose blocks sit far inside even the
@@ -605,7 +622,7 @@ produced by acting on that assumption ourselves.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{../results/fig_metrics.png}
+\includegraphics[width=\textwidth]{../results/fig_metrics.png}
 \caption{The five counterexamples. In each row a distribution-level quantity was
 improved successfully (right, in green) and the task did not follow (left, in
 red). The final row has no accuracy change and therefore no bar: the leakage
@@ -653,6 +670,16 @@ before any model is fitted, which makes the condition a design-time check rather
 than a post-hoc diagnosis.
 
 %-----------------------------------------------------------------------------
+
+\section*{Declaration of competing interest}
+The authors declare no known competing financial interests or personal
+relationships that could have appeared to influence the work reported in this
+paper.
+
+\section*{Data availability}
+Both datasets are publicly available. All code, configurations and result files,
+including those of experiments that failed, are in the accompanying repository.
+
 \begin{thebibliography}{99}
 \bibitem{schirrmeister} R.~T. Schirrmeister \emph{et al.}, ``Deep learning with
 convolutional neural networks for EEG decoding and visualization,'' \emph{Human
