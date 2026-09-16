@@ -609,3 +609,34 @@ alignment on cohort C never costs accuracy; every difference is far above the
 −0.05 threshold. Seeds 1-2 show a small positive trend, which is not
 significant and is not reported as a benefit. P2's replication is running.
 
+### 04:34 — P2 replicates as a verdict, but slowing has a small real cost on cohort C
+
+| cohort C, slowing m 0.2 → 0.01 | m = 0.2 | m = 0.01 | difference |
+|---|---|---|---|
+| seed 0 (registered) | 0.785 | 0.779 | −0.006 |
+| seed 1 | 0.800 | 0.792 | −0.008 |
+| seed 2 | 0.803 | 0.780 | −0.023 |
+| seeds 1-2, participant-averaged | 0.802 | 0.786 | **−0.016** |
+
+Seeds 1-2 paired: **lower in 15 of 20, Wilcoxon p = 0.003.**
+
+The registered P2 verdict holds and the replication agrees: slowing gains nothing
+(rule: < +0.05). But **the paper's "has no effect here" is too strong.** Slowing
+has a small cost, negative on every seed and significant on the replication.
+
+**Reading, post hoc and labelled as such.** The sign of slowing now fits the band
+on all three cohorts, and its size tracks the protocol:
+
+- B (309-window blocks): slowing **helps** by +0.090, because it stops class
+  tracking.
+- A (18-window blocks, drift across weeks): slowing **hurts** by −0.085, because
+  the fast estimate was tracking drift.
+- C (5-window blocks, drift within one session across runs): slowing **hurts
+  slightly**, by −0.016, with less drift to lose.
+
+This is more coherent than the "no effect" framing. It came from replication
+seeds, not the registration, so the paper must present it as an observation and
+not as a confirmed prediction. The sentence calling C "a single-session
+recording that has little drift to correct" also needs softening: the fast
+estimate evidently tracks something across runs.
+
