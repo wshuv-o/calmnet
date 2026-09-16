@@ -205,8 +205,33 @@ exceed the class-block duration of the recording protocol.** Classical Euclidean
 Alignment never encounters this because it estimates from a whole recording,
 which is the maximally slow setting.
 
-**Tested directly.** Slowing adaptation below MoBI's class-block rate recovers
-most of the deficit, confirming the mechanism:
+**Tested directly, and the mechanism predicts the threshold quantitatively.** An
+exponential moving average with momentum *m* has an effective memory of ~1/*m*
+batches; at batch size 32 that is 160, 640 and 3200 windows for m = 0.2, 0.05 and
+0.01. MoBI's median class block is 309 windows. The accuracy transition falls
+exactly where the memory crosses the block length, and saturates immediately
+afterwards:
+
+| momentum | adaptation memory | vs 309-window class block | MoBI dn_full |
+|---|---|---|---|
+| 0.20 | ~160 windows | **shorter** -- tracks the class | 0.626 |
+| 0.05 | ~640 windows | longer -- tracks the session | **0.724** |
+| 0.01 | ~3200 windows | longer | **0.723** |
+
+Nothing is gained by slowing further once past the threshold, which is what a
+crossing-point mechanism predicts and a generic "more smoothing is better" story
+does not.
+
+**Design rule.** Set the adaptation memory longer than the protocol's class-block
+duration. This is computable from the experimental protocol before any data is
+collected, and it explains why classical Euclidean Alignment never encounters the
+failure: estimating over a whole recording is the maximally slow setting.
+
+The alignment-free arm was measured four times across different momenta and
+estimators (0.792 / 0.788 / 0.783 / 0.782) and is invariant, as it must be since
+momentum acts only through alignment. That fixes measurement noise at +-0.005.
+
+Slowing adaptation recovers most of the deficit:
 
 | MoBI, contribution of alignment | value |
 |---|---|
