@@ -658,6 +658,6 @@ changes later. Compared at full floating-point precision:
 The paper states that arms without the transformer are bit-identical across
 repeats, a claim about accuracy. For accuracy it holds exactly. For calibration
 it holds to four decimals. The run also confirms that tonight's changes to
- (progress output, the ICA and FULL switches, two new arms)
+`exp_calmnetx.py` (progress output, the ICA and FULL switches, two new arms)
 left the existing configuration's results untouched.
 
