@@ -271,3 +271,26 @@ report DONE and then runs `exp_tau_drift.py` on both cohorts. It is CPU-only
 and loads one subject at a time, so it runs alongside the GPU queue without
 competing with the ICA workers for cores or commit charge.
 
+### 02:52 — tau_drift, as designed, measures the wrong thing on cohort A
+
+The ICA precompute finished cleanly: 7/7 subjects in 518 s, ~251 MB each,
+1.77 GB total as budgeted. The waiter started tau_drift only after DONE.
+
+tau_drift's first values, sub-01 18.2 and sub-02 17.9 windows, match cohort
+A's class-block length of 18. That is not a coincidence. The script computes a
+covariance per 32-window block regardless of class, and cohort A switches class
+about every 18 windows, so almost every block spans a class boundary. The
+block-to-block distance therefore saturates at the class-switching timescale.
+**It re-measures tau_blk, not drift.** The fitted tau also falls below the
+32-window lag resolution, so it is extrapolated.
+
+**Decision: tau_drift stays out of the paper tonight.** The correct design
+uses class-conditional covariances, but cohort A's walk class has ~75 windows
+per session (about two blocks), too few for a lag curve. A second option is
+the session-to-session drift across the nine sessions, in days. Either needs
+careful thought and should not be rushed at 3 am. A confounded number in the
+paper would be worse than leaving the upper bound inferred, as it stands now,
+and the limitation already says so. The run continues on CPU for the record;
+cohort B's 309-window blocks make most 32-window blocks single-class, so its
+value may be less confounded. The corrected design goes to TODO_NEXT.md.
+
