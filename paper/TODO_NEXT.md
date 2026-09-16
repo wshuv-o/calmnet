@@ -6,6 +6,59 @@ with Suva as corresponding author. This list is for the version that follows.
 
 ---
 
+## Overnight status, 2026-09-17 (read first)
+
+Full account in `OVERNIGHT_LOG.md`. The sections below are unchanged from before
+the night, so check this block before acting on them.
+
+**Closed overnight**
+
+- **0.1-0.4 fixed.** The methods now match the code: band, filter, EOG step,
+  optimiser, early stopping, clipping. The leakage guard is rescoped and Figure
+  1's `0.876 @ 90 %` label is removed.
+- **1.1 unblocked.** `dn_nogate` under the trace-normalised estimator scores
+  0.862, completing that ablation. Switching the *headline* to this estimator is
+  still an author decision (see N6).
+- **2.1 done.** ICA artefact control: −0.051 (0.835 → 0.785, p = 0.22), losses
+  not following muscle removal. Mixed; reported as such.
+- **2.8 done, and confirmed.** Third cohort (EEGMMIDB, 20 participants), with the
+  prediction registered before any model touched it (`b7ca694`, 01:59:52). P1
+  +0.002 and P2 −0.006, both confirmed.
+
+**Partial or running**
+
+- **2.2 attempted; design invalid.** The within-session block estimate of
+  tau_drift returns cohort A's class-block length (~18 windows), not drift. Kept
+  out of the paper. See N1.
+- **2.3 running** (align-only).
+- **2.6 partial.** Cohort A gate and align+gate over three seeds, plus a cohort C
+  seed replication, are queued. Cohort B could not be run: see N2.
+
+**New items found overnight**
+
+- **N1. A valid tau_drift design.** Either class-conditional covariances (thin
+  on cohort A: the walk class has ~75 windows per session) or session-to-session
+  drift across the nine sessions, measured in days.
+- **N2. Cohort B's data is not on this machine.** `data/mobi_treadmill` and
+  `data/cache_mobi` are absent; the cohort-B results came from the other
+  machine. Copy it across before any cohort-B rerun.
+- **N3. Table 1's block counts are not reproducible from the repository.**
+  Cohort A's 109 blocks and longest block of 126 are hardcoded, and the code
+  that produced them is missing. The median tau_blk = 18 does reproduce. Either
+  recompute the table from a committed script or document where it came from.
+- **N4. Test the upper bound in advance.** Cohort C tested only the lower bound.
+  A protocol with blocks of 100-200 windows places both bounds close together
+  and can be pre-registered the same way.
+- **N5. Published baselines on cohort C.** It is local and fast, so it is a
+  cheaper route than cohort B to answering "is 0.78 competitive".
+- **N6. Decide the headline estimator.** The ablation is now complete under both
+  estimators. The paper still leads with 0.901 (original); the reviewer plan
+  asks for the trace-normalised 0.884 throughout.
+- **N7. The E: drive is not writable from this account**, even without the
+  sandbox. Fix the permission if large data is to live there.
+
+---
+
 ## 0. Errors in the submitted version — fix first
 
 These are factual mismatches between the manuscript and the code that produced
