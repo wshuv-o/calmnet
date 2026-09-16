@@ -288,3 +288,28 @@ def safety_report(y, probs, g, theta, q, tau_walk):
         out[f"conformal_cov_{nm}"] = float(sets[m][:, c].mean()) if m.any() else float("nan")
     out["mean_set_size"] = float(sets.sum(1).mean())
     return out
+
+
+def calibrate_theta(probs, y, g, q, tau_walk, target_cov=0.8):
+    """Choose the selective threshold so the FULL rule achieves target coverage.
+
+    Setting theta to the (1-target) quantile of g only calibrates the g >= theta
+    term. The committed set is the AND of three conditions -- selective head,
+    conformal singleton, and the wrong-walk bound -- so the other two push
+    realised coverage well below target (measured: 0.57-0.59 against a target of
+    0.80, and 0.93 when the selective head is absent and g is constant).
+
+    Sweeping theta over candidate values and picking the one whose realised
+    coverage under the whole rule is closest to target puts every ablation arm
+    at the SAME operating point, which is what makes their safety numbers
+    comparable.
+    """
+    import numpy as np
+    cand = np.unique(np.quantile(g, np.linspace(0.0, 1.0, 201)))
+    best, best_err = float(cand[0]), 1e9
+    for t in cand:
+        _, acc = sas_decide(probs, g, float(t), q, tau_walk)
+        err = abs(acc.mean() - target_cov)
+        if err < best_err:
+            best, best_err = float(t), err
+    return best

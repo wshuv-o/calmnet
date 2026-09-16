@@ -15,7 +15,18 @@ Three stages:
 
 Scoring uses the honest objective throughout:
 
-    score = balanced accuracy - max(0, intent->motion R^2)
+    score = balanced accuracy - max(0, CONDITIONAL intent->motion R^2)
+
+    The conditional probe matters more than it sounds. With the plain R^2 this
+    score was anti-correlated with accuracy (corr -0.35 over zero-leak
+    predictions on real data): the penalty grew ~1.4x faster than the accuracy
+    term it was subtracted from, so stages A/B/C systematically preferred WORSE
+    decoders. Results produced before this fix rank modules by a broken
+    objective and need re-running, not re-reading.
+
+    Scope of the damage: this affects MODULE RANKING only. Epoch selection
+    inside train_arch uses plain validation balanced accuracy (see `sc` below),
+    so training itself was never steered by the broken objective.
 
 Raw accuracy is not usable as a selection signal on this data -- across 131
 architectures it correlated +0.67 with movement leakage, so optimising it
@@ -51,18 +62,35 @@ from train import set_seed, DEVICE
 from abstain import balanced_accuracy, confidence_auroc
 from calibrate import fit_temperature, softmax_np
 from calmnet_msa import invariance_r2
+import features as FE
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-OUT = RESULTS / "ablation.json"
+# Results scored with the OLD probe live in ablation.json. They are not
+# comparable with conditional-probe scores and `run()` skips any key already
+# present, so mixing them in one file would silently blend two metrics.
+OUT = RESULTS / os.environ.get("ABLATE_OUT", "ablation.json")
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 EPOCHS, N_TRAIN = 60, 3
 
 # architecture modules (structural) and objective modules (loss terms)
 ARCH_MODS = ["cancel", "spec_gate", "basis", "attn", "multiband"]
 LOSS_MODS = ["adv", "decorr", "hsic", "art"]
-ALL_MODS = ARCH_MODS + LOSS_MODS
+# Modules that take the MOTION REFERENCE as an input can bypass the EEG
+# entirely: MotionReferenceCanceller computes y = x - g*h(m), which injects a
+# motion-derived term straight into the signal the classifier reads. Measured
+# (exp_cancel_control.py): +cancel scores 0.905 with the real reference and
+# 0.501 -- chance -- with it zeroed, which makes the layer the identity and
+# hands the classifier clean EEG. It is an IMU classifier, not a decoder, and
+# no leakage probe catches it because the shortcut lives in the label-explained
+# part of motion that the conditional probe subtracts by design.
+#
+# `basis` is a sub-option of the canceller and is inert without it.
+EXCLUDE = [m for m in os.environ.get("EXCLUDE_MODS", "").split(",") if m]
+ALL_MODS = [m for m in ARCH_MODS + LOSS_MODS if m not in EXCLUDE]
 BARE = {m: False for m in ALL_MODS}
 FULL = {m: True for m in ALL_MODS}
+if EXCLUDE:
+    print("EXCLUDING modules: %s" % ", ".join(EXCLUDE), flush=True)
 
 
 def _t(a, dt=torch.float32):
@@ -76,7 +104,11 @@ def train_arch(mods, Xf, Mf, yf, Xv, Mv, yv, k_imu=None, epochs=EPOCHS, seed=0):
     # the ds007788 IMU descriptor
     if k_imu is None:
         k_imu = 4 * Mf.shape[1]
-    arch = {k: mods.get(k, True) for k in ARCH_MODS}
+    # Excluded modules must be forced OFF, not left to the default. ARCH_MODS
+    # still lists them, and `mods` (built from ALL_MODS) no longer carries their
+    # keys, so a plain .get(k, True) would switch them back ON in every cell and
+    # silently undo the exclusion.
+    arch = {k: (False if k in EXCLUDE else mods.get(k, True)) for k in ARCH_MODS}
     model = CALMNetArch(n_chan=Xf.shape[1], n_time=Xf.shape[2], n_ref=Mf.shape[1],
                         k_imu=k_imu, mods=arch).to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3)
@@ -170,7 +202,8 @@ def load_all():
         D[sub] = {"Xf": es.X[tr][ti], "Mf": M[tr][ti], "yf": es.y[tr][ti],
                   "Xv": es.X[tr][vi], "Mv": M[tr][vi], "yv": es.y[tr][vi],
                   "Xt": es.X[~tr], "Mt": M[~tr], "yt": es.y[~tr],
-                  "vf": valid[tr][ti], "vt": valid[~tr]}
+                  "vf": valid[tr][ti], "vt": valid[~tr],
+                  "st": es.session[~tr]}
     return D
 
 
@@ -191,7 +224,8 @@ def load_mobi():
         D[sub] = {"Xf": fit.X[ti], "Mf": fit.motion_ts[ti], "yf": fit.y[ti],
                   "Xv": fit.X[vi], "Mv": fit.motion_ts[vi], "yv": fit.y[vi],
                   "Xt": test.X, "Mt": test.motion_ts, "yt": test.y,
-                  "vf": np.ones(n_f, bool), "vt": np.ones(n_t, bool)}
+                  "vf": np.ones(n_f, bool), "vt": np.ones(n_t, bool),
+                  "st": test.trial}
     return D
 
 
@@ -207,16 +241,20 @@ def evaluate(mods, D, seed=0):
         if not np.isfinite(p).all():
             p = np.full_like(p, 0.5)                  # diverged: record as chance
         pred = p.argmax(1)
-        zf = encode_arch(model, d["Xf"], d["Mf"])
         zt = encode_arch(model, d["Xt"], d["Mt"])
 
         def summ(M):
             return np.concatenate([M.mean(-1), M.std(-1), M.max(-1), M.min(-1)], axis=1)
-        Sf = ((summ(d["Mf"]) - mu) / sd).astype(np.float32)
         St = ((summ(d["Mt"]) - mu) / sd).astype(np.float32)
-        vf, vt = d["vf"], d["vt"]
-        r2 = (invariance_r2(zf[vf], Sf[vf], zt[vt], St[vt])
-              if vf.sum() > 20 and vt.sum() > 20 else float("nan"))
+        vt = d["vt"]
+        # Corrected probe. The previous call carried BOTH known errors: it fitted
+        # on the fit split and scored on test (conflating invariance with
+        # distribution shift), and it was unconditional (so it rose with accuracy
+        # whether or not the model touched movement -- a perfect zero-leak
+        # decoder measures +0.86 this way). Conditioning within class and staying
+        # inside the test distribution fixes both.
+        r2 = (FE.invariance_r2_conditional(zt[vt], St[vt], d["yt"][vt], d["st"][vt])
+              if vt.sum() > 40 else float("nan"))
         corr = (pred == d["yt"]).astype(int)
         auroc = (confidence_auroc(p.max(1), corr)
                  if np.isfinite(p).all() and len(np.unique(corr)) > 1 else float("nan"))

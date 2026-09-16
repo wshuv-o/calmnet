@@ -327,3 +327,103 @@ Quote the number the results file contains.
 7. Check whether ds007788 and the MoBI cohort share a lab — if so the external
    validation is weaker than it looks and should be described as a different
    paradigm and sensor rather than an independent replication.
+
+---
+
+# Part II — CALM-Net v3 (SPD manifold) and the r = +0.958 result
+
+## The headline
+
+Across **47 evaluation cells** — two cohorts, 15 subjects, 3 seeds, small (22k)
+and large (544k / 1.4M) models, every module combination —
+
+    corr(balanced accuracy, intent->motion R^2) = +0.958
+
+Accuracy and movement leakage are very nearly the same quantity on this
+paradigm. This is measured with the corrected within-distribution,
+dimension-invariant probe (see Part I §1 and the note below), so it is not the
+probe artefact that inflated earlier numbers.
+
+## Results
+
+ds007788 (7 subjects, 3 seeds each):
+
+| arm | acc | R² | wrong-walk | cov |
+|---|---|---|---|---|
+| large_nocond | **0.859 ± 0.015** | **+0.400** | 0.054 | 0.75 |
+| large_full | 0.799 ± 0.012 | +0.358 | 0.038 | 0.63 |
+| large_noattn | 0.792 ± 0.015 | +0.358 | 0.030 | 0.61 |
+| **bare** | 0.794 ± 0.010 | +0.288 | 0.026 | **0.88** |
+| no_select | 0.781 ± 0.002 | +0.290 | 0.077 | 0.68 |
+| no_cond | 0.774 ± 0.016 | +0.295 | 0.046 | 0.59 |
+| no_couple | 0.774 ± 0.013 | +0.302 | 0.046 | 0.60 |
+| full | 0.762 ± 0.017 | +0.295 | 0.049 | 0.61 |
+| no_align | 0.743 ± 0.022 | **+0.262** | **0.016** | 0.72 |
+
+MoBI (8 subjects, 3 seeds each):
+
+| arm | acc | R² | wrong-walk |
+|---|---|---|---|
+| bare | **0.690 ± 0.005** | **+0.103** | 0.300 |
+| no_align | 0.683 ± 0.016 | +0.084 | 0.280 |
+| no_select | 0.649 ± 0.001 | −0.002 | 0.308 |
+| full | 0.648 ± 0.005 | −0.006 | 0.290 |
+| no_cond | 0.647 ± 0.001 | −0.009 | 0.301 |
+| no_couple | 0.632 ± 0.008 | +0.003 | 0.298 |
+| large_full | 0.610 ± 0.004 | −0.016 | 0.375 |
+
+The ordering is the same on both cohorts: the arms that score highest are the
+arms that leak most, and the arms that are genuinely invariant sit at the bottom.
+
+## Negative results (these are the contribution, such as it is)
+
+**The ConditionalCovariance module does not work.** Schur-complement conditioning
+of the EEG covariance on the synchronised motion waveform, lambda learned per
+band. It removed 97% of a *planted* artefact in isolation (covariance distance
+90.5 -> 2.6) and lambda converged reproducibly to ~0.45-0.50 across every seed
+and arm. On real data `no_cond` matches or beats `full` on both cohorts
+(0.774 vs 0.762 on ds007788; 0.647 vs 0.648 on MoBI) at identical leakage.
+Removing it costs nothing.
+
+**The whole module stack is worse than nothing.** `bare` beats `full` on both
+cohorts (0.794 vs 0.762, and 0.690 vs 0.648). Conditioning, learnable alignment,
+cross-band coupling and the selective head together subtract accuracy and add no
+invariance.
+
+**Removing alignment improves safety.** `no_align` has the lowest leakage
+(+0.262) and lowest wrong-walk (0.016, inside the 0.05 bound) on ds007788.
+
+**The wrong-walk guarantee fails on MoBI**: 0.28-0.375 against a 0.05 target, a
+6x breach on every arm. MoBI is ~89% walk, so the stop-class calibration set is
+too small for the 0.95 quantile to bound anything. A distribution-free bound
+that does not hold is worse than no bound; this needs a finite-sample correction
+before it can be claimed.
+
+## Engineering notes worth keeping
+
+**Benchmark numerical code on REAL data.** cuSOLVER's eigensolver is iterative.
+On `torch.randn` covariances it converges in a few sweeps; on real, ill-
+conditioned EEG covariances it grinds. Every synthetic benchmark said `eigh` was
+fine. On real data, switching to the log-Cholesky chart (`ASPDNetChol`) was
+**18.5x faster** — 258s to 13.9s for 60 epochs — with no change to the manifold.
+Five wrong performance diagnoses preceded finding this.
+
+**`drop_last=True` silently discarded 10% of the training data** (88 of 856
+windows) every epoch on every arm. Correctness bug; invalidated a full result
+set.
+
+**Probe pitfalls, all three of which changed conclusions**: cross-split scoring
+conflates invariance with distribution shift; unregularised ridge R^2 collapses
+with feature width (-0.04 at 50 dims, -4.46 at 1104 on pure noise); and only a
+fixed-width, within-distribution, session-grouped probe is comparable across
+architectures. `features.invariance_r2_cv` is the corrected version and is
+validated against synthetic ground truth in both directions.
+
+## Where this leaves the paper
+
+The r = +0.958 relationship, measured across 47 cells / 15 subjects / 2 cohorts
+with a validated probe, is the strongest and most defensible finding produced.
+It is a statement about the paradigm, not about a model. Everything built to
+beat it — 131 CNN variants, 18 published backbones, multi-subject pooling, a
+motion canceller, a spectral gate, an SPD network with learnable alignment, and
+a Schur-complement conditioning layer — failed, and failed in the same direction.

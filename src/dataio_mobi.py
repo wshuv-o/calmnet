@@ -116,8 +116,10 @@ def _joint_feats(G: np.ndarray) -> np.ndarray:
 
 
 def build_subject(sub: str, win=2.0, step=0.5, l_freq=8.0, h_freq=30.0,
-                  margin=2.0, use_cache=True) -> MobiEpochs | None:
+                  margin=2.0, use_cache=True, zscore=True) -> MobiEpochs | None:
     tag = f"{sub}_w{win}_s{step}_{l_freq}-{h_freq}_c{int(CHUNK_S)}_ts"
+    if not zscore:
+        tag += "_z0"      # separate cache: the arrays differ
     cf = CACHE / f"{tag}.npz"
     if use_cache and cf.exists():
         try:
@@ -176,8 +178,19 @@ def build_subject(sub: str, win=2.0, step=0.5, l_freq=8.0, h_freq=30.0,
     if not X:
         return None
     X = np.asarray(X, dtype=np.float32)
-    mu = X.mean(axis=2, keepdims=True); sd = X.std(axis=2, keepdims=True) + 1e-7
-    X = ((X - mu) / sd).astype(np.float32)
+    if zscore:
+        # Per-window, per-channel: forces every channel of every window to unit
+        # variance. Note two lines below that the GONIOMETER reference is
+        # normalised with axis=(0, 2) -- globally, per channel -- so this file
+        # preserves amplitude for the movement signal and destroys it for the
+        # EEG. On ds007788 removing this was worth +0.134 on band-power features
+        # and +0.050 on the CNN, because mu/beta ERD is a power decrease and
+        # per-window scaling deletes exactly that. Kept as the default so
+        # existing cached results stay reproducible; pass zscore=False to test it.
+        mu = X.mean(axis=2, keepdims=True); sd = X.std(axis=2, keepdims=True) + 1e-7
+        X = ((X - mu) / sd).astype(np.float32)
+    else:
+        X = (X / (float(X.std()) + 1e-30)).astype(np.float32)   # one global scalar
     MT = np.asarray(mts, np.float32)
     # standardise each goniometer channel so the reference is unit-scale, the
     # same treatment motion_ts.py applies to the ds007788 IMU reference

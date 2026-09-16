@@ -148,9 +148,20 @@ def fbcsp(Xtr, ytr, Xte, bands=((8, 13), (13, 20), (20, 30)), n_comp=6, sfreq=10
 # Riemannian with Euclidean Alignment
 # --------------------------------------------------------------------------- #
 def covariances(X, eps=1e-5):
+    """Spatial covariance with a SCALE-RELATIVE ridge.
+
+    The ridge used to be absolute (`C + 1e-5*I`), which is harmless on data
+    normalised to unit variance and destroys anything else. Raw EEG is in volts:
+    channel variance is ~8e-11, so an absolute 1e-5 ridge exceeds the signal by
+    five orders of magnitude and every covariance comes back as 1e-5 * I --
+    identity, no signal, silently. Scaling the ridge by the mean diagonal makes
+    it a true regulariser at any input scale, and leaves the normalised case
+    numerically where it was (mean diagonal ~1, so eps*1 == the old eps).
+    """
     Xc = X - X.mean(-1, keepdims=True)
     C = np.einsum("nct,ndt->ncd", Xc, Xc) / X.shape[-1]
-    return C + eps * np.eye(X.shape[1], dtype=np.float32)
+    scale = np.einsum("nii->n", C)[:, None, None] / X.shape[1]
+    return C + eps * np.maximum(scale, 1e-30) * np.eye(X.shape[1], dtype=np.float32)
 
 
 def euclidean_align(C):
@@ -191,6 +202,42 @@ def plv_features(X, lo=8, hi=30, sfreq=100.0, max_ch=20):
 # --------------------------------------------------------------------------- #
 # Invariance probe
 # --------------------------------------------------------------------------- #
+N_PROBE_COMPONENTS = 64      # fixed probe width; see note inside
+
+
+def invariance_r2_conditional(F, M, y, groups, n_splits=3):
+    """Movement recoverable BEYOND what the task label already explains.
+
+    Every "leakage" number in this project so far -- including the headline
+    intent->motion R^2 -- has the same blind spot: Walk and Stop differ in how
+    much the body is moving, by definition. So the label itself predicts motion,
+    and ANY representation that decodes the label well must predict motion well
+    too. Raw R^2 therefore rises with accuracy whether or not the decoder is
+    cheating, and two arms at different accuracies cannot be compared on it at
+    all. That was tolerable while every architecture scored within a point of
+    every other one; it stops being tolerable the moment something actually
+    improves accuracy, which is exactly when the measurement matters most.
+
+    Conditioning fixes it. Centring the movement features within each class
+    removes the component of motion that the label explains, leaving the
+    residual motion that varies WITHIN Walk and WITHIN Stop. A representation
+    that has merely learned "walking bodies move" predicts none of that residual
+    and scores ~0. One that has latched onto the artefact itself -- limb speed,
+    stride cadence, head bob -- still predicts it, and scores positive.
+
+    That is the question the paper has been trying to ask all along: not "does
+    this representation know about movement", which is unavoidable, but "does it
+    know MORE about movement than the task requires".
+    """
+    y = np.asarray(y)
+    M = np.asarray(M, dtype=np.float64).copy()
+    for c in np.unique(y):
+        m = y == c
+        if m.sum() > 1:
+            M[m] -= M[m].mean(0)
+    return invariance_r2_cv(F, M, groups, n_splits=n_splits)
+
+
 def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     """Movement recoverability, measured WITHIN one distribution.
 
@@ -206,15 +253,35 @@ def invariance_r2_cv(F, M, groups, alpha=1.0, n_splits=3):
     features and a negative one means it is not. Session-grouped folds keep the
     probe from exploiting within-session autocorrelation.
     """
-    from sklearn.linear_model import Ridge
+    from sklearn.linear_model import RidgeCV
+    from sklearn.decomposition import PCA
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
     from sklearn.model_selection import cross_val_predict, GroupKFold
     from sklearn.metrics import r2_score
     groups = np.asarray(groups)
+    F = np.asarray(F, dtype=np.float64)
+    # A diverged model yields non-finite features; drop those rows rather than
+    # letting PCA raise and take the whole ablation cell with it.
+    good = np.isfinite(F).all(axis=1) & np.isfinite(M).all(axis=1)
+    if good.sum() < 30:
+        return float("nan")
+    F, M, groups = F[good], np.asarray(M)[good], groups[good]
     n_g = len(np.unique(groups))
     if len(F) < 30 or n_g < 2:
         return float("nan")
     mu, sd = M.mean(0), M.std(0) + 1e-6
     Mz = (M - mu) / sd
     cv = GroupKFold(n_splits=min(n_splits, n_g))
-    pred = cross_val_predict(Ridge(alpha), F, Mz, cv=cv, groups=groups)
+    # Fixed-width probe. R^2 from an unregularised ridge depends strongly on the
+    # FEATURE dimension: on pure-noise features carrying no movement whatever,
+    # this probe returns -0.04 at 50 dims and -4.46 at 1104. Comparing models
+    # with different feature widths on raw R^2 is therefore meaningless -- a
+    # wide representation looks invariant purely by overfitting the probe.
+    # PCA to a fixed width plus alpha selection makes the null comparable across
+    # architectures.
+    k = int(min(N_PROBE_COMPONENTS, F.shape[1], len(F) // 4))
+    est = make_pipeline(StandardScaler(), PCA(n_components=k, random_state=0),
+                        RidgeCV(alphas=np.logspace(-2, 4, 13)))
+    pred = cross_val_predict(est, F, Mz, cv=cv, groups=groups)
     return float(r2_score(Mz, pred, multioutput="variance_weighted"))

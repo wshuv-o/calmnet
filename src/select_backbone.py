@@ -40,10 +40,16 @@ from calmnet_msa import imu_valid_mask, invariance_r2
 from braindecode_zoo import BD_MODELS
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-OUT = RESULTS / "backbone_selection.json"
-SUBJECTS = ["sub-01", "sub-03", "sub-06"]
-SKIP = {"ATCNet"}
-EPOCHS = 60
+# Configurable so the original 3-participant screening result is not
+# overwritten when the sweep is re-run on the full cohort.
+#   SB_OUT       output filename under results/
+#   SB_SUBJECTS  comma-separated subject ids
+#   SB_SKIP      comma-separated models to skip
+OUT = RESULTS / os.environ.get("SB_OUT", "backbone_selection.json")
+SUBJECTS = [x for x in os.environ.get(
+    "SB_SUBJECTS", "sub-01,sub-03,sub-06").split(",") if x]
+SKIP = {x for x in os.environ.get("SB_SKIP", "ATCNet").split(",") if x}
+EPOCHS = int(os.environ.get("SB_EPOCHS", "60"))
 
 # band-power baseline on these three subjects, for reference
 BASELINE = {"sub-01": 0.792, "sub-03": 0.771, "sub-06": 0.695}
