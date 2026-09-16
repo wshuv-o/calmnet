@@ -587,8 +587,8 @@ $-0.082$, on the uncontaminated side of the calibration curve. Two limits
 apply. The calibration was performed on a different representation from the
 decoder it is compared with, and the conditional probe cannot register artefact
 information that is constant within each class. The comparison is therefore
-evidence against movement-driven accuracy, and a bound would require
-re-evaluation after artefact removal (Section~\ref{sec:limits}).
+evidence against movement-driven accuracy. Section~\ref{sec:artefact} adds a
+second, independent test by removing artefact components and retraining.
 
 \subsection{Statistical treatment and measurement noise}
 \label{sec:noise}
@@ -771,6 +771,65 @@ useful at all.
 accuracy and raises ECE from $0.039$ to $0.074$, while reducing spurious
 activations from $1.64$ to $1.26$ per minute, a $23\,\%$ reduction. It is therefore reported as a selectable safety mode, outside the default configuration. Removing it also removes 594{,}816 of the model's 618{,}997
 parameters, which is what makes the default configuration compact.
+
+\subsection{Artefact control}
+\label{sec:artefact}
+
+Walk and stop differ in movement, so accuracy on this task could arise from
+muscle or motion artefact. The proposed configuration was therefore retrained
+after independent component analysis, with both arms restricted to the training
+task so that they differ only in the cleaning step. Each recording was
+re-referenced to the average, a copy band-passed to 1--45\,Hz was decomposed
+into 30 components with the extended Picard algorithm \citep{picard}, and the
+components that ICLabel \citep{iclabel} classified as eye, muscle, heart, line
+noise or channel noise were removed before band-passing to the decoding band.
+Across the 63 recordings, a mean of 6.8 of 30 components was removed, most often
+eye (42\,\% of removals) and muscle (38\,\%). Gait-related artefact is difficult
+to separate from cortical activity during walking \citep{castermans2014,kline2015},
+and ICLabel is not trained on it specifically, so this control narrows the
+question and leaves part of it open.
+
+\begin{table}[t]
+\caption{Artefact control on cohort~A. Balanced accuracy of the proposed
+configuration on the training task, before and after ICA cleaning, with the
+number of muscle components removed per recording.}
+\label{tab:artefact}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
+Participant & Uncleaned & Cleaned & Change & Muscle removed \\
+\midrule
+sub-01 & 0.969 & 0.955 & $-0.014$ & 2.9 \\
+sub-02 & 0.898 & 0.914 & $+0.016$ & 7.1 \\
+sub-03 & 0.955 & 0.841 & $-0.114$ & 2.3 \\
+sub-04 & 0.835 & 0.817 & $-0.018$ & 1.9 \\
+sub-05 & 0.839 & 0.893 & $+0.053$ & 1.3 \\
+sub-06 & 0.673 & 0.548 & $-0.124$ & 0.3 \\
+sub-07 & 0.680 & 0.525 & $-0.155$ & 2.3 \\
+\midrule
+Mean   & 0.835 & 0.785 & $-0.051$ & \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Cleaning lowers balanced accuracy from $0.835$ to $0.785$, a paired difference of
+$-0.051$ (higher in 2 participants, lower in 5; Wilcoxon $p=0.22$;
+Table~\ref{tab:artefact}). Most of the accuracy therefore survives, well above
+the $0.500$ chance level, and four participants are essentially unchanged or
+improve. The loss is concentrated in three participants, of $0.11$ to $0.16$.
+It does not follow the amount of muscle activity removed. The participant with
+the most muscle components removed, 7.1 per recording, improves by $0.016$, and
+one with 0.3 removed loses $0.124$ (Spearman $\rho=+0.22$ between muscle
+components removed and accuracy change). Dependence on muscle artefact would
+produce the opposite pattern. Two of the three largest losses fall on the
+participants with the lowest baseline accuracy, $0.673$ and $0.680$, where
+estimates are noisiest. The conditional leakage probe stays negative in both arms
+($-0.088$ and $-0.077$). With seven participants, and with re-referencing also
+part of the cleaning, the control falls short of establishing that the accuracy
+is neural, and it gives no support to the view that the accuracy rests on
+muscle artefact.
 
 \subsection{Comparison with published decoders}
 \label{sec:compare}

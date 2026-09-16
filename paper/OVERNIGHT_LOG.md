@@ -468,3 +468,25 @@ re-referencing to the average, a second change between the arms.
 
 Align-only (full data) started.
 
+### 03:35 — Artefact control integrated; correction to an earlier entry
+
+**Correction.** At 02:47 I logged "muscle 45 %, eye 40 %: muscle is the
+largest class removed". That count came from 46 recordings while ICA was still
+running. Over all **63** training-task recordings the control actually used:
+mean **6.8 of 30** components removed (22.7 %; median 6, range 1-16), and
+**eye blink 42 %, muscle 38 %**, channel noise 13 %, heart 7 %. Eye blink is
+the largest class. The paper uses the final figures.
+
+Added a results subsection "Artefact control" (`sec:artefact`) with a
+per-participant table (`tab:artefact`), placed directly after the component
+ablation, where the question it answers naturally arises. It reports the
+paired drop, how the losses are distributed, the muscle-count pattern, and the
+probe values. It is framed as short of establishing the accuracy is neural,
+and as giving no support to dependence on muscle artefact, with the Castermans
+and Kline limits cited.
+
+The leakage-guard paragraph pointed to a re-evaluation that did not exist yet.
+It now points to this section.
+
+Build: 0 errors, 0 undefined, 19 pages; neither new table spills.
+
