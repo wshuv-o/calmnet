@@ -305,12 +305,13 @@ def main():
             key = "%s|s%d" % (name, seed)
             if key in out:
                 continue
-            t0, rows = time.time(), []
+            t0, rows, subs_done = time.time(), [], []
             for sub, d in D.items():
                 try:
                     if seed != seeds[0]:
                         d = loader(sub, seed)
                     rows.append(run(d, name, seed))
+                    subs_done.append(sub)
                 except Exception as e:
                     print("    [fail] %s/%s: %s: %s"
                           % (sub, name, type(e).__name__, str(e)[:100]), flush=True)
@@ -318,6 +319,10 @@ def main():
                 continue
             agg = {k: float(np.nanmean([r[k] for r in rows])) for k in rows[0]}
             agg["acc_sd"] = float(np.std([r["acc"] for r in rows]))
+            # Keep the per-participant rows: cohort means alone cannot support
+            # paired tests across arms, and n=7/8 makes the pairing essential.
+            agg["per_subject"] = {s: {k: float(v) for k, v in r.items()}
+                                  for s, r in zip(subs_done, rows)}
             out[key] = agg
             print("  %-10s seed=%d  acc %.3f+-%.3f  ece %.3f  acc@90 %.3f  "
                   "cond_r2 %+.3f  onsets/min %.2f  lat %.1fs  (%.0fs)"
