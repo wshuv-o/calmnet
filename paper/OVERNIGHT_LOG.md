@@ -547,3 +547,22 @@ authors, not something to do overnight.
 The paper's "regulariser" reading is replaced by these results. The head stays
 in the reported arms so they remain comparable with the ablation.
 
+### 04:02 — Visual check of the new pages; one citation corrected
+
+Rendered the pages holding tonight's additions. There are no overlaps, and both
+new tables fit their columns. The pre-registration table sits on the same page
+as its section.
+
+**Known cosmetic issue, left as is.** The artefact table (Table 11) appears three
+pages after its section, because LaTeX cannot place it ahead of Tables 5-10,
+which are queued from the auto-generated table file. That is a structural
+property of this document's float order, and the journal re-typesets accepted
+papers.
+
+**Citation corrected in §7.2.** "The threshold location is predicted in advance
+(Table 4)" cited the cohort-B rate table, which was diagnosed after the failure
+and shows no advance prediction. The support is the cohort-C test, and what it
+predicted was which side of the threshold a protocol falls on, not the
+threshold's exact location. The sentence now says exactly that and points to
+§6.10.
+
