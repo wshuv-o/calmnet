@@ -271,19 +271,30 @@ is large; the sharpness of the plateau is not established, and a purely
 monotonic "slower is better" account cannot be excluded for every arm on three
 points.
 
-**Dose-response across arms** confirms the momentum acts only through alignment:
+**Full three-point sweep across all five arms**, which makes this a controlled
+experiment rather than a single comparison:
 
-| arm | m = 0.20 | m = 0.01 | delta | uses alignment |
-|---|---|---|---|---|
-| dn_full | 0.626 | 0.723 | +0.097 | yes |
-| dn_noctx | 0.581 | 0.696 | +0.115 | yes |
-| dn_nogate | 0.606 | 0.726 | +0.120 | yes |
-| dn_noalign | 0.792 | 0.783 | -0.009 | no |
-| dn_stem | 0.737 | 0.737 | +0.000 | no |
+| arm | m = 0.20 | m = 0.05 | m = 0.01 | at crossing | beyond | uses alignment |
+|---|---|---|---|---|---|---|
+| dn_full | 0.626 | 0.724 | 0.723 | **+0.098** | +0.001 | yes |
+| dn_noctx | 0.581 | 0.671 | 0.696 | **+0.090** | +0.025 | yes |
+| dn_nogate | 0.606 | 0.700 | 0.726 | **+0.094** | +0.026 | yes |
+| dn_noalign | 0.792 | 0.782 | 0.783 | -0.010 | +0.001 | **no** |
+| dn_stem | 0.737 | 0.737 | 0.737 | **0.000** | **0.000** | **no** |
 
-The alignment-free arm measured four times across momenta and estimators
-(0.792 / 0.788 / 0.783 / 0.782) is invariant, fixing measurement noise at
-**+-0.005**.
+Every arm that uses alignment gains +0.090 to +0.098 as the adaptation memory
+crosses the class-block length. Both arms that do not use it are unaffected --
+`dn_noalign` to within measurement noise, `dn_stem` *exactly*, to three decimals
+across all three settings.
+
+The adaptation rate therefore acts only through the component it controls, which
+is what the mechanism requires and what an unrelated confound (optimisation
+dynamics, regularisation, run-to-run variance) would not produce.
+
+The alignment-free arms were measured seven times in total across momenta and
+estimators (`dn_noalign` 0.792 / 0.788 / 0.783 / 0.782; `dn_stem` 0.737 three
+times), fixing measurement noise at **+-0.005** and making the -0.060 residual in
+section 7.5 twelve times the noise.
 
 **Design rule.** Set the adaptation memory longer than the protocol's class-block
 duration. This is computable from the experimental design before data collection,
