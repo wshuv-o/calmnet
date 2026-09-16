@@ -294,3 +294,35 @@ and the limitation already says so. The run continues on CPU for the record;
 cohort B's 309-window blocks make most 32-window blocks single-class, so its
 value may be less confounded. The corrected design goes to TODO_NEXT.md.
 
+### 02:51 — Cohort B's data is not on this machine; queue 2 corrected
+
+tau_drift loaded **0** cohort-B subjects. The cause: neither
+`data/mobi_treadmill` (raw) nor `data/cache_mobi` exists on this machine.
+`data/` holds only cohort A, its cache, and the new EEGMMIDB download. The
+cohort-B results in the repository were produced on the other machine, in the
+EsmeAbha commits. The cleanup did not remove it: it only touched named
+patterns inside `data/cache`, and these directories were never present.
+
+**This matters for reproducibility.** The paper's cohort-B numbers cannot be
+regenerated here. Copy `mobi_treadmill` across from the other machine before
+any cohort-B rerun.
+
+Queue 2's planned cohort-B job would have failed. While it was still waiting,
+with no GPU job in flight, queue 2 was stopped (pid 26912) and relaunched
+(pid 26484) with the job replaced by **a cohort-C seed replication, seeds
+1-2**, of both pre-registered comparisons. It is fast and uses local data. The
+registered verdict remains seed 0, as registered; the replication is reported
+separately and cannot change it. Its evaluation was added to
+`eval_overnight.py` before any of its results existed.
+
+New queue-2 order: C replication (m 0.2, then 0.01), then A align+gate seeds
+0-2, then A gate seeds 0-2. The 07:00 cutoff still applies.
+
+The multi-seed paired design now covers cohorts A and C. B keeps its existing
+single-seed results.
+
+tau_drift completed at 02:49:38. Cohort A median tau = 17.9 windows (range
+15.5-29.1), confirming the class-switching confound logged above. Cohort B:
+no data. The result is kept in `results/tau_drift.json` for the record and does
+not enter the paper.
+

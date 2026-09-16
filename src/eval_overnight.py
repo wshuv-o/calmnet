@@ -117,6 +117,16 @@ def main():
             rec["gate_mean_sd"] = [float(np.mean(gm)), float(np.std(gm, ddof=1)) if len(gm) > 1 else 0.0]
         out["multiseed_" + cohort] = rec
 
+    # Cohort C seed replication. Reported separately: the pre-registered
+    # verdict is seed 0 only, as registered, and these seeds cannot alter it.
+    g_c, gm_c = seed_avg("cohort3_rep_m0.2.json", "dn_gate")
+    a_c, am_c = seed_avg("cohort3_rep_m0.2.json", "dn_noctx")
+    s_c, sm_c = seed_avg("cohort3_rep_m0.01.json", "dn_noctx")
+    out["cohort3_replication"] = {
+        "P1_seeds12": paired(g_c, a_c, "P1 replication, seeds 1-2: align+gate minus gate"),
+        "P2_seeds12": paired(a_c, s_c, "P2 replication, seeds 1-2: m=0.01 minus m=0.2"),
+        "note": "Seeds 1-2 only. The registered verdict is seed 0 and is not changed by these."}
+
     # Reproducibility: align+gate has no transformer and is reported
     # bit-identical across repeats, so its seed-0 rerun should give 0.884.
     rerun = arm("a_aligngate_3seed.json", "dn_noctx|s0")
@@ -157,6 +167,10 @@ def main():
         r = out["multiseed_" + c]
         print("Multi-seed cohort %s, align+gate minus gate" % c)
         print("    ", show(r))
+    rep = out["cohort3_replication"]
+    print("Cohort C replication (seeds 1-2, does not alter the registered verdict)")
+    print("  P1 ", show(rep["P1_seeds12"]))
+    print("  P2 ", show(rep["P2_seeds12"]))
     rp = out["reproducibility"]
     print("Reproducibility of align+gate seed 0")
     print("    ", "pending" if "status" in rp else

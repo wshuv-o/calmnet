@@ -24,14 +24,23 @@ from overnight_queue import RES, gpu, say, wait_line  # noqa: E402
 CUTOFF = (7, 0)          # no new job starts at or after 07:00
 
 JOBS = [
-    # 1. Headline multi-seed on cohort A, with per-subject rows.
+    # Cohort B's data is not on this machine (data/mobi_treadmill and
+    # data/cache_mobi are absent; its results were produced elsewhere), so the
+    # planned cohort-B job would fail. It is replaced by a seed replication of
+    # the pre-registered cohort-C test, which is fast and runs on local data.
+    # The registered verdict stays seed 0; these seeds are reported separately.
+
+    # 1. Cohort C replication, seeds 1-2. Small data, so it goes first.
+    ("C_rep_m0.2", dict(CX_COHORT="eegbci", CX_ARMS="dn_gate,dn_noctx",
+                        CX_SEEDS="1,2", DN_MOMENTUM=0.2,
+                        CX_OUT="cohort3_rep_m0.2.json")),
+    ("C_rep_m0.01", dict(CX_COHORT="eegbci", CX_ARMS="dn_noctx",
+                         CX_SEEDS="1,2", DN_MOMENTUM=0.01,
+                         CX_OUT="cohort3_rep_m0.01.json")),
+    # 2. Headline multi-seed on cohort A, with per-subject rows.
     ("A_aligngate_3seed", dict(CX_FULL=1, CX_ICA=0, CX_ARMS="dn_noctx",
                                CX_SEEDS="0,1,2", DN_MOMENTUM=0.2,
                                CX_OUT="a_aligngate_3seed.json")),
-    # 2. The inversion on cohort B, same factor isolation, three seeds.
-    ("B_gate_aligngate_3seed", dict(CX_COHORT="mobi", CX_ARMS="dn_gate,dn_noctx",
-                                    CX_SEEDS="0,1,2", DN_MOMENTUM=0.2,
-                                    CX_OUT="b_gate_aligngate_3seed.json")),
     # 3. The no-alignment reference on cohort A, completing the paired design.
     ("A_gate_3seed", dict(CX_FULL=1, CX_ICA=0, CX_ARMS="dn_gate",
                           CX_SEEDS="0,1,2", DN_MOMENTUM=0.2,
