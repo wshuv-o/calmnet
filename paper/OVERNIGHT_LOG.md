@@ -354,3 +354,40 @@ chance.
 
 P2 (slowing to m = 0.01 gains less than 0.05) is running.
 
+### 03:20 — Pre-registered P2: CONFIRMED. Both predictions held.
+
+| arm (cohort C, seed 0) | balanced acc. |
+|---|---|
+| align + gate, m = 0.2 | 0.785 |
+| align + gate, m = 0.01 | 0.779 |
+
+**Mean difference −0.006, below the registered threshold of +0.05, so P2 is
+CONFIRMED.** Nine of 20 higher, 10 lower, 1 unchanged (Wilcoxon p = 0.43).
+
+**Both predictions registered at 01:59:52 held on an independent cohort.**
+
+P2 was the discriminating prediction. The same intervention, slowing
+adaptation from m = 0.2 to m = 0.01, was predicted to behave differently
+according to the protocol's block length, and it did:
+
+| cohort | class block | effect of slowing | status |
+|---|---|---|---|
+| B | 309 windows | **+0.090** | the observation Condition 1 was built from |
+| C | 5 windows | **−0.006** | **predicted in advance, confirmed** |
+| A | 18 windows | −0.085 | observed (align+gate, trace-normalised) |
+
+A reading consistent with the band, and **not part of the registration**:
+slowing helps where the fast estimate tracks the class (B), costs accuracy
+where it was tracking genuine multi-session drift (A, recorded across weeks),
+and does nothing where there is neither (C, a single session with short
+blocks). The registration covers only the lower bound and the B/C contrast. The
+upper-bound reading for A is interpretation and must be labelled as such in
+the paper.
+
+**Scope, as registered:** this tests the short-block side of Condition 1 and
+the B/C contrast. It does not test an empty band. Condition 1 has now
+predicted a new cohort correctly in advance, but that does not establish the
+upper bound.
+
+ICA precompute exited rc=0. The cleaned artefact-control arm has started.
+
