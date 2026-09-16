@@ -188,10 +188,16 @@ Our contributions are:
       $52.0\pm4.5\,\%$ and $83.9\pm3.9\,\%$ reduction in session-to-session
       covariance distance in 15 of 15 subjects against a no-op control
       (Section~\ref{sec:mechanism}).
-\item We report an external validation that fails, with the ordering of arms
-      inverting between cohorts, and trace the inversion to the rate condition
-      after controlling for sample size and implementation
-      (Section~\ref{sec:external}).
+\item We report external validation on an independent cohort, where the decoder
+      transfers and the alignment layer inverts the ordering of arms, and trace
+      the inversion to the rate condition after controlling for sample size and
+      implementation (Section~\ref{sec:external}).
+\item We test the condition prospectively on a third cohort, with both
+      predictions and their decision thresholds committed before any model was
+      trained on it. Both predictions hold (Section~\ref{sec:prereg}).
+\item We retrain the decoder after ICA artefact removal. Most of the accuracy
+      survives, and the losses that remain do not follow the amount of muscle
+      activity removed (Section~\ref{sec:artefact}).
 \end{enumerate}
 
 We make no accuracy claim over published decoders. In the pipeline where both
@@ -918,8 +924,7 @@ from one model and one rule evaluated before any training.
 already contains a learnable version of it: the blend weight
 $g=\sigma(\mathrm{gate})$ in (\ref{eq:update}) is a trained parameter, so the
 model is free to close the gate and bypass alignment. On cohort B it does not,
-and scores $0.626$. The reason is structural. It is no failure of
-optimisation. The gate is trained on the fitting sessions, where the estimator
+and scores $0.626$. The reason is structural and does not lie in optimisation. The gate is trained on the fitting sessions, where the estimator
 sees interleaved windows and alignment is harmless; the class-tracking failure
 appears only at test time, when the estimator meets contiguous blocks longer
 than its memory. \textbf{No training signal contains the pathology, so no
@@ -1082,8 +1087,7 @@ avoids tracking the streaming class and tracks session drift only if
 \label{eq:band}
 \end{equation}
 Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
-setting of $\mu$ satisfies both requirements. This is a design condition and a
-statement of when the layer can work. It is established here
+setting of $\mu$ satisfies both requirements. It is a design condition that states when the layer can work. It is established here
 empirically; we give no proof.
 \end{condition}
 
@@ -1281,21 +1285,27 @@ rate condition, which is measured within each cohort.
 \section{Conclusion}
 
 An estimate that adapts at test time tracks whatever is currently streaming.
-Under a blocked experimental protocol that includes the class label, and the
-layer then removes the signal it was inserted to protect. The rate at which it
-adapts must exceed the class-block timescale and remain below the drift
-timescale, and where those requirements cross no admissible rate exists. Both
-bounds are read from the recording protocol, which makes this a design-time
-check.
+Under a protocol that presents each class in long contiguous blocks, the
+estimate converges to the current class, and the layer then removes the signal
+it was inserted to protect. The estimator's memory must outlast a class block
+and stay shorter than the drift timescale, and where those requirements cross no
+admissible rate exists. Both bounds are read from the recording protocol, which
+makes this a design-time check.
+
+The condition has predicted a new cohort correctly in advance. With class
+blocks of five windows, enabling alignment cost nothing and slowing it brought
+no gain, where the same slowing recovered $0.090$ on the cohort with long
+blocks.
 
 The immediate open question is whether the band in (\ref{eq:band}) has an
-interior optimum that can be located exactly. Neither cohort here
-can answer it: cohort A's band is wide enough that the fastest setting tested is
-already inside it, and cohort B's is empty. A protocol with
+interior optimum that can be located exactly. No cohort here can answer it.
+Cohort A's band is wide enough that the fastest setting tested is already
+inside it, cohort C's is wider still, and cohort B's is empty. A protocol with
 $\tau_{\mathrm{blk}}$ between roughly 100 and 200 windows would place the two
 bounds close together, and the prediction is that accuracy would peak at an
-intermediate momentum and fall on both sides. That experiment is pre-registrable from the protocol alone, and would be required before treating Condition~\ref{prop:band} as established, when it describes two
-cohorts.
+intermediate momentum and fall on both sides. That experiment can be
+pre-registered from the protocol alone, as the cohort C test was, and it would
+test the upper bound, which no cohort here has tested in advance.
 
 A second direction follows from the residual. If a single running estimate
 cannot simultaneously avoid the class and track the drift, then the two
