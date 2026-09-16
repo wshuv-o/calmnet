@@ -640,3 +640,24 @@ not as a confirmed prediction. The sentence calling C "a single-session
 recording that has little drift to correct" also needs softening: the fast
 estimate evidently tracks something across runs.
 
+### 05:06 — Reproducibility: seed 0 of align + gate reproduces the original
+
+The first seed of the 3-seed cohort A run is a rerun of the existing
+trace-normalised align + gate result, launched 33 minutes and many code
+changes later. Compared at full floating-point precision:
+
+- **Identical to every digit:** balanced accuracy (0.8841623361578639),
+  acc@90, the conditional leakage probe, false onsets per minute, missed onsets,
+  and the between-subject SD. Every window's predicted class is reproduced
+  exactly.
+- **Differs by 2×10⁻⁵:** ECE (0.041712 original, 0.041693 rerun). ECE is
+  computed from temperature-scaled probabilities, and the temperature is fitted
+  by numerical optimisation, which accounts for a difference at the fifth
+  decimal.
+
+The paper states that arms without the transformer are bit-identical across
+repeats, a claim about accuracy. For accuracy it holds exactly. For calibration
+it holds to four decimals. The run also confirms that tonight's changes to
+ (progress output, the ICA and FULL switches, two new arms)
+left the existing configuration's results untouched.
+
