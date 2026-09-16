@@ -9,6 +9,12 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 
+% Let TeX relax spacing on lines holding long unbreakable
+% citation strings, instead of overrunning the column.
+\emergencystretch=1.5em
+\hyphenpenalty=1000
+
+
 \newtheorem{proposition}{Proposition}
 \newtheorem{condition}{Condition}
 \newdefinition{remark}{Remark}
@@ -91,9 +97,9 @@ are opposite and no single rate serves both protocols.
 
 \textbf{Significance.} The admissible rate band is bounded below by the
 class-block timescale and above by the drift timescale. Where class blocks
-outlast drift the band is empty and the layer should be omitted rather than
+outlast drift the band is empty and the layer should be omitted, not
 tuned. Because both bounds are properties of the experimental design, the
-condition is a design-time check rather than a post-hoc diagnosis, and it
+condition is a design-time check, not a post-hoc diagnosis, and it
 predicts where in-network adaptation will fail before a model is trained.
 \end{abstract}
 
@@ -159,7 +165,7 @@ statistic over a complete recording, which means the target recording must exist
 before the decoder can run on it. Test-time adaptation removes that requirement
 in computer vision by updating normalisation statistics or parameters online
 \citep{tent,schneider,nado}, and recent work shows that such methods degrade
-when the test stream is temporally correlated rather than i.i.d.
+when the test stream is temporally correlated instead of i.i.d.
 \citep{note,sar,cotta}. EEG data acquired under a blocked experimental protocol
 is temporally correlated by construction, which is the connection this paper
 makes precise.
@@ -169,7 +175,7 @@ Our contributions are:
 \begin{enumerate}
 \item We introduce an adaptive alignment layer that estimates and applies a
       whitening transform without labels and continues to update at inference,
-      and we verify that its output reaches the classifier rather than being
+      and we verify that its output reaches the classifier instead of being
       undone by the following normalisation (Section~\ref{sec:align}).
 \item We identify a failure mode specific to in-network alignment: the running
       estimate tracks the currently streaming class when class blocks exceed the
@@ -185,7 +191,7 @@ Our contributions are:
       (Section~\ref{sec:mechanism}).
 \item We report an external validation that fails, with the ordering of arms
       inverting between cohorts, and trace the inversion to the rate condition
-      rather than to sample size or implementation (Section~\ref{sec:external}).
+      and not to sample size or implementation (Section~\ref{sec:external}).
 \end{enumerate}
 
 We make no accuracy claim over published decoders. In the pipeline where both
@@ -234,7 +240,7 @@ Riemannian Procrustes analysis adds rotation and scaling \citep{rodrigues}, and
 parallel transport moves covariances between tangent spaces \citep{yair,zanini}.
 These methods are effective and label-free, and reviews report them as the
 strongest general-purpose transfer tools for EEG \citep{lotte2018,wu_transfer}.
-Their limitation is operational rather than statistical: the alignment statistic
+Their limitation is operational, not statistical: the alignment statistic
 is computed over a whole recording, so the recording must be complete before
 decoding starts, and within-recording drift is not tracked. We respond by moving
 the estimator inside the network as a layer that updates online, and we then
@@ -252,7 +258,7 @@ by maintaining a class-balanced reservoir \citep{note}, SAR stabilises
 adaptation under distribution shift with small or imbalanced batches
 \citep{sar}, and CoTTA and LAME address error accumulation in continual
 adaptation \citep{cotta,lame}. Our contribution relative to this line is
-quantitative rather than conceptual: we show that in a blocked EEG protocol the
+quantitative, not conceptual: we show that in a blocked EEG protocol the
 relevant comparison is between the estimator's effective memory and the
 duration of a single-class block, that this predicts the threshold location, and
 that the resulting constraint is two-sided because the same estimator is also
@@ -307,7 +313,7 @@ SPD matrices,
 \right\|_F ,
 \label{eq:riem}
 \end{equation}
-rather than the Frobenius distance, because covariances do not form a vector
+and not the Frobenius distance, because covariances do not form a vector
 space and the Frobenius distance is dominated by overall scale, which would
 flatter any whitening operation \citep{congedo,barachant}.
 
@@ -348,7 +354,7 @@ through a learned scalar gate $g \in [0,1]$:
 \end{equation}
 
 Each window's covariance is normalised by its own trace before being
-accumulated, so that the estimate is an average of shapes rather than an
+accumulated, so that the estimate is an average of shapes instead of an
 average weighted by power:
 \begin{equation}
 \mathbf{M} \leftarrow (1-m)\,\mathbf{M} + \frac{m}{N} \sum_{n=1}^{N}
@@ -391,7 +397,7 @@ log-power ratios survive: scaling a window by $s$ shifts its log-power by
 $2\log s$, a constant that a later affine layer absorbs, whereas normalising
 after the square destroys the ratio in which ERD is defined \citep{erd}.
 
-This ordering is load-bearing rather than cosmetic, and the evidence is a
+This ordering is load-bearing, not cosmetic, and the evidence is a
 dose--response across representations that differ in how much marginal power
 they carry (Table~\ref{tab:repr}). Removing per-window amplitude normalisation
 is worth $+0.134$ and $+0.174$ on band-power features, which are pure marginal
@@ -399,7 +405,7 @@ power; $-0.016$ and $+0.029$ on tangent-space features, which carry power only
 through the covariance diagonal; and $-0.004$ and $+0.000$ on a correlation-only
 representation, which is scale-free by construction and therefore cannot respond.
 A representation that carries no marginal power shows no effect, which is what
-identifies the mechanism rather than merely demonstrating it.
+identifies the mechanism instead of merely demonstrating it.
 
 These are participant-paired comparisons, so they can be tested as such.
 Wilcoxon signed-rank tests over participants, Holm-corrected across the three
@@ -433,7 +439,7 @@ for Walk at a $0.5$\,s step, corresponding to dwell times of 12 to 32\,s.
 
 A classifier paired with a selection function trained under a coverage
 constraint \citep{selectivenet}, with a full-coverage auxiliary term so that the
-backbone continues to learn from every sample rather than only from the covered
+backbone continues to learn from every sample, not only from the covered
 region. We use the formulation as published.
 
 %=============================================================================
@@ -478,7 +484,7 @@ B (treadmill)   & 7   & 309 & 2211 \\
 Signals are band-pass filtered to 0.5--40\,Hz and resampled to 100\,Hz using
 MNE-Python \citep{gramfort}. No artefact rejection, ICA decomposition or
 channel interpolation is applied, so that the alignment layer is evaluated on
-the shift it is meant to correct rather than on a cleaned signal. Amplitude
+the shift it is meant to correct, not on a cleaned signal. Amplitude
 normalisation is applied globally per recording, before the squaring stage, for
 the reason given in Section~\ref{sec:stem}.
 
@@ -493,7 +499,7 @@ conventional but upward-biased on small folds (Section~\ref{sec:limits}).
 except where the cohort definition differs.}
 \label{tab:hyper}
 \centering
-\begin{tabular}{ll}
+\begin{tabular}{@{}l@{\hspace{1em}}p{0.52\columnwidth}@{}}
 \toprule
 Setting & Value \\
 \midrule
@@ -538,7 +544,7 @@ EEG-ITNet, FBMSNet) raise a not-a-number error during training. We verified that
 this is not a data fault: none of the seven participants' epoch tensors contains
 a not-a-number or infinite value. These are training divergences under this
 configuration, not properties of the architectures, and we record them as such
-rather than as evidence against those models.
+and not as evidence against those models.
 
 \subsection{Outcome measures}
 
@@ -635,7 +641,7 @@ reductions spanning $45.2$ to $56.1\,\%$ on cohort A and $76.3$ to $88.6\,\%$ on
 cohort B (Table~\ref{tab:drift}). No participant regresses, and the
 reduction is not carried by one or two outliers. The no-op control shows no
 systematic reduction in either cohort, which establishes that the effect comes
-from adaptation rather than from the whitening operation or from the
+from adaptation and not from the whitening operation or from the
 measurement itself.
 
 It is worth being precise about what that control does, because it is not
@@ -643,7 +649,7 @@ inert: per participant it moves the distance by $-28.8\,\%$ to $+45.0\,\%$,
 scattering in both directions about a mean of roughly zero. Two implementation
 facts explain this. First, the running estimate is primed by copying the first
 batch's covariance regardless of momentum, so at momentum $0$ the layer does
-not whiten by the identity -- it whitens by the fit-session covariance and then
+not whiten by the identity. It whitens by the fit-session covariance and then
 never updates. Second, the layer returns a gated blend
 $g\,Wx + (1-g)\,x$ with $g=\sigma(2.0)\approx0.88$, so the effective operation
 is the fixed linear map $M = gW + (1-g)I$. A fixed map applied to both
@@ -653,8 +659,8 @@ invariant; but the measurement normalises each covariance by its own trace
 factors. The normalised pair is therefore no longer related by a congruence,
 and the residual scatter is that trace renormalisation, not adaptation. The
 eigenvalue clamp at $10^{-6}$ contributes on near-singular montages. The
-control is still the right one -- it isolates adaptation from whitening -- but
-its scatter should be read as the measurement's noise floor rather than as a
+control is still the right one, since it isolates adaptation from whitening, but
+its scatter should be read as the measurement's noise floor, not as a
 null effect.
 
 The mechanism works as designed, and Section~\ref{sec:external} shows
@@ -682,6 +688,7 @@ coverage; FA/min is spurious activations per minute of standing. All cells use
 the original estimator so that arms are mutually comparable.}
 \label{tab:ablation}
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrrr}
 \toprule
 Components & Acc $\pm$ SD & ECE & Acc@90 & FA/min \\
@@ -692,7 +699,8 @@ align + ctx        & $0.862\pm0.125$ & 0.072 & --- & 1.26 \\
 ctx + gate         & $0.827\pm0.096$ & 0.091 & 0.778 & 0.73 \\
 stem only          & $0.827\pm0.124$ & 0.082 & 0.823 & 0.73 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 The acc@90 value for the \textit{align + ctx} arm is withheld because with the
@@ -710,9 +718,20 @@ where abstention helps are exactly those with no trained gate
 (\textit{align + ctx}, \textit{stem only}), where the ranking is arbitrary.
 A gate that is beaten by its own absence is not ranking windows by correctness,
 and we therefore report the selective head as a component that did not work
-rather than as a contribution. Fixing it -- for instance by thresholding a
-temperature-scaled softmax confidence instead of the learned gate -- is left
+and not as a contribution. Fixing it, for instance by thresholding a
+temperature-scaled softmax confidence instead of the learned gate, is left
 open; the calibration result ($\mathrm{ECE}=0.039$) is separate and stands.
+
+The head is nonetheless retained, because it contributes accuracy even though
+its confidence ranks nothing: adding it to \textit{align + ctx} moves cohort A
+from $0.862$ to $0.878$, and the best configuration reported here,
+\textit{align + gate}, contains it. The likely reading is that training under a
+coverage constraint acts as a regulariser on the shared representation, while
+the confidence it produces is unusable for selection. That $+0.016$ is only
+about $1.6\times$ the $0.010$ noise floor of Table~\ref{tab:noise} and both arms
+contain the transformer, so we treat it as suggestive and do not build on it.
+An \textit{align}-only arm, which would separate the two roles, has not been
+run.
 
 \paragraph{Alignment is necessary, not additive} With alignment removed, the
 context and selection modules together contribute between $0.000$ and $0.007$:
@@ -725,14 +744,14 @@ trace-normalised one ($0.862$ against $0.834$) from the estimator-fix run of
 Section~\ref{sec:rejected}. The lower figure should be read with care: the
 no-align arm is inert to the estimator, so its $0.834$ differs from $0.827$
 only by run-to-run variation, and part of the gap between the two figures is
-that noise rather than an estimator effect. The
+that noise, not an estimator effect. The
 modules do not stack; they depend on the alignment stage to be
 useful at all.
 
 \paragraph{Cross-epoch context is an operating point} Adding it costs $0.023$
 accuracy and raises ECE from $0.039$ to $0.074$, while reducing spurious
 activations from $1.64$ to $1.26$ per minute, a $23\,\%$ reduction. We therefore
-report it as a selectable safety mode rather than as part of the default
+report it as a selectable safety mode, not as part of the default
 configuration. Removing it also removes 594{,}816 of the model's 618{,}997
 parameters, which is what makes the default configuration compact.
 
@@ -752,7 +771,7 @@ In the pipeline where both were measured, ATCNet scores $0.913$ against $0.901$
 at seed 0 and $0.892$ for our two-seed mean (Table~\ref{tab:noise}). The gap of
 $0.012$ to $0.021$ sits inside the $0.020$ between-seed spread of
 Section~\ref{sec:noise}, so two seeds cannot separate the two models. We report
-it as a loss rather than as a tie because the point estimate favours ATCNet in
+it as a loss and not as a tie, because the point estimate favours ATCNet in
 both seeds we ran.
 
 \paragraph{The modules do not transfer to another backbone} If the selection and
@@ -782,7 +801,7 @@ minimum.
 \caption{The same five arms on both cohorts, single seed. Solid heavy black is
 the proposed configuration; the other alignment-using arms are dashed in colour,
 and the two alignment-free arms are dashed and dotted. The three alignment arms
-cross below both alignment-free arms, so the ordering inverts rather than
+cross below both alignment-free arms, so the ordering inverts instead of
 compressing.}
 \label{fig:inversion}
 \end{figure}
@@ -811,7 +830,7 @@ best cohort-A configuration is the worst cohort-B one, and the ordering does not
 merely compress but inverts, with all three arms that use alignment falling
 below both arms that do not. The layer is worth $+0.074$ on cohort A
 ($0.901$ against $0.827$) and $-0.211$ on cohort B ($0.581$ against $0.792$).
-We report this in full rather than restricting the
+We report this in full instead of restricting the
 paper to the cohort on which the layer succeeds, and the remainder of the
 results explains it, because the explanation turns out to be the more
 transferable contribution.
@@ -822,20 +841,20 @@ whose position is fixed by the recording protocol: with the default estimator
 memory $\mu = 32/m = 160$ windows, cohort A's $\tau_{\mathrm{blk}}=18$ satisfies
 $\tau_{\mathrm{blk}} < \mu$ and cohort B's $\tau_{\mathrm{blk}}=309$ does not.
 Enabling alignment exactly when the band is satisfied selects $0.901$ on cohort
-A and $0.792$ on cohort B --- \textbf{the best available configuration on each},
+A and $0.792$ on cohort B: \textbf{the best available configuration on each},
 from one model and one rule evaluated before any training.
 
 \paragraph{Why the network cannot learn this switch itself} The architecture
 already contains a learnable version of it: the blend weight
 $g=\sigma(\mathrm{gate})$ in (\ref{eq:update}) is a trained parameter, so the
 model is free to close the gate and bypass alignment. On cohort B it does not,
-and scores $0.626$. The reason is structural rather than a failure of
+and scores $0.626$. The reason is structural, not a failure of
 optimisation. The gate is trained on the fitting sessions, where the estimator
 sees interleaved windows and alignment is harmless; the class-tracking failure
 appears only at test time, when the estimator meets contiguous blocks longer
 than its memory. \textbf{No training signal contains the pathology, so no
 gradient can close the gate against it.} This is the argument for a
-protocol-level check rather than an end-to-end one: the quantity that decides
+protocol-level check instead of an end-to-end one: the quantity that decides
 whether the layer helps is a property of the evaluation stream, not of the
 fitting distribution.
 
@@ -904,7 +923,7 @@ because it is a physiologically motivated design that failed cleanly. Decoding
 from the 0.1--3\,Hz onset-locked band alone gives $0.604$; from the mu and beta
 ERD band alone, $0.775$; combining the two, $0.742$. The paired difference
 between the combination and the better single band is $-0.034$, so on
-single-trial data the low-frequency pathway adds noise rather than information,
+single-trial data the low-frequency pathway adds noise, not information,
 and the architecture uses the ERD band only.
 
 \subsection{A rejected explanation for the inversion}
@@ -961,7 +980,7 @@ the class-block length (Table~\ref{tab:rate}). Neither arm that omits alignment
 responds: the no-align arm moves $-0.010$, within its $0.0107$ run-to-run spread
 (Table~\ref{tab:noise}), and the stem-only arm reproduces $0.7375$ exactly at
 every setting despite a 160-fold change in the adaptation rate. Because that arm
-is deterministic, this is an exact null rather than an unresolved one. The
+is deterministic, this is an exact null, not an unresolved one. The
 manipulated variable therefore acts only through the component it controls,
 which an unrelated confound such as optimisation dynamics or regularisation
 would not produce.
@@ -1005,7 +1024,7 @@ avoids tracking the streaming class and tracks session drift only if
 Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
 setting of $\mu$ satisfies both requirements. This is a design condition, not a
 theorem: it states when the layer can work, and is established here
-empirically rather than proved.
+empirically, not proved.
 \end{condition}
 
 Cohort A satisfies (\ref{eq:band}) with a wide margin, so fast adaptation is
@@ -1021,7 +1040,7 @@ no drift-tracking benefit left to collect. The layer then contributes only
 estimation noise.
 \end{remark}
 
-\begin{remark}[Why offline alignment does not meet this failure]
+\begin{remark}[Offline alignment is exempt]
 A whole-recording estimate, as in Euclidean Alignment \citep{hewu}, is the
 maximally slow setting. It therefore never tracks the class, and it never tracks
 within-recording drift either, which is exactly the capability an in-network
@@ -1091,12 +1110,12 @@ The vision literature has identified that test-time adaptation degrades when the
 test stream is temporally correlated \citep{note,sar,cotta}, and proposes
 reservoirs and stabilised objectives as remedies. Our result is compatible with
 that line and adds two things specific to the blocked-protocol case. First, the
-relevant quantity is a ratio of timescales rather than a qualitative property of
-the stream, and the threshold location is predicted rather than fitted
+relevant quantity is a ratio of timescales, not a qualitative property of
+the stream, and the threshold location is predicted, not fitted
 (Table~\ref{tab:rate}). Second, the constraint is two-sided, because in a
 longitudinal deployment the same estimator that can track the class is also the
 one that tracks the drift, so the remedies that slow adaptation trade one
-failure for the other rather than removing both.
+failure for the other instead of removing both.
 
 %=============================================================================
 \section{Limitations}
@@ -1165,14 +1184,14 @@ bounds are read from the recording protocol, which makes this a design-time
 check.
 
 The immediate open question is whether the band in (\ref{eq:band}) has an
-interior optimum that can be located rather than bracketed. Neither cohort here
+interior optimum that can be located, not merely bracketed. Neither cohort here
 can answer it: cohort A's band is wide enough that the fastest setting tested is
 already inside it, and cohort B's is empty. A protocol with
 $\tau_{\mathrm{blk}}$ between roughly 100 and 200 windows would place the two
 bounds close together, and the prediction is that accuracy would peak at an
 intermediate momentum and fall on both sides. That experiment is pre-registrable
 from the protocol alone, and it is the test we would want before treating
-Condition~\ref{prop:band} as established rather than as a description of two
+Condition~\ref{prop:band} as established, not as a description of two
 cohorts.
 
 A second direction follows from the residual. If a single running estimate

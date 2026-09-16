@@ -5,7 +5,8 @@
 \label{tab:landscape}
 \centering
 \small
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrrrrr@{}}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
 \toprule
 Model & Params & Screen & Pipe. C & Pipe. F & ECE $\downarrow$ & Acc@90 & Spread \\
 \midrule
@@ -37,7 +38,8 @@ EEGTCNet \citep{eegtcnet} & 4\,886 & 0.500 & --- & --- & \textit{n/a} & \textit{
 FBMSNet \citep{fbmsnet} & 26\,419 & n/c & --- & --- & \textit{n/a} & \textit{n/a} & --- \\
 EEGITNet \citep{eegitnet} & 3\,180 & n/c & --- & --- & \textit{n/a} & \textit{n/a} & --- \\
 \bottomrule
-\end{tabular*}
+\end{tabular}%
+}
 \end{table*}
 
 \begin{table*}[t]
@@ -95,6 +97,7 @@ BDTCN & --- & 0.748 & 0.652 & -0.095 \\
 \label{tab:norm}
 \centering
 \small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
 Model & Per-window & Global & None \\
@@ -107,7 +110,8 @@ BDTCN & 0.820 & \textbf{0.822} & 0.820 \\
 EEGConformer \citep{conformer} & 0.828 & \textbf{0.829} & 0.805 \\
 ATCNet \citep{atcnet} & 0.821 & 0.828 & \textbf{0.843} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \begin{table*}[t]
@@ -171,6 +175,7 @@ SL08 & 6.966 & 6.378 & 1.250 & $82.1\,\%$ \\
 \label{tab:noise}
 \centering
 \small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrr}
 \toprule
 Arm & Transformer & $n$ & Spread \\
@@ -188,6 +193,7 @@ align + ctx + gate & yes & 2 & 0.0119 \\
 ShallowFBCSPNet & --- & 3 & \textbf{0.0534} \\
 ATCNet & --- & 3 & \textbf{0.0413} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
