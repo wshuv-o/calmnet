@@ -13,8 +13,8 @@ Experiments that failed are reported, not omitted.
 | On cohort A it is *necessary*: removing it collapses the model to its bare stem | **supported** | 0.827 = 0.827, ablation |
 | The resulting model reaches 0.901 on cohort A, above every published model in the same harness | **supported** | vs ATCNet 0.879, EEGNeX 0.876, ShallowFBCSPNet 0.867, EEGConformer 0.843 |
 | The layer's adaptation memory must exceed the class-block duration | **supported** | predicted threshold, step of +0.090 to +0.098 on all 3 alignment arms, 0.000 on both alignment-free arms |
-| ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.097 on cohort B and **-0.077** on cohort A |
-| No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is ~0.08-0.10 worse at the other's setting |
+| ...but must also stay short enough to track drift: the rate is **two-sided** | **supported** | the same change is +0.092 on cohort B and **-0.061** on cohort A |
+| No single adaptation rate serves both cohorts | **supported** | optima are 0.01 and 0.20 respectively; each is 0.06-0.09 worse at the other's setting |
 | **The architecture generalises** | **NOT supported** | on cohort B the *bare stem* beats the full model, 0.737 vs 0.626 |
 | **Alignment helps decoding** | **NOT supported** | +0.051 on cohort A, -0.060 to -0.166 on cohort B |
 | **Cross-epoch context helps** | **NOT supported** | reverses sign between cohorts |
@@ -40,7 +40,7 @@ evaluation protocol that preceded it:
    did not follow.
    A fourth case is the sharpest, because it is a *prediction we registered and
    lost*: we predicted slowing adaptation would be neutral on cohort A, since its
-   class blocks already sit far inside the fastest memory. It cost 0.077. The
+   class blocks already sit far inside the fastest memory. It cost 0.061. The
    estimate had been doing useful work we had not accounted for -- tracking
    genuine drift -- and the metric we were optimising could not see it.
 4. The movement-leakage probe used throughout the preceding work is confounded
@@ -294,6 +294,17 @@ crosses the class-block length. Both arms that do not use it are unaffected --
 `dn_noalign` to within measurement noise, `dn_stem` *exactly*, to three decimals
 across all three settings.
 
+**Version caveat on the m = 0.20 column.** Those runs were completed before the
+per-window estimator correction of section 7.3; the other two columns came after.
+For `dn_noalign` and `dn_stem` this is immaterial -- alignment is disabled, so the
+estimator is never invoked, which is why `dn_stem` reproduces 0.737 exactly. For
+`dn_full` a matched-version baseline exists (0.631) and moves the step from
++0.098 to **+0.092**. For `dn_noctx` and `dn_nogate` no matched baseline has been
+measured yet, so their +0.090 and +0.094 carry an estimator-version confound of
+order 0.005 on this cohort. The conclusion does not depend on it -- the confound
+is an order of magnitude below the step -- but those two cells are not yet clean,
+and the matched runs are queued.
+
 The adaptation rate therefore acts only through the component it controls, which
 is what the mechanism requires and what an unrelated confound (optimisation
 dynamics, regularisation, run-to-run variance) would not produce.
@@ -306,7 +317,7 @@ section 7.5 twelve times the noise.
 **A one-sided rule would be wrong.** The obvious reading of this table is "set
 the adaptation memory longer than the class-block duration, and when in doubt go
 slower." Cohort B alone supports it. Section 7.5 tests it on cohort A and it
-fails: the same change that recovers +0.097 there costs -0.077 here. The rule is
+fails: the same change that recovers +0.092 there costs -0.061 here. The rule is
 two-sided, and we state it in its corrected form in 7.5 rather than here.
 
 ### 7.5 The rate is two-sided, and that explains the residual
@@ -315,13 +326,19 @@ Applying the same momentum change to cohort A produces the **opposite** result:
 
 | cohort | m = 0.20 | m = 0.01 | delta |
 |---|---|---|---|
-| A (ds007788), class blocks 18 windows | **0.878** | 0.801 | **-0.077** |
-| B (MoBI), class blocks 309 windows | 0.626 | **0.723** | **+0.097** |
+| A (ds007788), class blocks 18 windows | **0.862** | 0.801 | **-0.061** |
+| B (MoBI), class blocks 309 windows | 0.631 | **0.723** | **+0.092** |
+
+Both cells in each row come from the same code version (the corrected per-window
+estimator of section 7.3). An earlier draft of this table quoted -0.077 and
++0.097 by taking the m = 0.20 baselines from runs that predate that correction;
+the direction and magnitude survive, the exact deltas do not. The mixed-version
+numbers should not be cited.
 
 We predicted cohort A would be roughly neutral, on the grounds that its class
 blocks sit far below even the fastest setting's memory so the estimate was
-already class-mixed. It is not neutral: slowing adaptation costs 0.077 there.
-**There is no universal setting, and error in either direction costs 0.08-0.10.**
+already class-mixed. It is not neutral: slowing adaptation costs 0.061 there.
+**There is no universal setting, and error in either direction costs 0.06-0.09.**
 
 The mechanism is therefore two-sided. The running estimate tracks whatever varies
 on its own timescale, and two different things vary:
@@ -382,7 +399,7 @@ which we produced by acting on that assumption ourselves:
 
 5. We predicted, on record and before running it, that slowing adaptation would
    be neutral on cohort A because its class blocks already sit far inside the
-   fastest memory. It cost 0.077 -- the prediction failed because it accounted
+   fastest memory. It cost 0.061 -- the prediction failed because it accounted
    only for the harm the estimate can do and not for the benefit it was
    delivering.
 
