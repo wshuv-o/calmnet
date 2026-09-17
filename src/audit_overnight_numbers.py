@@ -261,13 +261,31 @@ claim("B 160", 0, "costs $%.3f$ at a memory of 160 windows (lower in %d of 8 par
 claim("B 320", 0, "$%.3f$ at 320 (%d of 8; $p=%.3f$)" % (cur[320][1], cur[320][2], cur[320][3]))
 claim("B 1600", 0, "$%.3f$ at 1600 (%d of 8; $p=%.2f$)" % (cur[1600][1], cur[1600][2], cur[1600][3]))
 claim("B 3200", 0, "$%.3f$ at 3200 (%d of 8; $p=%.2f$)" % (cur[3200][1], cur[3200][2], cur[3200][3]))
-claim("B abstract", 0, "at $%.3f$ without the layer over three seeds, and enabling the layer costs $%.3f$" % (gateB, cur[160][1]))
+claim("B abstract", 0, "at $%.3f$ without the layer over three seeds" % gateB)
+claim("B abstract cost", 0, "and enabling the layer costs $%.3f$," % cur[160][1])
 claim("B abstract slow", 0, "to $%.3f$ at a memory of 320 windows and $%.3f$ at 3200" % (cur[320][1], cur[3200][1]))
 claim("B external", 0, "against the gate-only arm ($%.3f$ against $%.3f$; lower in %d of 8 participants, Wilcoxon $p=%.3f$)" % (cur[160][0], gateB, cur[160][2], cur[160][3]))
 claim("B residual", 0, "still costs $%.3f$ and $%.3f$ on cohort B against the gate-only arm" % (cur[1600][1], cur[3200][1]))
 claim("B recovery", recB, "gives up $%.3f$ against a memory of 3200 windows" % recB)
 claim("B limitation", 0, "is $%.3f$ on cohort B over three seeds (lower in %d of 8 participants; $p=%.3f$)" % (cur[160][1], cur[160][2], cur[160][3]))
 claim("B drift slow", 0, "removes only $%.1f\\,\\%%$ and $%.1f\\,\\%%$ of session drift" % (100 * J("drift_momentum.json")["summary"]["m0.02"]["mean"], 100 * J("drift_momentum.json")["summary"]["m0.01"]["mean"]))
+
+# ---- cohort B, published decoders against the configuration without alignment
+BB = J("bd_cohort_b.json")
+RB = {}
+for m in sorted({k.split("|")[0] for k in BB}):
+    runs = [v for k, v in sorted(BB.items()) if k.split("|")[0] == m]
+    bs = psub(runs)
+    dB = np.array([gsB[x] - bs[x] for x in sorted(bs)])
+    RB[m] = (np.mean([r["acc"] for r in runs]), np.mean([r["ece"] for r in runs]), dB.mean(), (dB > 0).sum(), wilcoxon(dB).pvalue)
+accB = [v[0] for v in RB.values()]; eceB = [v[1] for v in RB.values()]
+belowB = [v for v in RB.values() if v[2] > 0]
+claim("B pub range abstract", 0, "level with eight published decoders ($%.3f$ to $%.3f$)" % (min(accB), max(accB)))
+claim("B pub range", 0, "averages $%.3f$ over three seeds, against $%.3f$ to $%.3f$ for the published decoders" % (gateB, min(accB), max(accB)))
+claim("B pub below", 0, "higher than seven of them, by $%.3f$ to $%.3f$" % (min(v[2] for v in belowB), max(v[2] for v in belowB)))
+claim("B TSception", 0, "$%.3f$ below TSception (higher in %d of 8 participants; Wilcoxon $p=%.2f$)" % (-RB["TSception"][2], RB["TSception"][3], RB["TSception"][4]))
+claim("B align below all", 0, "the configuration averages $%.3f$, below every published decoder" % cur[160][0])
+claim("B ECE", 0, "its calibration error is $%.3f$, against $%.3f$ to $%.3f$" % (np.mean([r["ece"] for r in gtB]), min(eceB), max(eceB)))
 
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))

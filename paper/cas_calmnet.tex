@@ -19,7 +19,6 @@
             urlcolor=magenta,
             filecolor=magenta}
 
-
 % Let TeX relax spacing on lines holding long unbreakable
 % citation strings, instead of overrunning the column.
 \emergencystretch=1.5em
@@ -35,7 +34,6 @@
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\textfraction}{0.07}
 \renewcommand{\floatpagefraction}{0.6}
-
 
 \newtheorem{proposition}{Proposition}
 \newtheorem{condition}{Condition}
@@ -94,7 +92,8 @@ seeds. Eight published decoders trained in the same pipeline average $0.817$ to 
 over the same seeds, and no difference from this decoder is significant. The layer reduces session-to-session covariance distance
 by $45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of
 15 participants, against a control with no systematic reduction. On a treadmill cohort whose class blocks last 309 windows, the decoder transfers
-at $0.729$ without the layer over three seeds, and enabling the layer costs $0.149$,
+at $0.729$ without the layer over three seeds, level with eight published decoders
+($0.617$ to $0.734$), and enabling the layer costs $0.149$,
 lower in 8 of 8 participants. Slowing adaptation reduces that cost gradually,
 to $0.091$ at a memory of 320 windows and $0.031$ at 3200, where it is no longer
 significant, and the layer does not become beneficial at any rate measured, while on the exoskeleton cohort slowing costs $0.050$ over three
@@ -201,7 +200,7 @@ Our contributions are:
       session-to-session covariance distance in 15 of 15 subjects against a
       no-op control (Section~\ref{sec:mechanism}).
 \item We compare the decoder with eight published decoders trained in one
-      pipeline on two cohorts, and report external validation on a treadmill
+      pipeline on three cohorts, and report external validation on a treadmill
       cohort, where the decoder transfers and the alignment layer inverts the
       ordering of arms (Sections~\ref{sec:compare} and~\ref{sec:external}).
 \item We retrain the decoder after ICA artefact removal. Most of the accuracy
@@ -838,8 +837,7 @@ the test of that.
 sensorimotor electrodes, the direction expected for mu and beta
 event-related desynchronisation, and rises over occipital and
 parieto-occipital electrodes, where neck muscle activity and visual input
-during walking would both appear. \pending{[Panel (c) title to be
-regenerated.]}}
+during walking would both appear.}
 \label{fig:topo}
 \end{figure*}
 
@@ -847,7 +845,8 @@ regenerated.]}}
 \label{sec:compare}
 
 Table~\ref{tab:compare} compares the proposed configuration with the eight
-published decoders of the experimental setup, all trained in the same pipeline.
+published decoders of the experimental setup, all trained in the same pipeline,
+on the three cohorts.
 
 On cohort A, over the same three data-split seeds, the proposed configuration
 averages $0.868$ and the published decoders average $0.817$ to $0.878$. Paired over
@@ -878,11 +877,23 @@ there ($0.059$ and $0.054$) shows why
 calibration error is read together with accuracy, since a decoder near chance
 that reports low confidence is well calibrated.
 
+On cohort B the lower bound of Condition~\ref{prop:band} disables alignment,
+and the configuration without it averages $0.729$ over three seeds, against $0.617$
+to $0.734$ for the published decoders. Paired over participants with seeds
+averaged, it is higher than seven of them, by $0.013$ to $0.111$, and $0.005$ below
+TSception (higher in 4 of 8 participants; Wilcoxon $p=0.84$). After Holm
+correction across the eight comparisons no difference remains below $0.05$.
+With alignment enabled at the default rate the configuration averages $0.580$,
+below every published decoder, which is the loss the lower bound exists to
+prevent. Without alignment its calibration error is $0.066$, against $0.066$ to $0.211$
+for the published decoders.
+
 On cohort A the proposed configuration's calibration error averages $0.058$
 across seeds, against $0.058$ to $0.076$ for the published decoders over the same
 seeds. Its accuracy is therefore level with the published decoders on cohort
-A and slightly higher on cohort C, without a significant difference against the
-strongest of them, and its calibration error is lower on cohort C. What the
+A, slightly higher on cohort C and level on cohort B once alignment is disabled
+there, without a significant difference against the strongest of them on any
+cohort, and its calibration error is lower on cohort C. What the
 architecture adds at this accuracy is an alignment layer that updates without
 labels at test time, a measured reduction of session drift
 (Section~\ref{sec:mechanism}), and a rule, checkable before training, for when
@@ -1315,12 +1326,6 @@ tracking directly.
 \label{sec:limits}
 
 Several limitations constrain the interpretation of these results.
-
-\textbf{No published decoder on cohort B.} The published decoders of
-Table~\ref{tab:compare} were run on cohorts A and C. \pending{[Their cohort B runs
-are in progress.]} The $0.729$ reported on cohort B can therefore be
-compared with our own arms and with the majority-class floor, and its standing
-relative to published methods on that cohort is untested.
 
 \textbf{Seeds.} The component ablation and the rate tables are single-seed.
 The proposed configuration was rerun over three data-split seeds under the

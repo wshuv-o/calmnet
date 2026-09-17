@@ -278,61 +278,70 @@ def seeds_of(d, arm):
 
 def t_compare():
     import numpy as _np
-    A3, bdA, bdC = L("a_aligngate_3seed.json"), L("bd_pipeline_c.json"), L("bd_cohort_c.json")
+    bdA, bdC, bdB = L("bd_pipeline_c.json"), L("bd_cohort_c.json"), L("bd_cohort_b.json")
     for _k, _v in L("bd_eegnex_s12.json").items():   # EEGNeX seeds 1-2 run on the RTX 5080
         bdA.setdefault(_k, _v)
+    A3, G3 = L("a_aligngate_3seed.json"), L("a_gate_3seed.json")
     C0, CR = L("cohort3_m0.2.json"), L("cohort3_rep_m0.2.json")
-    ours_A = [A3.get("dn_noctx|s%d" % i) for i in range(3)]
-    ours_C = [C0.get("dn_noctx|s0"), CR.get("dn_noctx|s1"), CR.get("dn_noctx|s2")]
+    BG = L("b_gate_aligngate_3seed.json")
 
-    def ms(runs):
-        a = [r["acc"] for r in runs]
-        return "%.3f $" % _np.mean(a) + BS + "pm$ %.3f" % _np.std(a, ddof=1)
+    def mean_of(runs, field):
+        return "%.3f" % _np.mean([r[field] for r in runs]) if len(runs) >= 3 else pend("pending")
 
     def failed(runs):
         return any(sum(1 for v in r["per_subject"].values() if v["acc"] < FAIL_ACC) >= FAIL_N
                    for r in runs)
 
-    rows = [group("This work", 7)]
-    rows.append("Ours, align + gate & 24" + BS + ",181 & %.3f & %.3f & %s & %.3f & %.3f %s" % (
-        ours_A[0]["acc"], ours_A[0]["ece"], ms(ours_A),
-        _np.mean([r["acc"] for r in ours_C]), _np.mean([r["ece"] for r in ours_C]), EOL))
+    ours = {
+        "Ours, align + gate": ("24" + BS + ",181",
+                               [A3.get("dn_noctx|s%d" % i) for i in range(3)],
+                               [C0.get("dn_noctx|s0"), CR.get("dn_noctx|s1"), CR.get("dn_noctx|s2")],
+                               seeds_of(BG, "dn_noctx")),
+        "Ours, gate only (alignment off)": ("24" + BS + ",180",
+                                            [G3.get("dn_gate|s%d" % i) for i in range(3)],
+                                            [C0.get("dn_gate|s0"), CR.get("dn_gate|s1"), CR.get("dn_gate|s2")],
+                                            seeds_of(BG, "dn_gate")),
+    }
+    rows = [group("This work", 8)]
+    for name, (par, a, c, b) in ours.items():
+        a, c, b = [x for x in a if x], [x for x in c if x], [x for x in b if x]
+        rows.append("%s & %s & %s & %s & %s & %s & %s & %s %s" % (
+            name, par, mean_of(a, "acc"), mean_of(a, "ece"), mean_of(c, "acc"), mean_of(c, "ece"),
+            mean_of(b, "acc"), mean_of(b, "ece"), EOL))
     rows.append(BS + "midrule")
-    rows.append(group("Published decoders, same pipeline", 7))
-    order = sorted(PARAMS_C, key=lambda m: -(g(bdA, m + "|s0") or 0))
-    for m in order:
-        a0 = bdA.get(m + "|s0")
-        ra, rc = seeds_of(bdA, m), seeds_of(bdC, m)
-        a_acc = f3(a0) if a0 else pend("---")
-        a_ece = "%.3f" % a0["ece"] if a0 else pend("---")
-        a3 = ms(ra) if len(ra) >= 3 else pend("pending")
-        if len(rc) >= 3:
-            dag = "$^" + BS + "dagger$" if failed(rc) else ""
-            c_acc = "%.3f%s" % (_np.mean([r["acc"] for r in rc]), dag)
-            c_ece = "%.3f" % _np.mean([r["ece"] for r in rc])
-        else:
-            c_acc, c_ece = pend("pending"), pend("pending")
-        rows.append("%s%s & %s & %s & %s & %s & %s & %s %s" % (
+    rows.append(group("Published decoders, same pipeline", 8))
+
+    def a3(m):
+        ra = seeds_of(bdA, m)
+        return _np.mean([r["acc"] for r in ra]) if ra else 0
+
+    for m in sorted(PARAMS_C, key=lambda m: -a3(m)):
+        ra, rc, rb = seeds_of(bdA, m), seeds_of(bdC, m), seeds_of(bdB, m)
+        c_acc = mean_of(rc, "acc")
+        if len(rc) >= 3 and failed(rc):
+            c_acc += "$^" + BS + "dagger$"
+        rows.append("%s%s & %s & %s & %s & %s & %s & %s & %s %s" % (
             m, cref(m), "{:,}".format(PARAMS_C[m]).replace(",", BS + ","),
-            a_acc, a_ece, a3, c_acc, c_ece, EOL))
+            mean_of(ra, "acc"), mean_of(ra, "ece"), c_acc, mean_of(rc, "ece"),
+            mean_of(rb, "acc"), mean_of(rb, "ece"), EOL))
     return table(
         "tab:compare",
         "The proposed decoder and eight published decoders trained in one "
         "pipeline, with identical preprocessing, optimiser, schedule, early "
         "stopping, model selection and classifier head. Balanced accuracy "
-        "(Acc) and expected calibration error (ECE). Cohort A has seven "
-        "participants and cohort C twenty; cohort C values are means over "
-        "three data-split seeds. Parameter counts include the shared "
-        "classifier and are instantiated at cohort A's input shape. Seed-0 "
-        "differences on cohort A lie within the proposed decoder's range "
-        "across seeds and are not ranked. $" + BS + "dagger$ near chance "
-        "($<0.55$) for at least five participants on a seed, a training "
-        "failure under the shared settings. " + pend("Red cells await runs "
-        "in progress."),
-        "lrrrrrr",
-        "Model & Params & A Acc (seed 0) & A ECE (seed 0) & A Acc (3 seeds) "
-        "& C Acc & C ECE",
+        "(Acc) and expected calibration error (ECE), each the mean over three "
+        "data-split seeds; cohorts A, C and B have seven, twenty and eight "
+        "participants. The lower bound of Condition~" + BS + "ref{prop:band} "
+        "enables alignment on cohorts A and C and disables it on cohort B, so "
+        "the proposed configuration is the first row on A and C and the "
+        "second on B. Parameter counts include the shared classifier and are "
+        "instantiated at cohort A's input shape. $" + BS + "dagger$ near chance "
+        "($<0.55$) for at least five of the twenty participants on a seed, a "
+        "training failure under the shared settings.",
+        "lrrrrrrr",
+        "Model & Params & A Acc & A ECE & C Acc & C ECE & B Acc & B ECE",
         rows, wide=True)
+
 
 # ===================================================================== mega 2
 def t_rate():

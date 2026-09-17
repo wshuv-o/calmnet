@@ -17,7 +17,8 @@ seeds. Eight published decoders trained in the same pipeline average $0.817$ to 
 over the same seeds, and no difference from this decoder is significant. The layer reduces session-to-session covariance distance
 by $45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of
 15 participants, against a control with no systematic reduction. On a treadmill cohort whose class blocks last 309 windows, the decoder transfers
-at $0.729$ without the layer over three seeds, and enabling the layer costs $0.149$,
+at $0.729$ without the layer over three seeds, level with eight published decoders
+($0.617$ to $0.734$), and enabling the layer costs $0.149$,
 lower in 8 of 8 participants. Slowing adaptation reduces that cost gradually,
 to $0.091$ at a memory of 320 windows and $0.031$ at 3200, where it is no longer
 significant, and the layer does not become beneficial at any rate measured, while on the exoskeleton cohort slowing costs $0.050$ over three
