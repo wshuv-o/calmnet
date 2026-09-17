@@ -166,11 +166,24 @@ claim("head 3seed ECE", 0, "is $%.3f$ without the head against $%.3f$ with it"
 # ---- pipeline C comparison with published decoders ------------------------
 bdA, bdC = J("bd_pipeline_c.json"), J("bd_cohort_c.json")
 a0 = [v["acc"] for k, v in bdA.items() if k.endswith("|s0")]
-claim("pub A range", 0, "the published decoders reach $%.3f$ to $%.3f$" % (min(a0), max(a0)))
+claim("pub A seed0 range", 0, "($%.3f$ against $%.3f$ to $%.3f$)" % (A3["dn_noctx|s0"]["acc"], min(a0), max(a0)))
 oursA0 = A3["dn_noctx|s0"]
-gaps = sorted(oursA0["acc"] - x for x in a0)
-claim("pub A within", 0, "Seven of the eight lie within $%.3f$ of it" % (round(gaps[6] + 0.0005, 3)))
-claim("A seed range", 0, "inside its own range of $%.3f$ across seeds" % (max(sa3) - min(sa3)))
+for k_, v_ in J("bd_eegnex_s12.json").items():
+    bdA.setdefault(k_, v_)
+osA = {x: np.mean([A3["dn_noctx|s%d" % i]["per_subject"][x]["acc"] for i in range(3)]) for x in A3["dn_noctx|s0"]["per_subject"]}
+RA = {}
+for m in sorted({k.split("|")[0] for k in bdA}):
+    runs = [bdA[k] for k in sorted(bdA) if k.split("|")[0] == m]
+    bs = {x: np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
+    dA = np.array([osA[x] - bs[x] for x in sorted(bs)])
+    RA[m] = (np.mean([r["acc"] for r in runs]), np.mean([r["ece"] for r in runs]), dA.mean(), (dA < 0).sum(), wilcoxon(dA).pvalue)
+claim("pub A 3seed range", 0, "the published decoders average $%.3f$ to $%.3f$" % (min(v[0] for v in RA.values()), max(v[0] for v in RA.values())))
+claim("pub A above", 0, "EEG-TCNet and EEGNeX lie $%.3f$ and $%.3f$ above it (higher in %d and %d of 7 participants; Wilcoxon $p=%.2f$ and $p=%.2f$)"
+      % (-RA["EEGTCNet"][2], -RA["EEGNeX"][2], RA["EEGTCNet"][3], RA["EEGNeX"][3], RA["EEGTCNet"][4], RA["EEGNeX"][4]))
+blw = [v for m, v in RA.items() if v[2] > 0]
+claim("pub A below", 0, "lie $%.3f$ to $%.3f$ below it (smallest $p=%.2f$)" % (min(v[2] for v in blw), max(v[2] for v in blw), min(v[4] for v in blw)))
+claim("pub A ECE 3seed", 0, "against $%.3f$ to $%.3f$ for the published decoders over the same" % (min(v[1] for v in RA.values()), max(v[1] for v in RA.values())))
+claim("pub A small", 0, "EEG-TCNet averages $%.3f$ with 7{,}062 parameters and FBLightConvNet $%.3f$" % (RA["EEGTCNet"][0], RA["FBLightConvNet"][0]))
 cC = [J("cohort3_m0.2.json")["dn_noctx|s0"], J("cohort3_rep_m0.2.json")["dn_noctx|s1"], J("cohort3_rep_m0.2.json")["dn_noctx|s2"]]
 claim("ours C mean", 0, "the proposed configuration averages $%.3f$, and" % np.mean([r["acc"] for r in cC]))
 oc = {x: np.mean([r["per_subject"][x]["acc"] for r in cC]) for x in cC[0]["per_subject"]}
@@ -184,8 +197,6 @@ for m, lab in (("EEGNeX", "than EEGNeX by"), ("EEGConformer", "than EEG Conforme
     claim("C vs " + m + " n", 0, "%d of 20" % (dd_ > 0).sum())
 claim("ours C ECE", 0, "Its expected calibration error is $%.3f$" % np.mean([r["ece"] for r in cC]))
 claim("ours A ECE", 0, "calibration error averages $%.3f$" % np.mean([A3["dn_noctx|s%d" % i]["ece"] for i in range(3)]))
-e0 = [v["ece"] for k, v in bdA.items() if k.endswith("|s0")]
-claim("pub A ECE range", 0, "at the first seed ($%.3f$ to $%.3f$)" % (min(e0), max(e0)))
 for m in ("EEGNet", "Deep4Net", "EEGTCNet"):
     runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
     n = [sum(1 for v in r["per_subject"].values() if v["acc"] < 0.55) for r in runs]

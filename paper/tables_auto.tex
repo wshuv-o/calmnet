@@ -17,7 +17,7 @@ EEGTCNet \citep{eegtcnet} & 7\,062 & 0.871 & 0.077 & 0.878 $\pm$ 0.009 & 0.585$^
 FBLightConvNet & 23\,760 & 0.870 & 0.059 & 0.866 $\pm$ 0.011 & 0.778 & 0.077 \\
 ShallowFBCSPNet \citep{schirrmeister} & 206\,962 & 0.870 & 0.068 & 0.849 $\pm$ 0.020 & 0.765 & 0.078 \\
 EEGNet \citep{lawhern} & 27\,666 & 0.868 & 0.062 & 0.856 $\pm$ 0.028 & 0.630$^\dagger$ & 0.059 \\
-EEGNeX \citep{eegnex} & 71\,010 & 0.862 & 0.068 & \pending{pending} & 0.783 & 0.083 \\
+EEGNeX \citep{eegnex} & 71\,010 & 0.862 & 0.068 & 0.876 $\pm$ 0.014 & 0.783 & 0.083 \\
 EEGConformer \citep{conformer} & 445\,442 & 0.857 & 0.066 & 0.847 $\pm$ 0.008 & 0.783 & 0.077 \\
 TSception \citep{tsception} & 182\,098 & 0.856 & 0.076 & 0.852 $\pm$ 0.003 & 0.723 & 0.079 \\
 Deep4Net \citep{schirrmeister} & 717\,417 & 0.823 & 0.058 & 0.817 $\pm$ 0.014 & 0.549$^\dagger$ & 0.139 \\
@@ -26,7 +26,7 @@ Deep4Net \citep{schirrmeister} & 717\,417 & 0.823 & 0.058 & 0.817 $\pm$ 0.014 & 
 \end{table*}
 
 \begin{table*}[t]
-\caption{The adaptation-rate condition, single seed. Momentum $m$ sets the estimator's memory to roughly $32/m$ windows: 160, 640 and 3200. \textbf{Every arm that uses alignment gains as the memory crosses the class-block length, and neither arm that omits it responds}; the stem-only arm reproduces 0.737 exactly at all three settings despite a 160-fold change. The lower block applies the identical change to the cohort whose blocks are short, where it costs 0.060, so the two cohorts have opposite optima. \pending{Cohort B values await three-seed reruns and intermediate memories of 320 and 1600 windows; cohort A values await three seeds.}}
+\caption{The adaptation-rate condition, single seed. Momentum $m$ sets the estimator's memory to roughly $32/m$ windows: 160, 640 and 3200. \textbf{Every arm that uses alignment gains as the memory crosses the class-block length, and neither arm that omits it responds}; the stem-only arm reproduces 0.737 exactly at all three settings despite a 160-fold change. The lower block applies the identical change to the cohort whose blocks are short, where it costs 0.060, so the two cohorts have opposite optima. Three-seed values for cohort B are in Table~\ref{tab:ratecurve}, and for cohort A in Section~\ref{sec:twosided}.}
 \label{tab:rate}
 \centering
 \small
@@ -47,6 +47,23 @@ ctx + gate & 0.834 & --- & 0.827 & -0.007 & \textbf{no} & -0.007 \\
 \bottomrule
 \end{tabular}
 \end{table*}
+
+\begin{table}[t]
+\caption{Cohort B over three data-split seeds under the current estimator. \textit{Cost} is \textit{align + gate} minus the no-align arm, which does not use the estimator and is averaged over its 6 runs (0.763), paired within participant with seeds averaged; $p$ is the Wilcoxon signed-rank test. The cost falls gradually as the memory lengthens, with no step at $\tau_{\mathrm{blk}}=309$, and it stays negative at every memory measured.}
+\label{tab:ratecurve}
+\centering
+\small
+\begin{tabular}{rrrrrr}
+\toprule
+$m$ & Memory & align + gate & Cost & Lower in & $p$ \\
+\midrule
+0.20 & 160 & 0.580 $\pm$ 0.008 & $-0.183$ & 7 of 8 & 0.016 \\
+0.10 & 320 & 0.638 $\pm$ 0.002 & $-0.125$ & 7 of 8 & 0.023 \\
+0.02 & 1600 & 0.695 $\pm$ 0.005 & $-0.068$ & 6 of 8 & 0.148 \\
+0.01 & 3200 & \pending{pending} & \pending{pending} & \pending{pending} & \pending{pending} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[t]
 \caption{Two-condition comparisons. \textbf{The first block is the identifying evidence for the stem design}: removing per-window normalisation is worth $+0.134$ and $+0.174$ where the representation is pure marginal power, and \textbf{exactly $+0.000$ where it is scale-free by construction} and therefore cannot respond. An effect that scales with power content and vanishes without it identifies the mechanism instead of merely demonstrating it. The second block retired an amplitude side-channel: supplying a per-window amplitude feature and supplying the same feature with its window assignment shuffled differ by under 0.02 for four of five models.}
@@ -176,6 +193,7 @@ no-align & yes & 3 & 0.0369 \\
 \multicolumn{4}{l}{\textit{Across data-split seeds, published decoders, same pipeline}} \\
 Deep4Net & --- & 3 & 0.0265 \\
 EEGConformer & --- & 3 & 0.0153 \\
+EEGNeX & --- & 3 & 0.0268 \\
 EEGNet & --- & 3 & 0.0518 \\
 EEGTCNet & --- & 3 & 0.0175 \\
 FBLightConvNet & --- & 3 & 0.0215 \\
