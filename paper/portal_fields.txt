@@ -1,0 +1,21 @@
+TITLE
+-----
+Label-free covariance alignment for longitudinal EEG decoding
+
+
+ABSTRACT
+--------
+A decoder that drives a powered lower-limb exoskeleton is fitted once and must keep working for weeks, during which electrode impedance, montage and skin contact change the second-order statistics that every spatial filter depends on. Correcting this shift inside the network, by re-estimating the input covariance at inference and whitening by it without labels, is an attractive design because it needs no target-domain calibration session.
+
+Such a layer carries a failure mode its offline counterpart cannot have. A running estimate tracks whatever is currently streaming. Under a protocol that presents classes in long contiguous blocks, the estimate converges to the currently active class and the layer whitens away the signal it was inserted to protect.
+
+We present a decoder combining a label-free adaptive alignment layer, a multi-scale power stem that preserves log-power ratios, and a selective head trained under a coverage constraint, and we derive an admissible band for the adaptation rate from two timescales that are measurable from the recording protocol before any model is fitted.
+
+On a 7-subject, 9-session exoskeleton cohort recorded across weeks, the 24,181-parameter configuration reaches 0.901 balanced accuracy with expected calibration error 0.039, at 53 % of the parameters of the strongest baseline evaluated in the same pipeline (0.913). Declining the least-confident 10 % of windows lowers balanced accuracy by 0.026 here and in 14 of the 18 arms measured, providing no evidence that the selective head improves accuracy on retained windows. The alignment layer reduces session-to-session covariance distance by 52.0 ± 4.5 % and 83.9 ± 3.9 % on two independent cohorts, in 15 of 15 subjects (p ≤ 10⁻⁴), against a no-op control that shows no reduction. On the second cohort, recorded in an independent laboratory with different sensors and reversed class balance, the decoder reaches 0.792 balanced accuracy with the alignment layer disabled; enabling it drops the model to 0.626. The layer worth +0.074 on the first cohort costs -0.211 on the second. Slowing adaptation past the class-block length recovers +0.090 to +0.098 on all three arms that use alignment and exactly 0.000 on both arms that do not. Applying the same change to the first cohort costs -0.060, so the two optima are opposite and no single rate serves both protocols.
+
+The admissible rate band is bounded below by the class-block timescale and above by the drift timescale. Where class blocks outlast drift the band is empty and the layer should be omitted. Because both bounds are properties of the experimental design, the condition can be evaluated at design time, and it predicts where in-network adaptation will fail before a model is trained.
+
+
+KEYWORDS (all 7 from the manuscript)
+----------------------------------------
+brain–computer interface; electroencephalography; test-time adaptation; covariate shift; selective prediction; calibration; lower-limb exoskeleton

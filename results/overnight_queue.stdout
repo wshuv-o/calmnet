@@ -1,0 +1,17 @@
+[02:08:56] queue started
+[02:08:56] waiting for run 2 (pid 13620) to exit
+[02:40:27] launching ICA precompute (2 workers)
+[02:40:27] START icactl_orig
+[02:46:50] END   icactl_orig  rc=0  6 min
+[02:46:50] waiting for EEGMMIDB download
+[03:02:20] START cohort3_m0.2
+[03:13:25] END   cohort3_m0.2  rc=0  11 min
+[03:13:25] START cohort3_m0.01
+[03:20:21] END   cohort3_m0.01  rc=0  7 min
+[03:20:21] waiting for ICA precompute
+[03:20:21] ICA precompute exited rc=0
+[03:20:21] START icactl_ica
+[03:26:23] END   icactl_ica  rc=0  6 min
+[03:26:23] START align_only
+[03:56:42] END   align_only  rc=0  30 min
+[03:56:42] QUEUE DONE
