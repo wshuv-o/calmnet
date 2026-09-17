@@ -97,10 +97,24 @@ def drop_rows(src_name, phrase, labels, out_name, dpi=300):
     lines = sorted({round(w[1], 1): w for w in page.get_text("words", clip=clip)}.values(), key=lambda w: w[1])
     ys = sorted({(round(w[1], 1), round(w[3], 1)) for w in page.get_text("words", clip=clip)})
     cuts = []
+    import re as _re
+    rows = {}
+    for w in page.get_text("words", clip=clip):
+        rows.setdefault((w[5], w[6]), []).append(w)
     for lab in labels:
-        r = page.search_for(lab, clip=clip)[0]
+        lab = lab.strip()
+        hit = None
+        for ws in rows.values():
+            text = " ".join(x[4] for x in sorted(ws, key=lambda x: x[0]))
+            if _re.match(_re.escape(lab) + r"\s+[0-9]", text) or text == lab or _re.match(_re.escape(lab) + r"\s+\[", text):
+                hit = fitz.Rect(min(x[0] for x in ws), min(x[1] for x in ws), max(x[2] for x in ws), max(x[3] for x in ws))
+                break
+        assert hit is not None, lab
+        r = hit
         above = max(y1 for y0, y1 in ys if y1 <= r.y0 + 0.5)
-        below = min(y0 for y0, y1 in ys if y0 >= r.y1 - 0.5)
+        below = min((y0 for y0, y1 in ys if y0 >= r.y1 - 0.5), default=None)
+        if below is None:          # last row: keep the bottom rule below it
+            below = r.y1 + (r.y0 - above)
         cuts.append(((above + r.y0) / 2, (r.y1 + below) / 2))
     keep, prev = [], clip.y0
     for a, b in sorted(cuts):
@@ -115,6 +129,19 @@ def drop_rows(src_name, phrase, labels, out_name, dpi=300):
     return cuts
 
 
+
+def keep_columns_until(src_name, phrase, first_dropped_header, out_name, dpi=300):
+    """Keep the table columns left of a header word; the rest is cut off."""
+    from PIL import Image
+    page, _ = find(doc_global, phrase)
+    path, clip, _ = crop_table(doc_global, src_name, phrase, dpi=dpi)
+    img = Image.open(path)
+    r = page.search_for(first_dropped_header, clip=clip)[0]
+    prev_right = max(w[2] for w in page.get_text("words", clip=clip) if w[2] < r.x0 - 1)
+    cut = ((prev_right + r.x0) / 2 - clip.x0) * dpi / 72.0
+    img.crop((0, 0, int(cut), img.height)).save(OUT / (out_name + ".png"))
+
+
 if __name__ == "__main__":
     doc = fitz.open(str(PDF))
     doc_global = doc
@@ -122,5 +149,7 @@ if __name__ == "__main__":
         path, clip, pg = crop_table(doc, name, phrase)
         print("%-14s page %2d  clip %s" % (name, pg, tuple(round(v) for v in clip)))
     print("tab_compare_ppt  EEGTCNet row cut at", drop_rows("tab_compare", TABLES["tab_compare"], ["EEGTCNet"], "tab_compare_ppt"))
+    drop_rows("tab_ablation3", TABLES["tab_ablation3"], ["align + ctx", "ctx + gate", "stem only"], "tab_ablation3_ppt")
+    keep_columns_until("tab_ratecurve", TABLES["tab_ratecurve"], "Cost", "tab_ratecurve_ppt")
     path, clip, pg = crop_arch(doc)
     print("%-14s page %2d  clip %s" % ("fig_arch", pg, tuple(round(v) for v in clip)))
