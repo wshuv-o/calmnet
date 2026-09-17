@@ -1139,7 +1139,8 @@ gives up $0.118$ against a memory of 3200 windows
 cohort A. One reading is a trade-off in which a fast estimate tracks both the
 streaming class, which is harmful, and session drift, which is beneficial. Measured without a decoder, slowing the estimate also stops it removing drift:
 on cohort A the reduction in session-to-session distance falls from
-$45.9\,\%$ at $m=0.2$ to $12.1\,\%$ at $m=0.05$ and $0.2\,\%$ at $m=0.01$. At
+$45.9\,\%$ at $m=0.2$ to $12.1\,\%$ at $m=0.05$ and $0.2\,\%$ at $m=0.01$, and on
+cohort B from $62.5\,\%$ to $45.5\,\%$ and $11.1\,\%$. At
 $m=0.01$ the estimator's memory, about 3200 windows, is ten times a held-out
 session of about 313 windows, so this measures how far the estimate can move
 within the data available and does not isolate a drift timescale
@@ -1187,10 +1188,13 @@ data, because its drift timescale could not be measured
 At the slowest rates measured, memories of 1600 and 3200 windows, alignment
 still costs $0.034$ and $0.031$ on cohort B against the gate-only arm (lower in 6 of
 8 participants at both; $p=0.15$), a residual that is not significant with eight
-participants. On cohort A, measured without a decoder, the estimate removes only
-$2.3\,\%$ and $0.2\,\%$ of session drift at those rates, which would leave
-estimation noise without a drift correction to offset it, but the same
-measurement has not been made on cohort B.
+participants. Measured without a decoder on cohort B
+itself, the estimate still removes $22.3\,\%$ and $11.1\,\%$ of session drift at
+those rates, against $2.3\,\%$ and $0.2\,\%$ on cohort A, so the residual does not
+come from an absence of drift correction: on cohort B the drift that the slow
+estimate removes does not turn into accuracy. The residual is therefore
+reported as unexplained, and it is a further case of a distribution-level
+improvement without a task improvement (Section~\ref{sec:discussion}).
 \end{remark}
 
 \begin{remark}[Offline alignment is exempt]

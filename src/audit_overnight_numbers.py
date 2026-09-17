@@ -268,7 +268,10 @@ claim("B external", 0, "against the gate-only arm ($%.3f$ against $%.3f$; lower 
 claim("B residual", 0, "still costs $%.3f$ and $%.3f$ on cohort B against the gate-only arm" % (cur[1600][1], cur[3200][1]))
 claim("B recovery", recB, "gives up $%.3f$ against a memory of 3200 windows" % recB)
 claim("B limitation", 0, "is $%.3f$ on cohort B over three seeds (lower in %d of 8 participants; $p=%.3f$)" % (cur[160][1], cur[160][2], cur[160][3]))
-claim("B drift slow", 0, "removes only $%.1f\\,\\%%$ and $%.1f\\,\\%%$ of session drift" % (100 * J("drift_momentum.json")["summary"]["m0.02"]["mean"], 100 * J("drift_momentum.json")["summary"]["m0.01"]["mean"]))
+DMB = J("drift_momentum_b.json")["summary"]
+claim("B drift slow", 0, "still removes $%.1f\,\%%$ and $%.1f\,\%%$ of session drift" % (100 * DMB["m0.02"]["mean"], 100 * DMB["m0.01"]["mean"]))
+claim("A drift slow", 0, "against $%.1f\,\%%$ and $%.1f\,\%%$ on cohort A" % (100 * DM["m0.02"]["mean"], 100 * DM["m0.01"]["mean"]))
+claim("B drift sweep", 0, "cohort B from $%.1f\,\%%$ to $%.1f\,\%%$ and $%.1f\,\%%$" % (100 * DMB["m0.2"]["mean"], 100 * DMB["m0.05"]["mean"], 100 * DMB["m0.01"]["mean"]))
 
 # ---- cohort B, published decoders against the configuration without alignment
 BB = J("bd_cohort_b.json")
