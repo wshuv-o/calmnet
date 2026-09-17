@@ -112,3 +112,56 @@ downstream by accident.
 2. **No-op control rerun** without trace normalisation. Cheap, no GPU. Expected
    to make the control exactly null and to lower the reported drift reduction
    by roughly 5 points (58.2% → 53.0% on cohort A sub-01 in a spot check).
+
+---
+
+## Performance note (read before optimising the 5080 queue)
+
+This machine **is** an RTX 5080. An earlier message from this session said it
+was not; that was asserted without checking and is wrong. If the 5080 queue is
+meant for this card, its jobs contend with anything running here.
+
+**Parallelising gave no measurable gain.** Measured throughput, cohort A
+`dn_noctx`:
+
+| configuration | s/subject aggregate | speedup |
+|---|---|---|
+| serial, 1 worker | 55 | 1.00x |
+| 3 workers, default threads | 48 | 1.15x |
+| 3 workers, threads capped to cores/workers | 54 | 1.02x |
+
+GPU utilisation rose from 3 % to 95 % and power from 22 W to 177 W, but
+throughput did not move. The utilisation counter measures occupancy, not useful
+work. Do not spend the queue's time on concurrency expecting a speedup.
+
+**Where the time actually goes.** Profiling one training step (24,181-parameter
+model, batch 32):
+
+| | share | note |
+|---|---|---|
+| `cudaStreamSynchronize` | **53.7 %** | blocking GPU->CPU stalls, 2 per forward |
+| `cudaLaunchKernel` | 11.9 % | 308 launches per step |
+| `aten::_linalg_eigh` | 13.4 % | 60x60 eigendecomposition per forward |
+
+Host-to-device transfer is **2 %** (50.45 ms/step with data resident on the
+GPU, 51.50 ms copying from host), so PCIe is not the constraint either.
+
+**The stalls come from `AdaptiveAlignment.forward`:**
+
+```python
+if self.primed.item() == 0:      # GPU tensor -> .item() forces a full sync
+```
+
+`primed` is a GPU tensor, so every forward pass blocks the pipeline to read one
+boolean that is True after the first batch and never changes. Making it a
+Python bool is **numerically free** (control flow, not arithmetic) and should
+be worth roughly 2x. It does not fall foul of the cross-version rule in
+CLAUDE.md because no result bit changes.
+
+The eigendecomposition is the second cost and is a poor fit for any GPU: it is
+sequential, and consumer cards run FP64 at 1/64 rate. Measured for 60x60:
+GPU float64 18.72 ms, CPU float64 **2.73 ms**. Moving it to CPU is worth a
+further ~13 %, but CPU and GPU LAPACK can differ in the last bits, so it needs
+a bit-identity check against an existing cell before adoption.
+
+Neither fix has been applied. Both are recommendations only.
