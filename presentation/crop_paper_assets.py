@@ -85,10 +85,42 @@ def crop_arch(doc, dpi=300):
     return path, r, page.number + 1
 
 
+
+def drop_rows(src_name, phrase, labels, out_name, dpi=300):
+    """Cut table rows out of a cropped table image, at the midpoints of the gaps
+    to the neighbouring lines, so the rest is the paper's own rendering."""
+    from PIL import Image
+    page, _ = find(doc_global, phrase)
+    path, clip, _ = crop_table(doc_global, src_name, phrase, dpi=dpi)
+    img = Image.open(path)
+    scale = dpi / 72.0
+    lines = sorted({round(w[1], 1): w for w in page.get_text("words", clip=clip)}.values(), key=lambda w: w[1])
+    ys = sorted({(round(w[1], 1), round(w[3], 1)) for w in page.get_text("words", clip=clip)})
+    cuts = []
+    for lab in labels:
+        r = page.search_for(lab, clip=clip)[0]
+        above = max(y1 for y0, y1 in ys if y1 <= r.y0 + 0.5)
+        below = min(y0 for y0, y1 in ys if y0 >= r.y1 - 0.5)
+        cuts.append(((above + r.y0) / 2, (r.y1 + below) / 2))
+    keep, prev = [], clip.y0
+    for a, b in sorted(cuts):
+        keep.append((prev, a)); prev = b
+    keep.append((prev, clip.y1))
+    parts = [img.crop((0, int(round((a - clip.y0) * scale)), img.width, int(round((b - clip.y0) * scale)))) for a, b in keep]
+    out = Image.new("RGB", (img.width, sum(pp.height for pp in parts)), "white")
+    y = 0
+    for pp in parts:
+        out.paste(pp, (0, y)); y += pp.height
+    out.save(OUT / (out_name + ".png"))
+    return cuts
+
+
 if __name__ == "__main__":
     doc = fitz.open(str(PDF))
+    doc_global = doc
     for name, phrase in TABLES.items():
         path, clip, pg = crop_table(doc, name, phrase)
         print("%-14s page %2d  clip %s" % (name, pg, tuple(round(v) for v in clip)))
+    print("tab_compare_ppt  EEGTCNet row cut at", drop_rows("tab_compare", TABLES["tab_compare"], ["EEGTCNet"], "tab_compare_ppt"))
     path, clip, pg = crop_arch(doc)
     print("%-14s page %2d  clip %s" % ("fig_arch", pg, tuple(round(v) for v in clip)))

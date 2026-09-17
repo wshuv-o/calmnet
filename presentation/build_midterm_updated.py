@@ -23,7 +23,8 @@ HERE = Path(__file__).resolve().parent
 RES = HERE.parent / "results"
 ASSETS = HERE / "paper_assets"
 SRC = HERE / "CALM-Net_midterm_proposal.pptx"
-OUT = HERE / "CALM-Net_midterm_updated.pptx"
+import sys
+OUT = HERE / (sys.argv[1] if len(sys.argv) > 1 else "CALM-Net_midterm_updated.pptx")
 
 BLK = RGBColor(0x11, 0x11, 0x11)
 GRY = RGBColor(0x55, 0x55, 0x55)
@@ -210,7 +211,7 @@ for name, num, head, body in (
                          P(R(body, 16, color=GRY), sa=8, ls=1.22)])
 tb = borrow(s, 2, "TextBox 6", left=0.70, top=5.85, width=12.0, height=1.1)
 write(tb, [P(R("Same settings for every model:  ", 17, bold=True),
-             R("8 to 30 Hz, AdamW, early stopping, temperature scaling and three data-split seeds, with eight "
+             R("8 to 30 Hz, AdamW, early stopping, temperature scaling and three data-split seeds, with seven "
                "published decoders trained in the identical pipeline.", 17, color=GRY), sa=8, ls=1.2)])
 
 # ------------------------------------------------------------------ 9 what is decoded
@@ -257,17 +258,17 @@ write(get(s, "TextBox 10"), [lead("Cohort A:  ", "a reduction of 38.7 to 51.2 % 
 s = clone(9, skip=("Rectangle 6", "Rectangle 7", "Rectangle 8"))
 title(s, "Comparison with Published Decoders")
 write(get(s, "TextBox 4"), [P(R("Balanced accuracy (Acc) and calibration error (ECE), mean over three data-split seeds; "
-                                "all nine decoders trained in one pipeline.", 13.5, italic=True, color=GRY))])
-picture(s, ASSETS / "tab_compare.png", 0.70, 1.95, 11.93, 3.35)
+                                "every model trained in one pipeline.", 13.5, italic=True, color=GRY))])
+picture(s, ASSETS / "tab_compare_ppt.png", 0.70, 1.95, 11.93, 3.35)
 note = get(s, "TextBox 9")
 place(note, top=5.30)
 write(note, [P(R("† near chance for at least five of twenty participants, a training failure under the shared settings.",
                  11.5, italic=True, color=GRY))])
 tk = get(s, "TextBox 10")
 place(tk, top=5.65, height=1.5)
-write(tk, [lead("Takeaway:  ", "level with the published decoders on cohort A (0.868 against 0.817 to 0.878), highest on "
+write(tk, [lead("Takeaway:  ", "level with the published decoders on cohort A (0.868 against 0.817 to 0.876), highest on "
                               "cohort C (0.796), and level on cohort B once alignment is off (0.729 against 0.617 to 0.734).", 16),
-           lead("No size advantage:  ", "EEG-TCNet is smaller. The contribution is the alignment layer and the rule "
+           lead("No size advantage:  ", "FBLightConvNet has 23,760 parameters against 24,181. The contribution is the alignment layer and the rule "
                                          "that switches it.", 16)])
 
 # ------------------------------------------------------------------ 14 class tracking
@@ -350,7 +351,7 @@ for name, num, head, body in (
         ("Rectangle 4", "1", "The selective head",
          "Declining the least-confident 10 % lowers accuracy in 14 of 18 arms, and the head adds no accuracy over three seeds."),
         ("Rectangle 5", "2", "Parameter efficiency",
-         "EEG-TCNet reaches 0.878 with 7,062 parameters, against 0.868 with 24,181 for the proposed decoder."),
+         "FBLightConvNet reaches 0.866 with 23,760 parameters, against 0.868 with 24,181 for the proposed decoder."),
         ("Rectangle 6", "3", "The drift ceiling",
          "Two estimates of the drift timescale failed to resolve it, so only the lower bound of the rate condition is claimed.")):
     write(get(s, name), [P(R(num, 30, bold=True), sa=6, ls=1.1), P(R(head, 20, bold=True), sa=10, ls=1.05),
@@ -362,7 +363,7 @@ title(s, "Limitations and Next Steps")
 bul = [("•  Small cohorts:", " seven, eight and twenty participants, so most paired tests have limited power."),
        ("•  Upper bound untested:", " no cohort samples drift finely enough to measure the drift timescale."),
        ("•  One participant per scalp map:", " the topography shows spatial separation; the ICA control carries the artefact test."),
-       ("•  Baselines untuned:", " published decoders used our settings, and three failed to train on cohort C.")]
+       ("•  Baselines untuned:", " published decoders used our settings, and EEGNet and Deep4Net failed to train on cohort C.")]
 write(get(s, "TextBox 4"), [P(R(b, 19, bold=True), R(t, 19, color=GRY), sa=13, ls=1.18) for b, t in bul])
 write(get(s, "Rectangle 5"), [P(R("NEXT   ", 14, bold=True),
                                 R("Pre-register a protocol with class blocks of 100 to 200 windows and closely spaced "
