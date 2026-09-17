@@ -8,16 +8,14 @@ Updated 2026-09-17 16:50. Seven red items remain.
 
 | Red item (where) | Replaced by | Machine | Result file |
 |---|---|---|---|
-| Component ablation table (tab:ablation), Fig. ablation note, cross-epoch context paragraph (0.023; ECE 0.039 to 0.074; 1.64 to 1.26 FA/min; 23 %) | Ablation arms seeds 1-2, current estimator: dn_stem and dn_noalign (running, started 15:40, ~20:00-20:30); dn_full and dn_nogate | RTX 2060; RTX 5080 queue job 4 | a_ablation_s12_2060.json; a_ablation_s12.json |
+| Component ablation table (tab:ablation), Fig. ablation note, cross-epoch context paragraph (0.023; ECE 0.039 to 0.074; 1.64 to 1.26 FA/min; 23 %) | Ablation arms seeds 1-2, current estimator: dn_stem and dn_noalign (running, started 15:40, about 21:45); dn_full and dn_nogate | RTX 2060; RTX 5080 queue job 4 | a_ablation_s12_2060.json; a_ablation_s12.json |
 | Fig. rate note: panel (c) draws an upper bound, panel (a) single seed | Redraw from src/figures.py | this machine | results/fig_rate.pdf |
 | Limitations: published decoders on cohort B | Eight decoders on cohort B, three seeds | RTX 5080 queue job 3 | bd_cohort_b.json |
 
 ## Final (black) since the last update
 
 - Cohort B against the gate-only arm (clean contrast, 5080 jobs 1-2, verified): gate 0.729 ± 0.006; alignment costs 0.149 (8 of 8, p = 0.008) at memory 160, 0.091 at 320, 0.034 at 1600, 0.031 at 3200 (not significant at the last two); recovery 160 to 3200 is 0.118. Replaces the context-arm reference (0.763, 0.183) everywhere.
-
 - Cohort A comparison over three seeds (EEGNeX seeds 1-2 from the 5080, bd_eegnex_s12.json): published decoders 0.817-0.878, ours 0.868; no paired difference significant (EEG-TCNet +0.010, EEGNeX +0.008 above ours; others 0.003-0.051 below, smallest p = 0.22). ECE ours 0.058, published 0.058-0.076.
-- Cohort B three-seed rate table (tab:ratecurve): cost of alignment 0.183 / 0.125 / 0.068 at memory 160 / 320 / 1600; slowing from 160 to 1600 recovers 0.115. Used in the abstract, slow-adaptation section, replication paragraph, Discussion items 1-2, Limitations and Conclusion.
 - Single-seed items that no planned run replaces are now black and labelled single seed: tab:rate, tab:external, Fig. inversion, the seed-0 values 0.792 and 0.626.
 - Earlier today: cohort C comparison; drift 45.9 % and 62.5 % with a null control; drift reduction against rate; cohort A slow rate over three seeds (−0.050).
 
