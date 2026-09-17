@@ -25,6 +25,17 @@
 \emergencystretch=1.5em
 \hyphenpenalty=1000
 
+% Many full-width floats: allow more per page so figures stay near their text
+% instead of queueing behind the tables until after the references.
+\setcounter{dbltopnumber}{3}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\dblfloatpagefraction}{0.6}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{6}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.6}
+
 
 \newtheorem{proposition}{Proposition}
 \newtheorem{condition}{Condition}
@@ -856,7 +867,7 @@ that layer must be slowed (Section~\ref{sec:rate}).
 \subsection{External validation and the inverted ordering}
 \label{sec:external}
 
-\begin{figure}[t]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{../results/fig_inversion.pdf}
 \caption{The same five arms on both cohorts, single seed. Solid heavy black is
@@ -961,14 +972,15 @@ a different alignment parameterisation, and the same conclusion: the alignment
 stage is not what carries the performance.
 
 \paragraph{Normalisation across published architectures}
-Table~\ref{tab:norm} repeats the normalisation comparison across seven
-published decoders. Per-window normalisation is the best choice for none of
-them and the worst for four, which is the architecture-level counterpart of the
-representation-level dose--response in Table~\ref{tab:repr}.
+Table~\ref{tab:norm} repeats the normalisation comparison across six
+published decoders, in an earlier training pipeline. Per-window normalisation is
+the best choice for two of them and the worst for two, and most differences are
+below the $0.02$ noise threshold, so this comparison neither supports nor
+contradicts the representation-level dose--response in Table~\ref{tab:repr}.
 Table~\ref{tab:repr} reports the control that retired the amplitude
 side-channel: supplying a per-window amplitude feature and supplying the same
-feature with its window assignment shuffled differ by less than $0.01$ for five
-of six models.
+feature with its window assignment shuffled differ by less than $0.02$ for four
+of five models.
 
 Tables~\ref{tab:repr} and \ref{tab:rejected} report the representation and
 architecture sweeps that preceded the design. The tangent-space representation
@@ -1013,6 +1025,35 @@ that memory, the estimate converges to the currently streaming class, and
 whitening by it removes the between-class difference. Cohort A's blocks
 ($\tau_{\mathrm{blk}}=18$) sit far inside even the fastest memory; cohort B's
 ($\tau_{\mathrm{blk}}=309$) do not.
+
+Fig.~\ref{fig:tracking} shows the estimate itself for one participant from each
+cohort. It is the layer's internal state, which depends only on the input
+windows and the momentum and on no trained weight, so it is computed without
+training. At $m=0.2$ the estimate on cohort A stays away from both class
+covariances, while on cohort B it moves to the covariance of the class being
+streamed and follows it through the long walk block. At $m=0.01$ the estimate
+on cohort B still moves toward the walk covariance, more slowly, and crosses
+over late in the recording.
+
+\begin{figure*}[pos=tp]
+\centering
+\includegraphics[width=\textwidth]{../results/fig_class_tracking.pdf}
+\caption{The running covariance estimate and the streaming class, one
+participant per cohort (cohort A sub-01, cohort B SL01). Top row: class
+covariances (crosses) and the estimate's path in recording order, projected to
+two dimensions by multidimensional scaling on the affine-invariant Riemannian
+distance and coloured by the streaming class. Bottom row: distance from the
+estimate to each class covariance against window index, with the background
+shaded by the streaming class. (a,b) Cohort A, $\tau_{\mathrm{blk}}=18$,
+$m=0.2$: the estimate stays closer to the stop covariance throughout and
+approaches neither class. (c,d) Cohort B, $\tau_{\mathrm{blk}}=309$, $m=0.2$:
+the estimate starts near the stop covariance, moves to the walk covariance when
+the walk block begins, and the two distances swap back when stop returns. (e,f)
+Cohort B at $m=0.01$: the estimate moves toward the walk covariance more slowly
+and crosses over once, late in the recording. \pending{[In-panel labels to be
+regenerated: text overlaps the curves in (b), (d) and (f).]}}
+\label{fig:tracking}
+\end{figure*}
 
 If this mechanism is responsible, slowing adaptation until the memory exceeds a class block should restore cohort B. The memory is approximately 160, 640 and 3200 windows
 at $m=0.2$, $0.05$ and $0.01$, so the crossing of
@@ -1197,7 +1238,7 @@ nuisance-decodability score, with task performance assumed to follow
 within a single system, three of which we produced by acting on that assumption
 ourselves (Fig.~\ref{fig:metrics}).
 
-\begin{figure}[t]
+\begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{../results/fig_metrics.pdf}
 \caption{Five cases in which a distribution-level quantity improved (right, in
