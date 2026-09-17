@@ -1,7 +1,7 @@
 """Slide-by-slide speaking script for CALM-Net_midterm_presentation_final.pptx.
 
-Writes presentation_script.md and presentation_script.docx, and puts each
-slide's script into that slide's speaker notes (visible in Presenter View).
+Writes presentation_script.docx as a two-column table (slide number, script)
+and presentation_script.md; the deck itself carries no speaker notes.
 
     python presentation/presentation_script.py
 """
@@ -188,19 +188,48 @@ def write_md():
 
 
 def write_docx():
+    """Two-column table: slide number, script."""
     from docx import Document
-    from docx.shared import Pt
+    from docx.enum.table import WD_TABLE_ALIGNMENT
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.shared import Cm, Pt
     doc = Document()
     st = doc.styles["Normal"]
     st.font.name = "Times New Roman"
     st.font.size = Pt(12)
     doc.add_heading("CALM-Net Midterm Presentation Script", level=1)
-    doc.add_paragraph("%d slides, about %d minutes in total." % (len(SCRIPT), round(total_seconds() / 60)))
+    table = doc.add_table(rows=1, cols=2)
+    table.style = "Table Grid"
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    hdr = table.rows[0].cells
+    for cell, text in zip(hdr, ("Slide", "Script")):
+        cell.text = ""
+        run = cell.paragraphs[0].add_run(text)
+        run.bold = True
     for i, (name, secs, paras) in enumerate(SCRIPT, 1):
-        doc.add_heading("Slide %d. %s (about %d s)" % (i, name, secs), level=2)
-        for p in paras:
-            doc.add_paragraph(p)
+        row = table.add_row().cells
+        row[0].text = str(i)
+        row[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        row[1].text = ""
+        for k, para in enumerate(paras):
+            p = row[1].paragraphs[0] if k == 0 else row[1].add_paragraph()
+            p.add_run(para)
+            p.paragraph_format.space_after = Pt(4)
+    for row in table.rows:
+        row.cells[0].width = Cm(2.0)
+        row.cells[1].width = Cm(14.5)
     doc.save(str(HERE / "presentation_script.docx"))
+
+
+def clear_notes(path=DECK):
+    """Remove any speaker notes from the deck."""
+    from pptx import Presentation
+    prs = Presentation(str(path))
+    for slide in prs.slides:
+        if slide.has_notes_slide:
+            slide.notes_slide.notes_text_frame.text = ""
+    prs.save(str(path))
+    return path.name
 
 
 def write_notes(path=DECK):
@@ -222,4 +251,4 @@ if __name__ == "__main__":
     write_md()
     write_docx()
     print("script: %d slides, %.1f minutes" % (len(SCRIPT), total_seconds() / 60))
-    print("notes written to", write_notes())
+    print("speaker notes cleared in", clear_notes())
