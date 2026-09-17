@@ -567,7 +567,10 @@ def t_rejected():
 
 # ===================================================================== small
 def t_drift():
-    d = L("drift.json")
+    d = L("drift_fixed.json")
+    sa, sb = d["ds007788"]["summary"], d["mobi"]["summary"]
+    noop_max = max(abs(v["noop"] - v["raw"]) / v["raw"]
+                   for c in ("ds007788", "mobi") for v in d[c]["per_subject"].values())
     rows = []
     for key, lab, ns in (("ds007788", "Cohort A", "6 held-out sessions"),
                          ("mobi", "Cohort B", "2 held-out trials")):
@@ -587,10 +590,11 @@ def t_drift():
         "affine-invariant Riemannian distance between the fitting-session mean "
         "covariance and the held-out mean. The no-op control shares every code "
         "path but never updates its estimate. \\textbf{Every participant "
-        "improves}: 15 of 15, $t=-9.14$, $p=10^{-4}$ (A) and $t=-20.59$, "
-        "$p<10^{-5}$ (B); the control shows no reduction in either cohort. "
-        + BS + "pending{Values await the rerun without trace normalisation in "
-        "the distance measurement.}",
+        "improves}: 15 of 15, $t=%.2f$, $p=%s$ (A) and $t=%.2f$, $p=%s$ (B). "
+        "The control changes the distance by at most $%.2f" % (
+            sa["t"], "%.0f" % (sa["p"] / 10 ** int(__import__("math").floor(__import__("math").log10(sa["p"])))) + BS + "times10^{%d}" % int(__import__("math").floor(__import__("math").log10(sa["p"]))),
+            sb["t"], "%.0f" % (sb["p"] / 10 ** int(__import__("math").floor(__import__("math").log10(sb["p"])))) + BS + "times10^{%d}" % int(__import__("math").floor(__import__("math").log10(sb["p"]))),
+            noop_max * 100) + BS + "," + BS + "%$ of its raw value.",
         "lrrrr",
         "Participant & Raw $" + BS + "delta$ & No-op & Aligned & Reduction",
         rows)

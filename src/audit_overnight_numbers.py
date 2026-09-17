@@ -207,10 +207,26 @@ claim("C Holm others", 0, "only the differences from" if all(holm[m] > 0.05 for 
 tc = [v for k, v in bdC.items() if k.split("|")[0] in ("EEGNet", "EEGTCNet")]
 claim("C fail ECE", 0, "($%.3f$ and $%.3f$)" % (np.mean([v["ece"] for k, v in bdC.items() if k.startswith("EEGNet|")]),
                                                np.mean([v["ece"] for k, v in bdC.items() if k.startswith("EEGTCNet|")])))
-slow = J("driftmom_ds_0.01_noctx.json")["dn_noctx|s0"]["per_subject"]
-ds_ = np.array([slow[x]["acc"] - oursA0["per_subject"][x]["acc"] for x in sorted(slow)])
-claim("A slow paired", ds_.mean(), "slowing lowers accuracy in %d of 7 ($p=%.3f$" % ((ds_ < 0).sum(), wilcoxon(ds_).pvalue))
-claim("A slow cost", ds_.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds_.mean())
+slow = J("driftmom_ds_0.01_noctx.json")["dn_noctx|s0"]
+claim("A slow seed0", 0, "takes cohort A from $%.3f$ to $%.3f$ at the first data-split seed" % (oursA0["acc"], slow["acc"]))
+S3 = J("a_slow_noctx_3seed.json")
+s3 = [S3["dn_noctx|s%d" % i] for i in range(3)]
+s3sub = {x: np.mean([r["per_subject"][x]["acc"] for r in s3]) for x in s3[0]["per_subject"]}
+ds3 = np.array([s3sub[x] - ag[x] for x in sorted(ag)])
+claim("A slow 3seed", 0, "slow arm averages $%.3f \\pm %.3f$ against $%.3f \\pm %.3f$" % (np.mean([r["acc"] for r in s3]), np.std([r["acc"] for r in s3], ddof=1), np.mean(sa3), np.std(sa3, ddof=1)))
+claim("A slow cost", ds3.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds3.mean())
+claim("A slow paired", 0, "lower in %d of 7 participants (Wilcoxon $p=%.3f$" % ((ds3 < 0).sum(), wilcoxon(ds3).pvalue))
+claim("A slow per seed", 0, "The cost is $%s$, $%s$ and $%s$ on the three seeds" % tuple("-%.3f" % (a - r["acc"]) if a > r["acc"] else "+%.3f" % (r["acc"] - a) for r, a in zip(s3, sa3)))
+claim("A slow abstract", ds3.mean(), "same change costs $%.3f$ over three seeds" % -ds3.mean())
+
+# ---- session drift, rerun without trace normalisation ----------------------
+DF = J("drift_fixed.json")
+for c, lab in (("ds007788", "A"), ("mobi", "B")):
+    sm = DF[c]["summary"]
+    per = np.array([v["reduction"] for v in DF[c]["per_subject"].values()]) * 100
+    claim("drift %s mean" % lab, sm["reduction"], "$%.1f\\pm%.1f" % (sm["reduction"] * 100, sm["reduction_sd"] * 100))
+    claim("drift %s range" % lab, 0, "$%.1f$ to $%.1f\\,\\%%$ on cohort %s" % (per.min(), per.max(), lab))
+    claim("drift %s t" % lab, sm["t"], "$t=%.2f$" % sm["t"])
 
 # ---- cohort B at memory 320 (m = 0.10), three seeds ------------------------
 fl = J("b_floor_m0.10.json")

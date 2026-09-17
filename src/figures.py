@@ -47,7 +47,9 @@ def g(d, arm, field="acc"):
 
 # ===================================================================== fig 2
 def fig_drift():
-    d = L("drift.json")
+    # drift_fixed.json: no trace normalisation after the map, so the no-op
+    # control is exactly null (drift.json is kept only for audit).
+    d = L("drift_fixed.json")
     fig, axes = plt.subplots(1, 2, figsize=(FULL, 2.25),
                              gridspec_kw=dict(width_ratios=[1.05, 1.2], wspace=0.28))
     for ax, (key, lab, n) in zip(axes, [("ds007788", "cohort A", 7),
@@ -68,8 +70,7 @@ def fig_drift():
         ax.set_ylabel(r"Riemannian distance $\delta$" if key == "ds007788" else "")
         ax.grid(axis="y")
         ax.set_axisbelow(True)
-        red = d.get(key, {}).get("mean_reduction")
-        red = red if red is not None else (0.520 if key == "ds007788" else 0.839)
+        red = d[key]["summary"]["reduction"]
         S.note(ax, 0.98, 0.93, r"$-%.0f\,\%%$ aligned vs raw" % (red * 100),
                transform=ax.transAxes, ha="right", color=OURS, fontsize=7)
     h, l = axes[0].get_legend_handles_labels()

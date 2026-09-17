@@ -120,7 +120,7 @@ Viterbi decoding & 4 & 0.817 & 0.778 (baseline) & \textbf{+0.038} & survives shu
 \end{table*}
 
 \begin{table}[t]
-\caption{Per-participant session drift. $\delta$ is the affine-invariant Riemannian distance between the fitting-session mean covariance and the held-out mean. The no-op control shares every code path but never updates its estimate. \textbf{Every participant improves}: 15 of 15, $t=-9.14$, $p=10^{-4}$ (A) and $t=-20.59$, $p<10^{-5}$ (B); the control shows no reduction in either cohort. \pending{Values await the rerun without trace normalisation in the distance measurement.}}
+\caption{Per-participant session drift. $\delta$ is the affine-invariant Riemannian distance between the fitting-session mean covariance and the held-out mean. The no-op control shares every code path but never updates its estimate. \textbf{Every participant improves}: 15 of 15, $t=-9.46$, $p=8\times10^{-5}$ (A) and $t=-12.33$, $p=5\times10^{-6}$ (B). The control changes the distance by at most $0.09\,\%$ of its raw value.}
 \label{tab:drift}
 \centering
 \small
@@ -129,23 +129,23 @@ Viterbi decoding & 4 & 0.817 & 0.778 (baseline) & \textbf{+0.038} & survives shu
 Participant & Raw $\delta$ & No-op & Aligned & Reduction \\
 \midrule
 \multicolumn{5}{l}{\textit{Cohort A, 6 held-out sessions}} \\
-A01 & 7.154 & 7.938 & 3.144 & $56.1\,\%$ \\
-A02 & 12.832 & 16.522 & 7.013 & $45.3\,\%$ \\
-A03 & 6.092 & 6.228 & 2.827 & $53.6\,\%$ \\
-A04 & 11.035 & 11.981 & 4.840 & $56.1\,\%$ \\
-A05 & 5.336 & 4.906 & 2.346 & $56.0\,\%$ \\
-A06 & 7.016 & 6.644 & 3.399 & $51.5\,\%$ \\
-A07 & 9.139 & 9.990 & 5.007 & $45.2\,\%$ \\
+A01 & 6.925 & 6.926 & 3.385 & $51.1\,\%$ \\
+A02 & 11.867 & 11.878 & 7.273 & $38.7\,\%$ \\
+A03 & 5.891 & 5.891 & 2.875 & $51.2\,\%$ \\
+A04 & 10.337 & 10.339 & 5.240 & $49.3\,\%$ \\
+A05 & 5.208 & 5.208 & 3.163 & $39.3\,\%$ \\
+A06 & 6.909 & 6.909 & 3.650 & $47.2\,\%$ \\
+A07 & 8.986 & 8.987 & 4.986 & $44.5\,\%$ \\
 \midrule
 \multicolumn{5}{l}{\textit{Cohort B, 2 held-out trials}} \\
-SL01 & 5.845 & 5.450 & 1.039 & $82.2\,\%$ \\
-SL02 & 7.795 & 8.850 & 1.451 & $81.4\,\%$ \\
-SL03 & 6.030 & 5.934 & 0.713 & $88.2\,\%$ \\
-SL04 & 8.158 & 4.486 & 1.933 & $76.3\,\%$ \\
-SL05 & 5.823 & 6.799 & 0.666 & $88.6\,\%$ \\
-SL06 & 6.482 & 7.722 & 0.888 & $86.3\,\%$ \\
-SL07 & 4.738 & 4.849 & 0.653 & $86.2\,\%$ \\
-SL08 & 6.966 & 6.378 & 1.250 & $82.1\,\%$ \\
+SL01 & 6.658 & 6.658 & 3.176 & $52.3\,\%$ \\
+SL02 & 8.122 & 8.126 & 3.623 & $55.4\,\%$ \\
+SL03 & 5.739 & 5.739 & 1.879 & $67.3\,\%$ \\
+SL04 & 4.803 & 4.803 & 2.701 & $43.8\,\%$ \\
+SL05 & 6.153 & 6.154 & 2.050 & $66.7\,\%$ \\
+SL06 & 6.696 & 6.696 & 1.546 & $76.9\,\%$ \\
+SL07 & 4.737 & 4.737 & 0.846 & $82.1\,\%$ \\
+SL08 & 6.462 & 6.462 & 2.854 & $55.8\,\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -82,14 +82,14 @@ weeks it reaches $0.868 \pm 0.026$ balanced accuracy over three data-split
 seeds. Eight published decoders trained in the same pipeline reach $0.823$ to
 $0.871$ at the first seed, against $0.884$ for this decoder, a margin inside its
 variation across seeds. The layer reduces session-to-session covariance distance
-by \pending{$52.0 \pm 4.5\,\%$ and $83.9 \pm 3.9\,\%$} on two cohorts, in 15 of
+by $45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of
 15 participants, against a control with no systematic reduction. On a treadmill
 cohort whose class blocks last 309 windows, the decoder transfers at
 \pending{$0.792$} without the layer, and enabling the layer costs
 \pending{$0.211$}. Slowing adaptation past the block length recovers
 \pending{$0.090$ to $0.098$} on every arm that uses alignment and leaves the arms
 without it within their run-to-run noise, while on the exoskeleton cohort the
-same change costs $0.085$.
+same change costs $0.050$ over three seeds.
 
 The lower bound then predicted a third cohort in advance. With class blocks of
 five windows, both predictions committed before any model was trained held:
@@ -109,7 +109,7 @@ checked before a model is trained.
       test time.
 \item Accuracy is level with eight published decoders trained in the same
       pipeline.
-\item In-network alignment reduces session drift by \pending{52--84\%} in 15 of
+\item In-network alignment reduces session drift by 46--63\% in 15 of
       15 subjects.
 \item Test-time adaptation can track the streaming class and erase the signal it
       protects.
@@ -188,7 +188,7 @@ Our contributions are:
       model was trained on it (Condition~\ref{prop:band},
       Section~\ref{sec:prereg}).
 \item We validate the mechanism separately from the task, reporting a
-      \pending{$52.0\pm4.5\,\%$ and $83.9\pm3.9\,\%$} reduction in
+      $45.9\pm4.9\,\%$ and $62.5\pm12.2\,\%$ reduction in
       session-to-session covariance distance in 15 of 15 subjects against a
       no-op control (Section~\ref{sec:mechanism}).
 \item We compare the decoder with eight published decoders trained in one
@@ -645,32 +645,29 @@ distance $\delta$ between the fitting-session mean covariance and the held-out
 session mean, for the raw signal, the momentum-0 no-op control, and the aligned
 signal. (a) cohort A, $n=7$; (b) cohort B, $n=8$. Distance falls in every
 participant of both cohorts; the no-op control, which shares every code path but
-never updates its estimate, shows no reduction. \pending{[Figure to be
-regenerated from the rerun.]}}
+never updates its estimate, leaves the distance unchanged.}
 \label{fig:drift}
 \end{figure*}
 
-Drift is reduced in 15 of 15 participants (\pending{$t=-9.14$,
-$p=1\times10^{-4}$} for cohort A; \pending{$t=-20.59$, $p<1\times10^{-5}$} for
-cohort B), with per-participant reductions spanning \pending{$45.2$ to
-$56.1\,\%$} on cohort A and \pending{$76.3$ to $88.6\,\%$} on cohort B (Table~\ref{tab:drift}). No participant regresses, and the
-reduction is not carried by one or two outliers. The no-op control shows no
-systematic reduction in either cohort, which establishes that the effect comes
-from adaptation. The control excludes the whitening operation and the
-measurement itself.
+Drift is reduced in 15 of 15 participants ($t=-9.46$, $p=8\times10^{-5}$ for
+cohort A; $t=-12.33$, $p=5\times10^{-6}$ for cohort B), with per-participant
+reductions spanning $38.7$ to $51.2\,\%$ on cohort A and $43.8$ to $82.1\,\%$ on
+cohort B (Table~\ref{tab:drift}). No participant regresses, and the
+reduction is not carried by one or two outliers. The no-op control leaves
+the distance unchanged, which establishes that the effect comes from adaptation
+and excludes both the whitening operation and the measurement itself.
 
-\pending{[Pending the rerun without trace normalisation in the distance
-measurement, which makes the no-op control exactly null; this paragraph will be
-rewritten.] The control is not inert. Per participant it moves the distance by
-$-28.8\,\%$ to $+45.0\,\%$, scattering in both directions about a mean of
-roughly zero. The running estimate is primed by copying the first batch's
-covariance regardless of momentum, so at momentum $0$ the layer whitens by the
-fit-session covariance and never updates, and the layer returns a gated blend
-$g\,Wx + (1-g)\,x$ with $g=\sigma(2.0)\approx0.88$. The effective operation is
-the fixed linear map $M = gW + (1-g)I$, a congruence under which the
-affine-invariant distance is invariant; the measurement then normalises each
-covariance by its own trace after the map, which breaks that invariance and
-produces the scatter.}
+The no-op control runs at momentum $0$. Its running estimate is primed by
+copying the first batch's covariance and never updates, so it applies one fixed
+linear map to every session, $M = gW + (1-g)I$ with $g=\sigma(2.0)\approx0.88$.
+A fixed map applied to both covariances is a congruence, under which the
+affine-invariant distance (\ref{eq:riem}) does not change, and the control
+accordingly changes the distance by less than $0.1\,\%$ of its raw value in
+every participant (Table~\ref{tab:drift}). An earlier version of this
+measurement normalised each covariance by its trace after the map, which breaks
+that invariance and made the control scatter in both directions; it was
+removed, and the values reported here replace the larger reductions it produced
+($52.0$ and $83.9\,\%$).
 
 The mechanism works as designed, and Section~\ref{sec:external} shows
 that this does not settle whether it helps the task.
@@ -1067,14 +1064,16 @@ drift half of that reading could not be measured directly
 
 That cost was first measured on \textit{align + ctx + gate}, which is not the
 configuration this paper proposes. Repeating it on the proposed
-\textit{align + gate} arm enlarges the figure: slowing to
-$m=0.01$ takes cohort A from $0.884$ to $0.799 \pm 0.087$ (SD across the seven
-participants), a cost of $\mathbf{-0.085}$ under the trace-normalised
-estimator. Both numbers use the same estimator version; comparing the slow arm
-against the original-estimator $0.901$ would inflate the cost to $-0.102$ by
-mixing estimator versions. Paired over participants at this seed, slowing lowers accuracy in 7 of 7
-($p=0.016$, the smallest attainable with seven participants).
-\pending{[Three seeds of the slow arm are in progress.]}
+\textit{align + gate} arm gives a similar figure: slowing to
+$m=0.01$ takes cohort A from $0.884$ to $0.799$ at the first data-split seed
+under the trace-normalised estimator, a cost of $0.085$. Over three seeds the
+slow arm averages $0.819 \pm 0.017$ against $0.868 \pm 0.026$, a cost of
+$\mathbf{-0.050}$ with each participant's accuracy averaged over seeds, lower in
+7 of 7 participants (Wilcoxon $p=0.016$, the smallest attainable with seven
+participants). The cost is $-0.085$, $-0.056$ and $-0.008$ on the three seeds,
+so the first-seed figure is the largest of the three. Both arms use the same
+estimator version; comparing the slow arm against the original-estimator
+$0.901$ would inflate the cost by mixing estimator versions.
 
 \begin{condition}[Admissible rate band]
 \label{prop:band}
@@ -1167,7 +1166,7 @@ $p=0.68$), and slowing it changes accuracy by $-0.006$ (higher in 9, lower in
 Two further seeds were run after the registered test and are reported separately from it. They agree with both verdicts and sharpen one of them. Enabling alignment changes accuracy by $+0.014$ (higher in 13 participants, lower in 7; $p=0.17$), so it again costs nothing, and its small positive trend is not significant. Slowing adaptation costs $0.016$ (lower in 15 of 20; $p=0.003$) and is negative on all three seeds, so on this cohort it carries a small cost. Read after the fact, the sign of slowing is consistent with the lower bound on
 every cohort. It helps where the estimate tracks the class (cohort~B,
 \pending{$+0.090$}) and costs accuracy on both cohorts with short blocks
-(cohort~A, $-0.085$; cohort~C, $-0.016$). That pattern was observed on the
+(cohort~A, $-0.050$; cohort~C, $-0.016$). That pattern was observed on the
 replication seeds and formed no part of the registered prediction.
 
 The test covers the lower bound of Condition~\ref{prop:band} and its contrast
@@ -1198,9 +1197,9 @@ not the decoder can access the nuisance.}
 
 \begin{enumerate}
 \item The adaptation rate was originally selected because it maximised drift
-      reduction ($60\,\%$ against $25\,\%$). That choice cost \pending{$0.092$} accuracy
+      reduction (\pending{$60\,\%$ against $25\,\%$, measured with the earlier normalisation}). That choice cost \pending{$0.092$} accuracy
       on cohort B (Table~\ref{tab:rate}).
-\item The cohort in which more drift was removed (\pending{$83.9\,\%$ against $52.0\,\%$}, Table~\ref{tab:drift}) is the
+\item The cohort in which more drift was removed ($62.5\,\%$ against $45.9\,\%$, Table~\ref{tab:drift}) is the
       cohort in which accuracy fell by \pending{$0.166$} (Table~\ref{tab:external}).
 \item A verified correction to a genuine covariance-estimation bias moved
       decoding by $+0.005$ and $-0.016$ (Section~\ref{sec:rejected}).
