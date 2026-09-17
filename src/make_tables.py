@@ -290,7 +290,12 @@ def t_compare():
     BG = L("b_gate_aligngate_3seed.json")
 
     def mean_of(runs, field):
-        return "%.3f" % _np.mean([r[field] for r in runs]) if len(runs) >= 3 else pend("pending")
+        if len(runs) < 3:
+            return pend("pending")
+        v = [r[field] for r in runs]
+        if field != "acc":
+            return "%.3f" % _np.mean(v)
+        return "%.3f $" % _np.mean(v) + BS + "pm$ %.3f" % _np.std(v, ddof=1)
 
     def failed(runs):
         return any(sum(1 for v in r["per_subject"].values() if v["acc"] < FAIL_ACC) >= FAIL_N
@@ -333,8 +338,9 @@ def t_compare():
         "The proposed decoder and eight published decoders trained in one "
         "pipeline, with identical preprocessing, optimiser, schedule, early "
         "stopping, model selection and classifier head. Balanced accuracy "
-        "(Acc) and expected calibration error (ECE), each the mean over three "
-        "data-split seeds; cohorts A, C and B have seven, twenty and eight "
+        "(Acc, mean $" + BS + "pm$ SD across three data-split seeds) and "
+        "expected calibration error (ECE, mean over the same seeds); cohorts A, "
+        "C and B have seven, twenty and eight "
         "participants. The lower bound of Condition~" + BS + "ref{prop:band} "
         "enables alignment on cohorts A and C and disables it on cohort B, so "
         "the proposed configuration is the first row on A and C and the "
@@ -344,7 +350,7 @@ def t_compare():
         "training failure under the shared settings.",
         "lrrrrrrr",
         "Model & Params & A Acc & A ECE & C Acc & C ECE & B Acc & B ECE",
-        rows, wide=True)
+        rows, wide=True, fit=True)
 
 
 # ===================================================================== mega 2
@@ -358,19 +364,26 @@ def t_rate():
             ("dn_nogate", "align + ctx", True),
             ("dn_noalign", "ctx + gate", False),
             ("dn_stem", "stem only", False)]
+    def psd(d, key):
+        """mean +- SD across participants, single seed"""
+        a, sd = g(d, key), g(d, key, "acc_sd")
+        if a is None:
+            return "---"
+        return "%.3f" % a if sd is None else "%.3f $" % a + BS + "pm$ %.3f" % sd
+
     rows = [group("Cohort B ($" + BS + "tau_{" + BS + "mathrm{blk}}=309$): "
                   "slowing adaptation past the class block", 7)]
     for k, lab, uses in arms:
-        b0 = g(m020, k + "|s0")
-        b0 = b0 if b0 is not None else g(m020o, k + "|s0")
+        src0 = m020 if g(m020, k + "|s0") is not None else m020o
+        b0 = g(src0, k + "|s0")
         b1, b2 = g(m005, k + "|s0"), g(m001, k + "|s0")
         d = None if (b0 is None or b1 is None) else b1 - b0
         ds = "---" if d is None else ("%+.3f" % d)
         if uses and d is not None:
             ds = BS + "textbf{" + ds + "}"
         rows.append("%s & %s & %s & %s & %s & %s & --- %s" % (
-            lab, f3(b0), f3(b1), f3(b2), ds, "yes" if uses else BS + "textbf{no}",
-            EOL))
+            lab, psd(src0, k + "|s0"), psd(m005, k + "|s0"), psd(m001, k + "|s0"), ds,
+            "yes" if uses else BS + "textbf{no}", EOL))
     rows.append(BS + "midrule")
     rows.append(group("Cohort A ($" + BS + "tau_{" + BS + "mathrm{blk}}=18$): "
                       "the same change, matched estimator", 7))
@@ -382,11 +395,12 @@ def t_rate():
         if k == "dn_full":
             ds = BS + "textbf{" + ds + "}"
         rows.append("%s & %s & --- & %s & %s & %s & %s %s" % (
-            lab, f3(a0), f3(a1), ds,
+            lab, psd(a020, k + "|s0"), psd(a001, k + "|s0"), ds,
             "yes" if k != "dn_noalign" else BS + "textbf{no}", ds, EOL))
     return table(
         "tab:rate",
-        "The adaptation-rate condition, single seed. Momentum $m$ sets the "
+        "The adaptation-rate condition, single seed. Accuracies are mean $" + BS +
+        "pm$ SD across participants. Momentum $m$ sets the "
         "estimator's memory to roughly $32/m$ windows: 160, 640 and 3200. "
         "\\textbf{Every arm that uses alignment gains as the memory crosses "
         "the class-block length, and neither arm that omits it responds}; "
@@ -399,7 +413,7 @@ def t_rate():
         "lrrrrcr",
         "Arm & $m{=}0.20$ & $m{=}0.05$ & $m{=}0.01$ & $" + BS +
         "Delta$ at crossing & Aligns & $" + BS + "Delta$ cohort A",
-        rows, wide=True)
+        rows, wide=True, fit=True)
 
 
 
@@ -544,6 +558,11 @@ def t_repr():
     """
     z, zm = L("zscore.json"), L("zscore_mobi.json")
     amp = L("amp_ablation.json")
+
+    def psd(d, key):
+        a, sd = g(d, key), g(d, key, "acc_sd")
+        return "%.3f $" % a + BS + "pm$ %.3f" % sd
+
     rows = [group("Per-window amplitude normalisation, by how much marginal "
                   "power the representation carries", 5)]
     for rep, lab, power in (("bandpower", "band power", "full"),
@@ -559,7 +578,8 @@ def t_repr():
             if rep == "corr_only":
                 ds = BS + "textbf{" + ds + "}"
             rows.append("%s, cohort %s & %s & %s & %s & %s %s" %
-                        (lab, coh, power, f3(v1), f3(v0), ds, EOL))
+                        (lab, coh, power, psd(d, "w2.0|" + rep + "|z1"),
+                         psd(d, "w2.0|" + rep + "|z0"), ds, EOL))
 
     rows.append(BS + "midrule")
     rows.append(group("Amplitude side-channel against its shuffled control",
@@ -573,7 +593,8 @@ def t_repr():
         if on is None or sh is None:
             continue
         rows.append("%s & --- & %s & %s & %+.3f %s" %
-                    (p[1], f3(on), f3(sh), sh - on, EOL))
+                    (p[1], psd(amp, k), psd(amp, "|".join(p[:4] + ["amp-shuffle"])),
+                     sh - on, EOL))
 
     return table(
         "tab:repr",
@@ -586,7 +607,8 @@ def t_repr():
         "instead of merely demonstrating it. The second block retired an "
         "amplitude side-channel: supplying a per-window amplitude feature and "
         "supplying the same feature with its window assignment shuffled differ "
-        "by under 0.02 for four of five models.",
+        "by under 0.02 for four of five models. Single seed; condition and "
+        "control accuracies are mean $" + BS + "pm$ SD across participants.",
         "lllrr",
         "Comparison & Power content & Condition & Control & $" + BS +
         "Delta$",
@@ -597,7 +619,7 @@ def t_norm():
     """Normalisation mode across decoders: three named conditions, so it needs
     its own table rather than borrowing a delta column."""
     pub = L("published.json")
-    order, tab = [], {}
+    order, tab, sds = [], {}, {}
     for k, v in pub.items():
         a = acc(v)
         if a is None:
@@ -606,6 +628,7 @@ def t_norm():
         if p[1] == "ATCNet":
             continue
         tab.setdefault(p[1], {})[p[2]] = a
+        sds.setdefault(p[1], {})[p[2]] = v.get("acc_sd")
         if p[1] not in order:
             order.append(p[1])
     rows, n_best, n_worst = [], 0, 0
@@ -615,7 +638,8 @@ def t_norm():
         worst = min([v for v in vals.values() if v is not None], default=None)
         n_best += vals.get("perwindow") == best
         n_worst += vals.get("perwindow") == worst
-        cells = [f3(vals.get(x), vals.get(x) == best)
+        cells = [f3(vals.get(x), vals.get(x) == best) +
+                 ("" if sds[m].get(x) is None else " $" + BS + "pm$ %.3f" % sds[m][x])
                  for x in ("perwindow", "global", "none")]
         rows.append("%s%s & %s & %s & %s %s" %
                     (m, cref(m), cells[0], cells[1], cells[2], EOL))
@@ -623,14 +647,15 @@ def t_norm():
         "tab:norm",
         "Where amplitude normalisation is applied, across %d published "
         "decoders on cohort A, single seed, in an earlier training pipeline. "
-        "All three columns are balanced accuracies; best per row in bold. "
+        "All three columns are balanced accuracies, mean $\\pm$ SD across "
+        "participants; best mean per row in bold. "
         "Per-window normalisation is best for %d and worst for %d, and most "
         "differences are below the 0.02 noise threshold, so this comparison "
         "neither supports nor contradicts the representation-level result in "
         "Table~\\ref{tab:repr}." % (len(order), n_best, n_worst),
         "lrrr",
         "Model & Per-window & Global & None",
-        rows, wide=False)
+        rows, wide=False, fit=True)
 
 
 # ===================================================================== mega 4
@@ -647,6 +672,11 @@ def t_rejected():
 
     def cell(x):
         return f3(x)
+
+    def cs(lst, n):
+        """mean +- SD across seeds; n must match the printed seed count"""
+        assert len(lst) == n, (len(lst), n)
+        return "%.3f $" % st.mean(lst) + BS + "pm$ %.3f" % st.stdev(lst)
     rows = [group("Rejected: the control removed the effect", 6)]
     c = cc.get("cancel", {})
     rows.append("Motion cancellation & 1 & %s & %s (zeroed) & %s & "
@@ -661,7 +691,8 @@ def t_rejected():
         a, b = st.mean(mrg["PowerAttn-full"]), st.mean(mrg["PowerAttn-noattn"])
         rows.append("Within-epoch attention & 3 & %s & %s (removed) & "
                     "%s & block not earning its place %s" %
-                    (cell(a), cell(b), BS + "textbf{%+.3f}" % (b - a), EOL))
+                    (cs(mrg["PowerAttn-full"], 3), cs(mrg["PowerAttn-noattn"], 3),
+                     BS + "textbf{%+.3f}" % (b - a), EOL))
     both, erd = acc(db.get("both")), acc(db.get("erd"))
     if both is not None and erd is not None:
         rows.append("MRCP dual-band pathway & 1 & %s (both) & %s (ERD only) & "
@@ -675,7 +706,8 @@ def t_rejected():
     if "aspd_ea" in spd:
         a, b = st.mean(spd["aspd_ea"]), st.mean(spd["aspd_noalign"])
         rows.append("Alignment (SPD backbone) & 3 & %s (EA) & %s (none) & "
-                    "%s & %s %s" % (cell(a), cell(b), "%+.3f" % (b - a),
+                    "%s & %s %s" % (cs(spd["aspd_ea"], 3), cs(spd["aspd_noalign"], 3),
+                                    "%+.3f" % (b - a),
                                     BS + "textbf{inside seed spread}", EOL))
 
     rows.append(BS + "midrule")
@@ -686,15 +718,15 @@ def t_rejected():
                        ("w2.0|viterbi", "Viterbi decoding")):
             if k in tmp:
                 rows.append("%s & 4 & %s & %s (baseline) & %s & survives "
-                            "shuffle %s" % (lab, cell(st.mean(tmp[k])),
-                                            cell(base),
+                            "shuffle %s" % (lab, cs(tmp[k], 4),
+                                            cs(tmp["w2.0|none"], 4),
                                             BS + "textbf{%+.3f}"
                                             % (st.mean(tmp[k]) - base), EOL))
         if "w2.0|fwdshuf" in tmp:
             sh = st.mean(tmp["w2.0|fwdshuf"])
             rows.append("%s & 4 & %s & %s (baseline) & %s & "
                         "%s %s" % (BS + "quad control: shuffled order",
-                                   cell(sh), cell(base),
+                                   cs(tmp["w2.0|fwdshuf"], 4), cs(tmp["w2.0|none"], 4),
                                    BS + "textbf{%+.3f}" % (sh - base),
                                    BS + "textbf{falls below baseline}", EOL))
     return table(
@@ -706,10 +738,11 @@ def t_rejected():
         "signal. The temporal-smoothing rows are the clearest retention: "
         "shuffling window order removes the gain and drops accuracy "
         "\\textbf{0.113 below the unsmoothed baseline}, which no operation "
-        "helping for an unrelated reason would do. $n$ is seeds.",
+        "helping for an unrelated reason would do. $n$ is seeds; where $n>1$, "
+        "With and Control are mean $" + BS + "pm$ SD across seeds.",
         "lrllrl",
         "Intervention & $n$ & With & Control & $" + BS + "Delta$ & Verdict",
-        rows, wide=True)
+        rows, wide=True, fit=True)
 
 
 # ===================================================================== small
@@ -729,6 +762,14 @@ def t_drift():
                 s.replace("sub-", "A"), v["raw"], v["noop"], v["aligned"],
                 v["reduction"] * 100) + BS + "," + BS + "%$ " + EOL)
         if per:
+            import numpy as _np
+            col = lambda f: [per[s][f] for s in per]
+            red = [100 * x for x in col("reduction")]
+            rows.append("Mean $" + BS + "pm$ SD & %s & %s & %s & $%.1f " % (
+                "%.3f $" % _np.mean(col("raw")) + BS + "pm$ %.3f" % _np.std(col("raw")),
+                "%.3f $" % _np.mean(col("noop")) + BS + "pm$ %.3f" % _np.std(col("noop")),
+                "%.3f $" % _np.mean(col("aligned")) + BS + "pm$ %.3f" % _np.std(col("aligned")),
+                _np.mean(red)) + BS + "pm %.1f" % _np.std(red) + BS + "," + BS + "%$ " + EOL)
             rows.append(BS + "midrule" if key == "ds007788" else "")
     rows = [r for r in rows if r != ""]
     return table(
@@ -741,10 +782,11 @@ def t_drift():
         "The control changes the distance by at most $%.2f" % (
             sa["t"], "%.0f" % (sa["p"] / 10 ** int(__import__("math").floor(__import__("math").log10(sa["p"])))) + BS + "times10^{%d}" % int(__import__("math").floor(__import__("math").log10(sa["p"]))),
             sb["t"], "%.0f" % (sb["p"] / 10 ** int(__import__("math").floor(__import__("math").log10(sb["p"])))) + BS + "times10^{%d}" % int(__import__("math").floor(__import__("math").log10(sb["p"]))),
-            noop_max * 100) + BS + "," + BS + "%$ of its raw value.",
+            noop_max * 100) + BS + "," + BS + "%$ of its raw value. The row "
+        "under each cohort is the mean $" + BS + "pm$ SD across participants.",
         "lrrrr",
         "Participant & Raw $" + BS + "delta$ & No-op & Aligned & Reduction",
-        rows)
+        rows, fit=True)
 
 
 def t_noise():

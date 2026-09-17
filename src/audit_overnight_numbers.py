@@ -335,6 +335,30 @@ claim("FA paired", 0, "higher in only %d of 7 participants ($p=%.2f$ and $p=%.2f
       % ((fa_ag > fa_g).sum(), wilcoxon(fa_ag - fa_g).pvalue, wilcoxon(fa_f - fa_n).pvalue))
 assert (fa_ag > fa_g).sum() == (fa_f > fa_n).sum()
 
+# ---- +- SD across participants in the hand-written tables ------------------
+EXT = {"align + gate": "dn_noctx", "align + ctx + gate": "dn_full", "align + ctx": "dn_nogate",
+       "ctx + gate": "dn_noalign", "stem only": "dn_stem"}
+DA, DB = J("driftnet_ds.json"), J("driftnet_mobi.json")
+for lab, arm in EXT.items():
+    ra, rb = DA[arm + "|s0"], DB[arm + "|s0"]
+    ca = ("\\mathbf{%.3f}" if lab == "align + gate" else "%.3f") % ra["acc"]
+    cb = ("\\mathbf{%.3f}" if lab == "ctx + gate" else "%.3f") % rb["acc"]
+    claim("external " + lab, 0, "$%s\\pm%.3f$ & $%s\\pm%.3f$" % (ca, ra["acc_sd"], cb, rb["acc_sd"]))
+_g = ps("cohort3_m0.2.json", "dn_gate|s0")
+_a = ps("cohort3_m0.2.json", "dn_noctx|s0")
+_sl = ps("cohort3_m0.01.json", "dn_noctx|s0")
+_subs = sorted(set(_g) & set(_a) & set(_sl))
+_d1 = np.array([_a[x] - _g[x] for x in _subs])
+_d2 = np.array([_sl[x] - _a[x] for x in _subs])
+claim("prereg P1 sd", _d1.std(), "$+%.3f$ $\\pm$ $%.3f$" % (_d1.mean(), _d1.std()))
+claim("prereg P2 sd", _d2.std(), "$-%.3f$ $\\pm$ $%.3f$" % (-_d2.mean(), _d2.std()))
+_io = ps("icactl_orig.json", "dn_noctx|s0")
+_ic = ps("icactl_ica.json", "dn_noctx|s0")
+_ks = sorted(_io)
+_o, _c = np.array([_io[x] for x in _ks]), np.array([_ic[x] for x in _ks])
+claim("artefact mean sd", 0, "$%.3f\\pm%.3f$ & $%.3f\\pm%.3f$ & $-%.3f\\pm%.3f$"
+      % (_o.mean(), _o.std(), _c.mean(), _c.std(), -(_c - _o).mean(), (_c - _o).std()))
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:

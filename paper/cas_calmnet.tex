@@ -584,6 +584,9 @@ pairing each participant's aligned distance against its raw distance. Accuracy
 comparisons are reported as the mean over participants with the between-subject
 standard deviation, and as paired Wilcoxon signed-rank tests over participants
 wherever per-participant results were retained (Section~\ref{sec:limits}).
+Every $\pm$ in a table is labelled in its caption as across participants or
+across data-split seeds. Standard deviations across participants are population
+values, and standard deviations across seeds are sample values.
 
 Two ablation arms disable alignment entirely and therefore never invoke the
 running estimator. For them the momentum and the estimator version are inert, so
@@ -785,7 +788,8 @@ question and leaves part of it open.
 \begin{table}[t]
 \caption{Artefact control on cohort~A. Balanced accuracy of the proposed
 configuration on the training task, before and after ICA cleaning, with the
-number of muscle components removed per recording.}
+number of muscle components removed per recording. The last row is the mean
+$\pm$ SD across participants.}
 \label{tab:artefact}
 \centering
 \resizebox{\columnwidth}{!}{%
@@ -801,7 +805,7 @@ sub-05 & 0.839 & 0.893 & $+0.053$ & 1.3 \\
 sub-06 & 0.673 & 0.548 & $-0.124$ & 0.3 \\
 sub-07 & 0.680 & 0.525 & $-0.155$ & 2.3 \\
 \midrule
-Mean   & 0.835 & 0.785 & $-0.051$ & \\
+Mean $\pm$ SD & $0.835\pm0.111$ & $0.785\pm0.163$ & $-0.051\pm0.074$ & \\
 \bottomrule
 \end{tabular}%
 }
@@ -920,19 +924,20 @@ compressing.}
 \end{figure}
 
 \begin{table}[t]
-\caption{Both cohorts, single seed, original estimator. Three-seed cohort B
-values for \textit{align + gate} are in Table~\ref{tab:ratecurve}.}
+\caption{Both cohorts, single seed, original estimator. Balanced accuracy, mean
+$\pm$ SD across participants. Three-seed cohort B values for \textit{align +
+gate} are in Table~\ref{tab:ratecurve}.}
 \label{tab:external}
 \centering
 \begin{tabular}{lrr}
 \toprule
 Components & Cohort A & Cohort B \\
 \midrule
-align + gate       & \textbf{0.901} & 0.581 \\
-align + ctx + gate & 0.878 & 0.626 \\
-align + ctx        & 0.862 & 0.606 \\
-ctx + gate         & 0.827 & \textbf{0.792} \\
-stem only          & 0.827 & 0.737 \\
+align + gate       & $\mathbf{0.901}\pm0.059$ & $0.581\pm0.044$ \\
+align + ctx + gate & $0.878\pm0.102$ & $0.626\pm0.073$ \\
+align + ctx        & $0.862\pm0.125$ & $0.606\pm0.063$ \\
+ctx + gate         & $0.827\pm0.096$ & $\mathbf{0.792}\pm0.097$ \\
+stem only          & $0.827\pm0.124$ & $0.737\pm0.104$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1245,7 +1250,7 @@ only in alignment, and those in P2 only in momentum.
 \begin{table}[t]
 \caption{Predictions registered before any model was trained on cohort~C.
 Balanced accuracy averaged over all 20 participants, seed 0. Differences are
-paired within participant.}
+paired within participant and given as mean $\pm$ SD across participants.}
 \label{tab:prereg}
 \centering
 \resizebox{\columnwidth}{!}{%
@@ -1253,8 +1258,8 @@ paired within participant.}
 \toprule
 Prediction & Arms compared & Difference & Threshold & Outcome \\
 \midrule
-P1 alignment costs little & $0.783$ / $0.785$ & $+0.002$ & $> -0.05$ & holds \\
-P2 slowing does not help  & $0.785$ / $0.779$ & $-0.006$ & $< +0.05$ & holds \\
+P1 alignment costs little & $0.783$ / $0.785$ & $+0.002$ $\pm$ $0.039$ & $> -0.05$ & holds \\
+P2 slowing does not help  & $0.785$ / $0.779$ & $-0.006$ $\pm$ $0.033$ & $< +0.05$ & holds \\
 \bottomrule
 \end{tabular}%
 }
