@@ -819,6 +819,30 @@ part of the cleaning, the control falls short of establishing that the accuracy
 is neural, and it gives no support to the view that the accuracy rests on
 muscle artefact.
 
+Fig.~\ref{fig:topo} shows the scalp distribution for one participant. Absolute
+8--30\,Hz power falls over sensorimotor electrodes during walking, as mu and beta
+desynchronisation predicts \citep{erd,pfurtscheller2006}, and rises over
+occipital and parieto-occipital electrodes, where neck muscle activity and
+changing visual input during walking would both appear. With one participant
+this shows only that the two effects are spatially separate. It does not show
+which of them the decoder relies on, and the retraining control above remains
+the test of that.
+
+\begin{figure*}[pos=tp]
+\centering
+\includegraphics[width=\textwidth]{../results/fig_topography.pdf}
+\caption{Scalp maps for one cohort A participant (sub-01), fitting sessions.
+(a) Relative channel power in the layer's trace-normalised covariance estimate.
+(b) Per-channel gain of the whitening transform $\mathbf{M}^{-1/2}$. (c) Absolute
+8--30\,Hz power during walking relative to standing, in dB. Power falls over
+sensorimotor electrodes, the direction expected for mu and beta
+event-related desynchronisation, and rises over occipital and
+parieto-occipital electrodes, where neck muscle activity and visual input
+during walking would both appear. \pending{[Panel (c) title to be
+regenerated.]}}
+\label{fig:topo}
+\end{figure*}
+
 \subsection{Comparison with published decoders}
 \label{sec:compare}
 
@@ -1050,8 +1074,7 @@ approaches neither class. (c,d) Cohort B, $\tau_{\mathrm{blk}}=309$, $m=0.2$:
 the estimate starts near the stop covariance, moves to the walk covariance when
 the walk block begins, and the two distances swap back when stop returns. (e,f)
 Cohort B at $m=0.01$: the estimate moves toward the walk covariance more slowly
-and crosses over once, late in the recording. \pending{[In-panel labels to be
-regenerated: text overlaps the curves in (b), (d) and (f).]}}
+and crosses over once, late in the recording.}
 \label{fig:tracking}
 \end{figure*}
 
