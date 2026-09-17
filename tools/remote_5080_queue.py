@@ -38,7 +38,7 @@ JOBS = [
         CX_SEEDS="0,1,2", CX_OUT="bd_cohort_b.json")),
     # 4. Cohort A ablation arms, seeds 1-2 (seed 0 exists). Only if A's data is here.
     ("A_ablation_s12", HAS_A, dict(
-        CX_MODEL="driftnet", CX_ARMS="dn_full,dn_noalign,dn_nogate,dn_stem",
+        CX_MODEL="driftnet", CX_ARMS="dn_full,dn_nogate",  # dn_stem, dn_noalign run on the RTX 2060
         CX_SEEDS="1,2", DN_MOMENTUM=0.2, CX_FULL=1, CX_ICA=0,
         CX_OUT="a_ablation_s12.json")),
 ]
