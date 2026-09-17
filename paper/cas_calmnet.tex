@@ -83,10 +83,10 @@ seeds. Eight published decoders trained in the same pipeline average $0.817$ to 
 over the same seeds, and no difference from this decoder is significant. The layer reduces session-to-session covariance distance
 by $45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of
 15 participants, against a control with no systematic reduction. On a treadmill cohort whose class blocks last 309 windows, the decoder transfers
-at $0.763$ without the layer over three seeds, and enabling the layer costs $0.183$.
-Slowing adaptation reduces that cost gradually, to $0.125$ at a memory of 320
-windows and $0.068$ at 1600, and the layer does not become beneficial at any rate
-measured, while on the exoskeleton cohort slowing costs $0.050$ over three
+at $0.729$ without the layer over three seeds, and enabling the layer costs $0.149$,
+lower in 8 of 8 participants. Slowing adaptation reduces that cost gradually,
+to $0.091$ at a memory of 320 windows and $0.031$ at 3200, where it is no longer
+significant, and the layer does not become beneficial at any rate measured, while on the exoskeleton cohort slowing costs $0.050$ over three
 seeds.
 
 The lower bound then predicted a third cohort in advance. With class blocks of
@@ -885,13 +885,14 @@ stem only          & 0.827 & 0.737 \\
 \end{tabular}
 \end{table}
 
-The decoder transfers: without the alignment layer it reaches $0.763$ on cohort B
-averaged over three seeds ($0.792$ at seed 0 in Table~\ref{tab:external}), against a majority-class floor of $0.500$ balanced accuracy on a cohort whose
+The decoder transfers: without the alignment layer it reaches $0.729$ on cohort B
+averaged over three seeds, and the context arm of Table~\ref{tab:external}, which
+also omits alignment, reaches $0.792$ at seed 0, against a majority-class floor of $0.500$ balanced accuracy on a cohort whose
 classes split $87.7/12.3$. What does not transfer is the alignment layer. The
 best cohort-A configuration is the worst cohort-B one, and the ordering inverts, with all three arms that use alignment falling
 below both arms that do not. The layer is worth $+0.074$ on cohort A
-($0.901$ against $0.827$) and $-0.183$ on cohort B over three seeds ($0.580$ against $0.763$; lower in 7 of 8
-participants, Wilcoxon $p=0.016$). The cohort A figure comes from one seed and also removes the context module. Against the gate-only arm over three seeds, alignment is worth $+0.026$ there (Section~\ref{sec:ablation}), so the size of the inversion comes mostly from the loss on cohort B.
+($0.901$ against $0.827$) and $-0.149$ on cohort B over three seeds against the gate-only arm ($0.580$ against $0.729$;
+lower in 8 of 8 participants, Wilcoxon $p=0.008$). The cohort A figure comes from one seed and also removes the context module. Against the gate-only arm over three seeds, alignment is worth $+0.026$ there (Section~\ref{sec:ablation}), so the size of the inversion comes mostly from the loss on cohort B.
 The remainder of the results characterises this inversion.
 
 \paragraph{A protocol-level switch} The two cohorts do not require
@@ -1017,14 +1018,14 @@ If this mechanism is responsible, slowing adaptation until the memory exceeds a 
 at $m=0.2$, $0.05$ and $0.01$, so the crossing of
 $\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
 Three seeds under the current estimator trace the recovery more finely for
-\textit{align + gate} (Table~\ref{tab:ratecurve}), against the no-align arm, which does not use the
-estimator and is averaged over its six runs ($0.763$). Alignment costs $0.183$ at a
-memory of 160 windows (lower in 7 of 8 participants; Wilcoxon $p=0.016$), $0.125$
-at 320 (7 of 8; $p=0.023$) and $0.068$ at 1600 (6 of 8; $p=0.15$). The cost falls
-by similar amounts on either side of the block length, so the recovery is
-gradual and shows no step at $\tau_{\mathrm{blk}}=309$, and alignment remains
-harmful at every memory measured. \pending{[The three-seed point at 3200 windows
-is in progress.]}
+\textit{align + gate} (Table~\ref{tab:ratecurve}), against the gate-only arm,
+which differs only in alignment and does not use the estimator ($0.729$). Alignment
+costs $0.149$ at a memory of 160 windows (lower in 8 of 8 participants; Wilcoxon
+$p=0.008$), $0.091$ at 320 (7 of 8; $p=0.016$), $0.034$ at 1600 (6 of 8; $p=0.15$) and
+$0.031$ at 3200 (6 of 8; $p=0.15$). The cost falls by similar amounts on either
+side of the block length and then levels off, so the recovery is gradual and
+shows no step at $\tau_{\mathrm{blk}}=309$. Alignment never becomes beneficial,
+and at the two slowest rates its remaining cost is not significant.
 
 \begin{figure*}[t]
 \centering
@@ -1058,7 +1059,7 @@ On cohort A, whose blocks sit far inside even the fastest memory so that the est
 
 The optima are opposite, and over three seeds error in either direction costs
 accuracy: slowing costs $0.050$ on cohort A, and on cohort B the default rate
-gives up $0.115$ against a memory of 1600 windows
+gives up $0.118$ against a memory of 3200 windows
 (Table~\ref{tab:ratecurve}). Slower adaptation therefore costs accuracy on
 cohort A. One reading is a trade-off in which a fast estimate tracks both the
 streaming class, which is harmful, and session drift, which is beneficial. Measured without a decoder, slowing the estimate also stops it removing drift:
@@ -1108,13 +1109,13 @@ data, because its drift timescale could not be measured
 (Section~\ref{sec:limits}).
 
 \begin{remark}[The residual]
-At the slowest rate measured over three seeds, a memory of 1600 windows,
-alignment still costs $0.068$ on cohort B ($0.695$ against $0.763$). The lower bound
-does not explain this residual. On cohort A, measured without a decoder, the
-estimate removes only $2.3\,\%$ of session drift at that rate, which would leave
+At the slowest rates measured, memories of 1600 and 3200 windows, alignment
+still costs $0.034$ and $0.031$ on cohort B against the gate-only arm (lower in 6 of
+8 participants at both; $p=0.15$), a residual that is not significant with eight
+participants. On cohort A, measured without a decoder, the estimate removes only
+$2.3\,\%$ and $0.2\,\%$ of session drift at those rates, which would leave
 estimation noise without a drift correction to offset it, but the same
-measurement has not been made on cohort B, so the residual is reported as
-unexplained.
+measurement has not been made on cohort B.
 \end{remark}
 
 \begin{remark}[Offline alignment is exempt]
@@ -1175,7 +1176,7 @@ $p=0.68$), and slowing it changes accuracy by $-0.006$ (higher in 9, lower in
 10; $p=0.43$). The intervention that recovered $0.090$ on cohort~B brings no gain here, as the protocol predicted, and enabling alignment shows no harm.
 
 Two further seeds were run after the registered test and are reported separately from it. They agree with both verdicts and sharpen one of them. Enabling alignment changes accuracy by $+0.014$ (higher in 13 participants, lower in 7; $p=0.17$), so it again costs nothing, and its small positive trend is not significant. Slowing adaptation costs $0.016$ (lower in 15 of 20; $p=0.003$) and is negative on all three seeds, so on this cohort it carries a small cost. Read after the fact, the sign of slowing is consistent with the lower bound on
-every cohort. It helps where the estimate tracks the class (cohort~B, $+0.115$ from a memory of 160 to 1600 windows over three
+every cohort. It helps where the estimate tracks the class (cohort~B, $+0.118$ from a memory of 160 to 3200 windows over three
 seeds) and costs accuracy on both cohorts with short blocks
 (cohort~A, $-0.050$; cohort~C, $-0.016$). That pattern was observed on the
 replication seeds and formed no part of the registered prediction.
@@ -1208,11 +1209,11 @@ not the decoder can access the nuisance.}
 
 \begin{enumerate}
 \item The adaptation rate was originally selected because it maximised drift
-      reduction (on cohort A, $45.9\,\%$ at $m=0.2$ against $12.1\,\%$ at $m=0.05$ and $0.2\,\%$ at $m=0.01$). That choice costs $0.115$ accuracy
-      on cohort B against a memory of 1600 windows, over three seeds
+      reduction (on cohort A, $45.9\,\%$ at $m=0.2$ against $12.1\,\%$ at $m=0.05$ and $0.2\,\%$ at $m=0.01$). That choice costs $0.118$ accuracy
+      on cohort B against a memory of 3200 windows, over three seeds
       (Table~\ref{tab:ratecurve}).
 \item The cohort in which more drift was removed ($62.5\,\%$ against $45.9\,\%$, Table~\ref{tab:drift}) is the
-      cohort in which the layer costs $0.183$ accuracy over three seeds
+      cohort in which the layer costs $0.149$ accuracy over three seeds
       (Table~\ref{tab:ratecurve}).
 \item A verified correction to a genuine covariance-estimation bias moved
       decoding by $+0.005$ and $-0.016$ (Section~\ref{sec:rejected}).
@@ -1253,7 +1254,7 @@ Several limitations constrain the interpretation of these results.
 
 \textbf{No published decoder on cohort B.} The published decoders of
 Table~\ref{tab:compare} were run on cohorts A and C. \pending{[Their cohort B runs
-are in progress.]} The $0.763$ reported on cohort B can therefore be
+are in progress.]} The $0.729$ reported on cohort B can therefore be
 compared with our own arms and with the majority-class floor, and its standing
 relative to published methods on that cohort is untested.
 
@@ -1267,8 +1268,8 @@ while the other five vary by at most $0.065$. The rate effects are therefore rep
 (Table~\ref{tab:ratecurve}, Section~\ref{sec:twosided}). The paired alignment effect on cohort A over the same three seeds is
 $+0.026$ ($p=0.22$) and is negative on one seed, so the benefit of alignment
 where the lower bound holds is small and unconfirmed at this sample size. The
-loss where it fails is $0.183$ on cohort B over three seeds (lower in 7 of 8
-participants; $p=0.016$). The published decoders were run over the same three seeds on cohorts A and C.
+loss where it fails is $0.149$ on cohort B over three seeds (lower in 8 of 8
+participants; $p=0.008$). The published decoders were run over the same three seeds on cohorts A and C.
 
 \textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the component ablation and the rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the three-seed alignment comparison on cohort A (Section~\ref{sec:ablation}),
 the comparison with published decoders on cohort~C (Section~\ref{sec:compare})
@@ -1325,8 +1326,8 @@ design-time check.
 
 The condition has predicted a new cohort correctly in advance. With class
 blocks of five windows, enabling alignment cost nothing and slowing it brought
-no gain, where slowing recovered $0.115$ over three seeds on the cohort with long
-blocks. Where the lower bound holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C. Where it fails, alignment costs $0.183$ over three seeds. The condition is therefore most useful as a design-time guard against that loss.
+no gain, where slowing recovered $0.118$ over three seeds on the cohort with long
+blocks. Where the lower bound holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C. Where it fails, alignment costs $0.149$ over three seeds. The condition is therefore most useful as a design-time guard against that loss.
 
 The immediate open question is the upper bound. Neither cohort here resolves
 the drift timescale: cohort A's session covariances are already at their plateau

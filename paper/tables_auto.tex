@@ -49,7 +49,7 @@ ctx + gate & 0.834 & --- & 0.827 & -0.007 & \textbf{no} & -0.007 \\
 \end{table*}
 
 \begin{table}[t]
-\caption{Cohort B over three data-split seeds under the current estimator. \textit{Cost} is \textit{align + gate} minus the no-align arm, which does not use the estimator and is averaged over its 6 runs (0.763), paired within participant with seeds averaged; $p$ is the Wilcoxon signed-rank test. The cost falls gradually as the memory lengthens, with no step at $\tau_{\mathrm{blk}}=309$, and it stays negative at every memory measured.}
+\caption{Cohort B over three data-split seeds under the current estimator. \textit{Cost} is \textit{align + gate} minus the gate-only arm (0.729 $\pm$ 0.006), which differs only in alignment and does not use the estimator, paired within participant with seeds averaged; $p$ is the Wilcoxon signed-rank test. The cost falls gradually as the memory lengthens, with no step at $\tau_{\mathrm{blk}}=309$, and it is no longer significant at memories of 1600 and 3200 windows.}
 \label{tab:ratecurve}
 \centering
 \small
@@ -57,10 +57,10 @@ ctx + gate & 0.834 & --- & 0.827 & -0.007 & \textbf{no} & -0.007 \\
 \toprule
 $m$ & Memory & align + gate & Cost & Lower in & $p$ \\
 \midrule
-0.20 & 160 & 0.580 $\pm$ 0.008 & $-0.183$ & 7 of 8 & 0.016 \\
-0.10 & 320 & 0.638 $\pm$ 0.002 & $-0.125$ & 7 of 8 & 0.023 \\
-0.02 & 1600 & 0.695 $\pm$ 0.005 & $-0.068$ & 6 of 8 & 0.148 \\
-0.01 & 3200 & \pending{pending} & \pending{pending} & \pending{pending} & \pending{pending} \\
+0.20 & 160 & 0.580 $\pm$ 0.008 & $-0.149$ & 8 of 8 & 0.008 \\
+0.10 & 320 & 0.638 $\pm$ 0.002 & $-0.091$ & 7 of 8 & 0.016 \\
+0.02 & 1600 & 0.695 $\pm$ 0.005 & $-0.034$ & 6 of 8 & 0.148 \\
+0.01 & 3200 & 0.698 $\pm$ 0.002 & $-0.031$ & 6 of 8 & 0.148 \\
 \bottomrule
 \end{tabular}
 \end{table}

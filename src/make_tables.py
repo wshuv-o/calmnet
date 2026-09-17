@@ -391,21 +391,21 @@ def t_rate():
 
 
 def t_ratecurve():
-    """Cohort B, three seeds, current estimator: align + gate against the no-align
-    arm, which never uses the estimator and is averaged over all of its runs."""
+    """Cohort B, three seeds, current estimator: align + gate against gate only,
+    which differs only in alignment and never uses the estimator."""
     import numpy as _np
     from scipy.stats import wilcoxon as _w
     f10, f02 = L("b_floor_m0.10.json"), L("b_floor_m0.02.json")
     bg, m001 = L("b_gate_aligngate_3seed.json"), L("b_aligngate_m001_3seed.json")
-    ref = [v for d in (f10, f02, m001) for k, v in d.items() if k.startswith("dn_noalign|")]
-    if not ref:
+    gt = [v for k, v in sorted(bg.items()) if k.startswith("dn_gate|")]
+    if len(gt) < 3:
         return ""
 
     def ps(runs):
         return {x: _np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
 
-    rs = ps(ref)
-    refm = _np.mean(list(rs.values()))
+    gs = ps(gt)
+    gacc = [r["acc"] for r in gt]
     rows = []
     for m, mem, d in ((0.20, 160, bg), (0.10, 320, f10), (0.02, 1600, f02), (0.01, 3200, m001)):
         runs = [v for k, v in sorted(d.items()) if k.startswith("dn_noctx|")]
@@ -414,22 +414,24 @@ def t_ratecurve():
                 m, mem, pend("pending"), pend("pending"), pend("pending"), pend("pending"), EOL))
             continue
         a = ps(runs)
-        dd = _np.array([a[x] - rs[x] for x in sorted(rs)])
+        dd = _np.array([a[x] - gs[x] for x in sorted(a)])
         acc_ = [r["acc"] for r in runs]
         rows.append("%.2f & %d & %.3f $" % (m, mem, _np.mean(acc_)) + BS + "pm$ %.3f & $%+.3f$ & %d of %d & %.3f %s" % (
             _np.std(acc_, ddof=1), dd.mean(), (dd < 0).sum(), len(dd), _w(dd).pvalue, EOL))
     return table(
         "tab:ratecurve",
         "Cohort B over three data-split seeds under the current estimator. "
-        "\\textit{Cost} is \\textit{align + gate} minus the no-align arm, which "
-        "does not use the estimator and is averaged over its %d runs "
-        "(%.3f), paired within participant with seeds averaged; $p$ is the "
-        "Wilcoxon signed-rank test. The cost falls gradually as the memory "
-        "lengthens, with no step at $" % (len(ref), refm) + BS + "tau_{" + BS +
-        "mathrm{blk}}=309$, and it stays negative at every memory measured.",
+        "\\textit{Cost} is \\textit{align + gate} minus the gate-only arm "
+        "(%.3f $" % _np.mean(gacc) + BS + "pm$ %.3f), which differs only in "
+        "alignment and does not use the estimator, paired within participant "
+        "with seeds averaged; $p$ is the Wilcoxon signed-rank test. The cost "
+        "falls gradually as the memory lengthens, with no step at $" % _np.std(gacc, ddof=1)
+        + BS + "tau_{" + BS + "mathrm{blk}}=309$, and it is no longer significant "
+        "at memories of 1600 and 3200 windows.",
         "rrrrrr",
         "$m$ & Memory & align + gate & Cost & Lower in & $p$",
         rows)
+
 
 # ===================================================================== mega 3
 def t_repr():
