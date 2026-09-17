@@ -120,9 +120,10 @@ def panel_distances(ax, traj, Cs, Cw, strm, title, show_ylab=True,
     ax.set_xlabel("window index (recording order)")
     if show_ylab:
         ax.set_ylabel(r"Riemannian distance from $\mathbf{M}$")
-    S.note(ax, 0.02, 0.04, title, transform=ax.transAxes, fontsize=6.6)
     cross = int(np.sum(np.diff(np.sign(np.array(ds) - np.array(dw))) != 0))
-    S.note(ax, 0.98, 0.93, "%d crossings" % cross, transform=ax.transAxes,
+    S.note(ax, 0.98, 0.93,
+           "%d crossing%s" % (cross, "" if cross == 1 else "s"),
+           transform=ax.transAxes,
            ha="right", fontsize=7,
            color=(VERM if cross else GREEN))
     return cross
@@ -130,8 +131,8 @@ def panel_distances(ax, traj, Cs, Cw, strm, title, show_ylab=True,
 
 def build(sub_a="sub-01", sub_b=None):
     from dataio import build_epochs, list_sessions
-    fig = plt.figure(figsize=(FULL, 4.5))
-    gs = fig.add_gridspec(2, 3, height_ratios=[1.15, 1.0], hspace=0.55,
+    fig = plt.figure(figsize=(FULL, 4.0))
+    gs = fig.add_gridspec(2, 3, height_ratios=[1.15, 1.0], hspace=0.28,
                           wspace=0.38)
 
     # ---------------- cohort A, fast rate
@@ -175,8 +176,6 @@ def build(sub_a="sub-01", sub_b=None):
     for s_ in ("left", "bottom"):
         ax.spines[s_].set_visible(False)
     S.panel(ax, "a", x=-0.04)
-    S.note(ax, 0.5, -0.09, "cohort A, $m=0.2$: the estimate never approaches "
-           "either class", transform=ax.transAxes, ha="center", fontsize=6.4)
 
     # (b) distances, cohort A
     axb = fig.add_subplot(gs[1, 0])
@@ -225,10 +224,6 @@ def build(sub_a="sub-01", sub_b=None):
         for s_ in ("left", "bottom"):
             axt.spines[s_].set_visible(False)
         S.panel(axt, "c" if col == 1 else "e", x=-0.04)
-        S.note(axt, 0.5, -0.09,
-               "the estimate walks onto the streaming class" if col == 1
-               else "slowed: the walk disappears",
-               transform=axt.transAxes, ha="center", fontsize=6.4)
 
         axd = fig.add_subplot(gs[1, col])
         c = panel_distances(axd, tb, Csb, Cwb, strmb, lab, show_ylab=False,

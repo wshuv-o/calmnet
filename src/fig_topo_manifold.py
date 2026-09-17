@@ -85,14 +85,23 @@ def fig_topography(sub="sub-01"):
              if c in info.ch_names and info.get_montage() is not None]
     power = np.diag(M)                       # channel power before alignment
     gain = np.sqrt(np.sum(W ** 2, axis=1))   # per-channel gain of the whitener
-    Ms, Mw = layer_cov(probe, X[y == 0]), layer_cov(probe, X[y == 1])
-    diff = np.diag(Mw) - np.diag(Ms)         # walk minus stop power
+    # ABSOLUTE 8-30 Hz band power, not the layer's covariance diagonal.
+    # AdaptiveAlignment._cov trace-normalises each window, so its diagonal is
+    # RELATIVE power: a decrease anywhere is forced by an increase elsewhere,
+    # and a central decrease then says nothing on its own. Computed here by
+    # band-pass filtering and taking variance per channel.
+    from scipy.signal import butter, filtfilt
+    b_, a_ = butter(4, [8.0 / 50.0, 30.0 / 50.0], btype="band")
+    Xf = filtfilt(b_, a_, X.astype(np.float64), axis=-1)
+    pw_stop = Xf[y == 0].var(axis=-1).mean(axis=0)
+    pw_walk = Xf[y == 1].var(axis=-1).mean(axis=0)
+    diff = 10.0 * np.log10((pw_walk + 1e-30) / (pw_stop + 1e-30))
 
     fig, axes = plt.subplots(1, 3, figsize=(FULL, 2.5))
     for ax, vals, title, cmap in (
             (axes[0], power, "channel power before alignment", "viridis"),
             (axes[1], gain, r"gain applied by $\mathbf{M}^{-1/2}$", "magma"),
-            (axes[2], diff, "power: Walk minus Stop", "RdBu_r")):
+            (axes[2], diff, r"8--30 Hz power, Walk vs Stop (dB)", "RdBu_r")):
         v = np.asarray(vals, float)
         lim = np.max(np.abs(v)) if cmap == "RdBu_r" else None
         im, _ = mne.viz.plot_topomap(
@@ -112,6 +121,13 @@ def fig_topography(sub="sub-01"):
           flush=True)
     print("  lowest  whitening gain: " +
           ", ".join("%s %.2f" % (es.ch_names[i], gain[i]) for i in order[-6:]),
+          flush=True)
+    od = np.argsort(diff)
+    print("  8-30 Hz, largest DECREASE during walk: " +
+          ", ".join("%s %+.2f dB" % (es.ch_names[i], diff[i]) for i in od[:6]),
+          flush=True)
+    print("  8-30 Hz, largest INCREASE during walk: " +
+          ", ".join("%s %+.2f dB" % (es.ch_names[i], diff[i]) for i in od[-6:]),
           flush=True)
 
 
