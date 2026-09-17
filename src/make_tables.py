@@ -279,6 +279,8 @@ def seeds_of(d, arm):
 def t_compare():
     import numpy as _np
     A3, bdA, bdC = L("a_aligngate_3seed.json"), L("bd_pipeline_c.json"), L("bd_cohort_c.json")
+    for _k, _v in L("bd_eegnex_s12.json").items():   # EEGNeX seeds 1-2 run on the RTX 5080
+        bdA.setdefault(_k, _v)
     C0, CR = L("cohort3_m0.2.json"), L("cohort3_rep_m0.2.json")
     ours_A = [A3.get("dn_noctx|s%d" % i) for i in range(3)]
     ours_C = [C0.get("dn_noctx|s0"), CR.get("dn_noctx|s1"), CR.get("dn_noctx|s2")]
@@ -640,6 +642,8 @@ def t_noise():
             if len(vs) >= 3:
                 rows.append("%s & %s & %d & %.4f %s" % (lab, tfm, len(vs), max(vs) - min(vs), EOL))
     bd = L("bd_pipeline_c.json")
+    for _k, _v in L("bd_eegnex_s12.json").items():
+        bd.setdefault(_k, _v)
     multi = {}
     for k, v in bd.items():
         multi.setdefault(k.split("|")[0], []).append(v["acc"])

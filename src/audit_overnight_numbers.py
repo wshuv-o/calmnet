@@ -219,6 +219,13 @@ claim("A slow paired", 0, "lower in %d of 7 participants (Wilcoxon $p=%.3f$" % (
 claim("A slow per seed", 0, "The cost is $%s$, $%s$ and $%s$ on the three seeds" % tuple("-%.3f" % (a - r["acc"]) if a > r["acc"] else "+%.3f" % (r["acc"] - a) for r, a in zip(s3, sa3)))
 claim("A slow abstract", ds3.mean(), "same change costs $%.3f$ over three seeds" % -ds3.mean())
 
+# ---- drift reduction against adaptation rate --------------------------------
+DM = J("drift_momentum.json")["summary"]
+claim("drift momentum sweep", 0, "falls from $%.1f\\,\\%%$ at $m=0.2$ to $%.1f\\,\\%%$ at $m=0.05$ and $%.1f\\,\\%%$ at $m=0.01$"
+      % (100 * DM["m0.2"]["mean"], 100 * DM["m0.05"]["mean"], 100 * DM["m0.01"]["mean"]))
+claim("drift momentum item 1", 0, "on cohort A, $%.1f\\,\\%%$ at $m=0.2$ against $%.1f\\,\\%%$ at $m=0.05$"
+      % (100 * DM["m0.2"]["mean"], 100 * DM["m0.05"]["mean"]))
+
 # ---- session drift, rerun without trace normalisation ----------------------
 DF = J("drift_fixed.json")
 for c, lab in (("ds007788", "A"), ("mobi", "B")):

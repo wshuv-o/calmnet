@@ -1058,8 +1058,12 @@ The optima are opposite, and error in either direction costs
 \pending{$0.060$ to $0.092$}, about \pending{2.3 to 3.6} times the standard
 deviation across data-split seeds. Slower adaptation therefore costs accuracy on
 cohort A. One reading is a trade-off in which a fast estimate tracks both the
-streaming class, which is harmful, and session drift, which is beneficial. The
-drift half of that reading could not be measured directly
+streaming class, which is harmful, and session drift, which is beneficial. Measured without a decoder, slowing the estimate also stops it removing drift:
+on cohort A the reduction in session-to-session distance falls from
+$45.9\,\%$ at $m=0.2$ to $12.1\,\%$ at $m=0.05$ and $0.2\,\%$ at $m=0.01$. At
+$m=0.01$ the estimator's memory, about 3200 windows, is ten times a held-out
+session of about 313 windows, so this measures how far the estimate can move
+within the data available and does not isolate a drift timescale
 (Section~\ref{sec:limits}).
 
 That cost was first measured on \textit{align + ctx + gate}, which is not the
@@ -1197,7 +1201,7 @@ not the decoder can access the nuisance.}
 
 \begin{enumerate}
 \item The adaptation rate was originally selected because it maximised drift
-      reduction (\pending{$60\,\%$ against $25\,\%$, measured with the earlier normalisation}). That choice cost \pending{$0.092$} accuracy
+      reduction (on cohort A, $45.9\,\%$ at $m=0.2$ against $12.1\,\%$ at $m=0.05$ and $0.2\,\%$ at $m=0.01$). That choice cost \pending{$0.092$} accuracy
       on cohort B (Table~\ref{tab:rate}).
 \item The cohort in which more drift was removed ($62.5\,\%$ against $45.9\,\%$, Table~\ref{tab:drift}) is the
       cohort in which accuracy fell by \pending{$0.166$} (Table~\ref{tab:external}).
