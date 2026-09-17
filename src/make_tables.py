@@ -6,13 +6,12 @@ new result lands:
 
     cd src && python make_tables.py
 
-Four of these are full-width (table*) mega tables that consolidate what were
-previously fifteen separate tables:
+Three of these are full-width (table*) mega tables that consolidate what were
+previously separate tables:
 
   tab:landscape   every published decoder we ran, under each condition
   tab:rate        the adaptation-rate condition, both cohorts, all arms
   tab:repr        representation, normalisation and leakage controls
-  tab:rejected    every intervention tested, with the control that killed it
 
 Column groups inside a mega table are separated by rules and carry their own
 condition, because several of them are NOT mutually comparable (different
@@ -658,93 +657,6 @@ def t_norm():
         rows, wide=False, fit=True)
 
 
-# ===================================================================== mega 4
-def t_rejected():
-    cc = L("cancel_control.json")
-    db = L("dualband.json")
-    spd = agg(["spdnet.json"], lambda k: k.split("|")[0])
-    mrg = agg(["merge.json"], lambda k: k.split("|")[1])
-    tf = ["temporal_ds007788ctrl.json"] + [
-        "temporal_ds007788ctrl_seed%d.json" % i for i in (1, 2, 3)]
-    tmp = agg(tf, lambda k: k)
-    arch = [v["mean"]["bal_acc"] for v in L("arch_sweep.json").values()
-            if isinstance(v, dict) and "mean" in v]
-
-    def cell(x):
-        return f3(x)
-
-    def cs(lst, n):
-        """mean +- SD across seeds; n must match the printed seed count"""
-        assert len(lst) == n, (len(lst), n)
-        return "%.3f $" % st.mean(lst) + BS + "pm$ %.3f" % st.stdev(lst)
-    rows = [group("Rejected: the control removed the effect", 6)]
-    c = cc.get("cancel", {})
-    rows.append("Motion cancellation & 1 & %s & %s (zeroed) & %s & "
-                "inertial classifier %s" %
-                (cell(c.get("true")), cell(c.get("zeroed")),
-                 BS + "textbf{%+.3f}" % (c.get("zeroed", 0) - c.get("true", 0)),
-                 EOL))
-    rows.append("Motion cancellation & 1 & %s & %s (shuffled) & %+.3f & "
-                "same %s" % (cell(c.get("true")), cell(c.get("shuffled")),
-                             c.get("shuffled", 0) - c.get("true", 0), EOL))
-    if "PowerAttn-full" in mrg and "PowerAttn-noattn" in mrg:
-        a, b = st.mean(mrg["PowerAttn-full"]), st.mean(mrg["PowerAttn-noattn"])
-        rows.append("Within-epoch attention & 3 & %s & %s (removed) & "
-                    "%s & block not earning its place %s" %
-                    (cs(mrg["PowerAttn-full"], 3), cs(mrg["PowerAttn-noattn"], 3),
-                     BS + "textbf{%+.3f}" % (b - a), EOL))
-    both, erd = acc(db.get("both")), acc(db.get("erd"))
-    if both is not None and erd is not None:
-        rows.append("MRCP dual-band pathway & 1 & %s (both) & %s (ERD only) & "
-                    "%+.3f & low band adds noise %s" %
-                    (cell(both), cell(erd), erd - both, EOL))
-    if arch:
-        rows.append("Capacity scaling & 1 & %s & %s & %+.3f & "
-                    "24 configs, no trend %s" %
-                    (cell(max(arch)), cell(min(arch)), max(arch) - min(arch),
-                     EOL))
-    if "aspd_ea" in spd:
-        a, b = st.mean(spd["aspd_ea"]), st.mean(spd["aspd_noalign"])
-        rows.append("Alignment (SPD backbone) & 3 & %s (EA) & %s (none) & "
-                    "%s & %s %s" % (cs(spd["aspd_ea"], 3), cs(spd["aspd_noalign"], 3),
-                                    "%+.3f" % (b - a),
-                                    BS + "textbf{inside seed spread}", EOL))
-
-    rows.append(BS + "midrule")
-    rows.append(group("Kept: the control preserved the effect", 6))
-    if "w2.0|none" in tmp:
-        base = st.mean(tmp["w2.0|none"])
-        for k, lab in (("w2.0|forward", "HMM forward filter"),
-                       ("w2.0|viterbi", "Viterbi decoding")):
-            if k in tmp:
-                rows.append("%s & 4 & %s & %s (baseline) & %s & survives "
-                            "shuffle %s" % (lab, cs(tmp[k], 4),
-                                            cs(tmp["w2.0|none"], 4),
-                                            BS + "textbf{%+.3f}"
-                                            % (st.mean(tmp[k]) - base), EOL))
-        if "w2.0|fwdshuf" in tmp:
-            sh = st.mean(tmp["w2.0|fwdshuf"])
-            rows.append("%s & 4 & %s & %s (baseline) & %s & "
-                        "%s %s" % (BS + "quad control: shuffled order",
-                                   cs(tmp["w2.0|fwdshuf"], 4), cs(tmp["w2.0|none"], 4),
-                                   BS + "textbf{%+.3f}" % (sh - base),
-                                   BS + "textbf{falls below baseline}", EOL))
-    return table(
-        "tab:rejected",
-        "Every architectural intervention tested, with the control that "
-        "decided it. The motion-canceller row is the clearest rejection: the "
-        "module scored 0.905 with the inertial channel present and chance "
-        "with it zeroed, so the module was classifying the inertial "
-        "signal. The temporal-smoothing rows are the clearest retention: "
-        "shuffling window order removes the gain and drops accuracy "
-        "\\textbf{0.113 below the unsmoothed baseline}, which no operation "
-        "helping for an unrelated reason would do. $n$ is seeds; where $n>1$, "
-        "With and Control are mean $" + BS + "pm$ SD across seeds.",
-        "lrllrl",
-        "Intervention & $n$ & With & Control & $" + BS + "Delta$ & Verdict",
-        rows, wide=True, fit=True)
-
-
 # ===================================================================== small
 def t_drift():
     d = L("drift_fixed.json")
@@ -857,7 +769,7 @@ def t_noise():
 
 def main():
     parts = ["%% Generated by src/make_tables.py -- do not edit by hand." + NL + NL,
-             t_compare(), t_ablation3(), t_rate(), t_ratecurve(), t_repr(), t_norm(), t_rejected(),
+             t_compare(), t_ablation3(), t_rate(), t_ratecurve(), t_repr(), t_norm(),
              t_drift(),
              t_noise()]
     OUT.write_text("".join(parts), encoding="utf-8")

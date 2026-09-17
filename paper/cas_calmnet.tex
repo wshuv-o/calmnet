@@ -421,6 +421,16 @@ normalisation scores $0.849$, global per-recording normalisation $0.878$, and no
 normalisation $0.864$, so the global setting used here is the best of the three
 and per-window normalisation is the worst.
 
+Table~\ref{tab:norm} repeats the normalisation comparison across six
+published decoders, in an earlier training pipeline. Per-window normalisation is
+the best choice for two of them and the worst for two, and most differences are
+below the $0.02$ noise threshold, so this comparison neither supports nor
+contradicts the representation-level dose--response in Table~\ref{tab:repr}.
+Table~\ref{tab:repr} also reports the control that retired an amplitude
+side-channel: supplying a per-window amplitude feature and supplying the same
+feature with its window assignment shuffled differ by less than $0.02$ for four
+of five models.
+
 \subsection{Causal cross-epoch context}
 
 A causal transformer encoder \citep{attention} over a sequence of $K=8$ epochs
@@ -619,7 +629,7 @@ noise to hide in.
 
 \paragraph{Pipeline separation} The proposed decoder and the published decoders
 of Section~\ref{sec:compare} were trained in one pipeline.
-Tables~\ref{tab:repr}, \ref{tab:norm} and \ref{tab:rejected} come from earlier
+Tables~\ref{tab:repr} and \ref{tab:norm} come from earlier
 pipelines and are used only for comparisons within each table.
 
 %=============================================================================
@@ -978,75 +988,7 @@ protocol-level check instead of an end-to-end one: the quantity that decides
 whether the layer helps is a property of the evaluation stream, which the
 fitting distribution does not expose.
 
-\subsection{Interventions tested and rejected}
-\label{sec:rejectedset}
-
-Six architectural interventions were tested before the configuration reported
-here and rejected by their own controls (Table~\ref{tab:rejected}). We report
-them because each control is what distinguishes a mechanism from a correlation,
-and because two of them looked convincing until the control was run.
-
-Three are multi-seed and test a component the architecture could plausibly
-have kept.
-
-\paragraph{Temporal smoothing and the attention block} Applying an HMM forward filter over the decoder's output improves cohort A
-by $+0.024$ over four seeds, and Viterbi decoding by $+0.038$
-(Table~\ref{tab:rejected}). Viterbi is reported for reference only: it needs the
-complete sequence and so cannot run in the causal setting this decoder targets.
-The control applies the same filter after shuffling
-window order, which preserves the operation and destroys the temporal structure:
-it falls to $0.665$, \textbf{0.113 below} the unsmoothed baseline. A smoothing
-operation that helped for any reason other than genuine persistence would not
-behave that way. Participant-paired Wilcoxon signed-rank tests over the seven
-participants, with seeds averaged within participant and Holm correction across
-the three comparisons, place the forward filter at $+0.024$ (better in 6 of 7,
-$p_{\mathrm{Holm}}=0.063$), Viterbi at $+0.038$ (6 of 7,
-$p_{\mathrm{Holm}}=0.063$) and the shuffled control at $-0.113$ (worse in 7 of
-7, $p_{\mathrm{Holm}}=0.047$). \textbf{Only the control clears $0.05$}: with
-$n=7$ the smallest attainable two-sided $p$ is $0.016$, so the smoothing gains
-are consistent in sign but underpowered, while the control's collapse is not.
-The cross-epoch pathway of Section~\ref{sec:rate} is therefore
-a real effect even though it costs accuracy.
-
-By contrast, merging the power stem with a within-epoch attention block
-(Table~\ref{tab:rejected}) is improved by $0.024$ when the attention is
-\emph{removed}, across three seeds. The block was dropped.
-
-\paragraph{Replication on an independent architecture} We built
-a separate SPD-manifold decoder in which alignment can be fixed (Euclidean
-Alignment), learned, or omitted (Table~\ref{tab:rejected}). Over three seeds the
-three variants span $0.814$ to $0.823$, and omitting alignment entirely costs
-$0.002$, far inside the $\pm0.02$ to $\pm0.03$ seed spread. A different backbone,
-a different alignment parameterisation, and the same conclusion: the alignment
-stage is not what carries the performance.
-
-\paragraph{Normalisation across published architectures}
-Table~\ref{tab:norm} repeats the normalisation comparison across six
-published decoders, in an earlier training pipeline. Per-window normalisation is
-the best choice for two of them and the worst for two, and most differences are
-below the $0.02$ noise threshold, so this comparison neither supports nor
-contradicts the representation-level dose--response in Table~\ref{tab:repr}.
-Table~\ref{tab:repr} reports the control that retired the amplitude
-side-channel: supplying a per-window amplitude feature and supplying the same
-feature with its window assignment shuffled differ by less than $0.02$ for four
-of five models.
-
-Tables~\ref{tab:repr} and \ref{tab:rejected} report the representation and
-architecture sweeps that preceded the design. The tangent-space representation
-is the strongest single feature family, which is what motivated a
-covariance-based alignment stage; and no structural change in the 24-configuration
-sweep reaches $0.06$ over the baseline, with widening the network worth less
-than changing the readout.
-
-The movement-related cortical potential (MRCP) pathway deserves a sentence
-because it is a physiologically motivated design that failed cleanly. Decoding
-from the 0.1--3\,Hz onset-locked band alone gives $0.604$; from the mu and beta
-ERD band alone, $0.775$; combining the two, $0.742$. The paired difference
-between the combination and the better single band is $-0.034$, so on
-single-trial data the low-frequency pathway adds noise,
-and the architecture uses the ERD band only.
-
-\subsection{A rejected explanation for the inversion}
+\subsection{Correcting the covariance estimator}
 \label{sec:rejected}
 
 One candidate explanation is the power-weighted estimator described in

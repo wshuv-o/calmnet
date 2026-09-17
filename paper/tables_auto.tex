@@ -144,33 +144,6 @@ EEGConformer \citep{conformer} & 0.828 $\pm$ 0.066 & \textbf{0.829} $\pm$ 0.079 
 }
 \end{table}
 
-\begin{table*}[t]
-\caption{Every architectural intervention tested, with the control that decided it. The motion-canceller row is the clearest rejection: the module scored 0.905 with the inertial channel present and chance with it zeroed, so the module was classifying the inertial signal. The temporal-smoothing rows are the clearest retention: shuffling window order removes the gain and drops accuracy \textbf{0.113 below the unsmoothed baseline}, which no operation helping for an unrelated reason would do. $n$ is seeds; where $n>1$, With and Control are mean $\pm$ SD across seeds.}
-\label{tab:rejected}
-\centering
-\small
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lrllrl}
-\toprule
-Intervention & $n$ & With & Control & $\Delta$ & Verdict \\
-\midrule
-\multicolumn{6}{l}{\textit{Rejected: the control removed the effect}} \\
-Motion cancellation & 1 & 0.905 & 0.501 (zeroed) & \textbf{-0.404} & inertial classifier \\
-Motion cancellation & 1 & 0.905 & 0.529 (shuffled) & -0.376 & same \\
-Within-epoch attention & 3 & 0.840 $\pm$ 0.011 & 0.863 $\pm$ 0.025 (removed) & \textbf{+0.024} & block not earning its place \\
-MRCP dual-band pathway & 1 & 0.742 (both) & 0.775 (ERD only) & +0.034 & low band adds noise \\
-Capacity scaling & 1 & 0.768 & 0.608 & +0.159 & 24 configs, no trend \\
-Alignment (SPD backbone) & 3 & 0.823 $\pm$ 0.020 (EA) & 0.821 $\pm$ 0.033 (none) & -0.002 & \textbf{inside seed spread} \\
-\midrule
-\multicolumn{6}{l}{\textit{Kept: the control preserved the effect}} \\
-HMM forward filter & 4 & 0.802 $\pm$ 0.004 & 0.778 $\pm$ 0.011 (baseline) & \textbf{+0.024} & survives shuffle \\
-Viterbi decoding & 4 & 0.817 $\pm$ 0.006 & 0.778 $\pm$ 0.011 (baseline) & \textbf{+0.038} & survives shuffle \\
-\quad control: shuffled order & 4 & 0.665 $\pm$ 0.013 & 0.778 $\pm$ 0.011 (baseline) & \textbf{-0.113} & \textbf{falls below baseline} \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
-
 \begin{table}[t]
 \caption{Per-participant session drift. $\delta$ is the affine-invariant Riemannian distance between the fitting-session mean covariance and the held-out mean. The no-op control shares every code path but never updates its estimate. \textbf{Every participant improves}: 15 of 15, $t=-9.46$, $p=8\times10^{-5}$ (A) and $t=-12.33$, $p=5\times10^{-6}$ (B). The control changes the distance by at most $0.09\,\%$ of its raw value. The row under each cohort is the mean $\pm$ SD across participants.}
 \label{tab:drift}
