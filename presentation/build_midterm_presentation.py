@@ -369,6 +369,19 @@ right = [
 for name, refs in (("TextBox 5", left), ("TextBox 6", right)):
     write(get(s, name), [P(R(tag + "  ", 11, bold=True), R(txt, 10.5, color=GRY), sa=9, ls=1.06) for tag, txt in refs])
 
+# ------------------------------------------------------------------ borders off on text blocks
+import re as _re
+for sid in list(prs.slides._sldIdLst)[N_ORIG:]:
+    sl = prs.part.related_part(sid.rId).slide
+    for sh in sl.shapes:
+        if sh.shape_type != 1 or not sh.has_text_frame:
+            continue
+        txt = sh.text_frame.text.strip()
+        if not txt or _re.fullmatch(r"O[0-9]", txt):
+            continue
+        if sh.line.fill.type is not None and sh.line.fill.type != 5:   # 5 = background (no line)
+            sh.line.fill.background()
+
 # ------------------------------------------------------------------ drop the original proposal slides
 ids = prs.slides._sldIdLst
 for sid in list(ids)[:N_ORIG]:
