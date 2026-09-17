@@ -100,11 +100,66 @@ def session_days(subject: str = "sub-01") -> dict[int, int]:
     return {s: (dates[s] - ref).days if dates[s] else -1 for s in sess}
 
 
+# ICLabel classes treated as artefact. "brain" and "other" are kept: "other" is
+# ICLabel's residual class and removing it would take signal with it.
+ICA_DROP = {"eye blink", "muscle artifact", "heart beat", "line noise",
+            "channel noise"}
+ICA_LOG = Path(__file__).resolve().parent.parent / "results" / "ica_components.csv"
+
+
+def _ica_clean(raw: mne.io.BaseRaw, tag: str = "") -> mne.io.BaseRaw:
+    """Remove the independent components ICLabel classifies as artefact.
+
+    ICLabel expects an average reference and a band starting at 1 Hz, so both
+    are applied before fitting. At this cohort's 100 Hz sampling the usable
+    band stops at 45 Hz rather than ICLabel's preferred 100 Hz. Picard with
+    extended=True and ortho=False approximates the extended Infomax solution
+    ICLabel was trained on. The fit uses a 1-45 Hz copy; the unmixing is then
+    applied to the average-referenced recording, which is band-passed to the
+    decoding band afterwards by the caller.
+
+    One row per recording is appended to results/ica_components.csv, so the
+    number and kind of components removed can be reported.
+    """
+    from mne.preprocessing import ICA
+    from mne_icalabel import label_components
+
+    raw.set_montage("standard_1005", on_missing="ignore", verbose="ERROR")
+    raw.set_eeg_reference("average", projection=False, verbose="ERROR")
+    fit = raw.copy().filter(1.0, 45.0, picks="eeg", verbose="ERROR")
+    n_eeg = len(mne.pick_types(raw.info, eeg=True))
+    n = min(30, n_eeg - 1)                 # average reference costs one rank
+    ica = ICA(n_components=n, method="picard",
+              fit_params=dict(ortho=False, extended=True),
+              max_iter="auto", random_state=0, verbose="ERROR")
+    ica.fit(fit, picks="eeg", verbose="ERROR")
+    lab = label_components(fit, ica, method="iclabel")
+    labels = list(lab["labels"])
+    ica.exclude = [i for i, l in enumerate(labels) if l in ICA_DROP]
+    ica.apply(raw, verbose="ERROR")
+
+    try:
+        new = not ICA_LOG.exists()
+        with open(ICA_LOG, "a", encoding="utf-8") as fh:
+            if new:
+                fh.write("recording,n_components,n_removed,removed_labels\n")
+            removed = ";".join(labels[i] for i in ica.exclude)
+            fh.write("%s,%d,%d,%s\n" % (tag, n, len(ica.exclude), removed))
+    except Exception:
+        pass
+    return raw
+
+
 def _load_raw(edf_path: Path, l_freq: float, h_freq: float,
-              eog_regress: bool = True) -> mne.io.BaseRaw:
+              eog_regress: bool = True, ica: bool = False) -> mne.io.BaseRaw:
     raw = mne.io.read_raw_edf(edf_path, preload=True, verbose="ERROR")
     eog = [c for c in raw.ch_names if "EOG" in c.upper()]
     raw.set_channel_types({c: "eog" for c in eog})
+    if ica:
+        raw = _ica_clean(raw, tag=edf_path.stem)
+        # ICA has already removed the ocular components; regressing EOG out a
+        # second time would subtract ocular variance that is no longer there.
+        eog_regress = False
     # band-pass EEG + EOG to the MI band, then linearly regress EOG out of EEG
     raw.filter(l_freq, h_freq, picks=["eeg", "eog"], method="fir", phase="zero",
                fir_design="firwin", verbose="ERROR")
@@ -200,17 +255,32 @@ def _windows_from_task(subject, ses, task, raw, seg, win, step, margin, seg_base
 
 def build_epochs(subject="sub-01", sessions=None, tasks=MI_TASKS,
                  win=2.0, step=0.5, margin=0.5, l_freq=8.0, h_freq=30.0,
-                 zscore=True, use_cache=True) -> EpochSet:
-    """Load, preprocess and epoch the requested sessions/tasks into an EpochSet."""
+                 zscore=True, use_cache=True, ica=False) -> EpochSet:
+    """Load, preprocess and epoch the requested sessions/tasks into an EpochSet.
+
+    ica=True removes ICLabel-classified artefact components before band-passing
+    (see _ica_clean) and caches under a separate "_ica" tag.
+    """
     sessions = sessions or list_sessions(subject)
     days = session_days(subject)
     tag = f"{subject}_s{'-'.join(map(str, sessions))}_{'-'.join(tasks)}_w{win}_st{step}_{l_freq}-{h_freq}_z{int(zscore)}_v2imu"
+    if ica:
+        tag += "_ica"
     cache = CACHE_DIR / f"{tag}.npz"
     if use_cache and cache.exists():
-        d = np.load(cache, allow_pickle=True)
-        return EpochSet(d["X"], d["y"], d["session"], d["day"], d["task"],
-                        d["motion"], d["segment"], d["imu_feats"],
-                        list(d["ch_names"]), float(d["sfreq"]))
+        try:
+            with open(cache, "rb") as fh:                      # explicit handle => always closed
+                with np.load(fh, allow_pickle=True) as d:
+                    m = {k: d[k] for k in d.files}             # materialise before the file closes
+            return EpochSet(m["X"], m["y"], m["session"], m["day"], m["task"],
+                            m["motion"], m["segment"], m["imu_feats"],
+                            list(m["ch_names"]), float(m["sfreq"]))
+        except Exception as e:                                 # corrupt/truncated cache (e.g. disk-full)
+            print(f"  [cache] {cache.name} unreadable ({type(e).__name__}); regenerating", flush=True)
+            try:
+                cache.unlink()
+            except Exception:
+                pass
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     allX, ally, allses, allday, alltask, allmot, allsid, allfeat = [], [], [], [], [], [], [], []
@@ -227,7 +297,7 @@ def build_epochs(subject="sub-01", sessions=None, tasks=MI_TASKS,
             seg = _rexstate_segments(evt)
             if not seg:
                 continue
-            raw = _load_raw(edf, l_freq, h_freq)
+            raw = _load_raw(edf, l_freq, h_freq, ica=ica)
             ch_names, sfreq = raw.ch_names, raw.info["sfreq"]
             X, y, mot, sid, feats, seg_base = _windows_from_task(
                 subject, ses, task, raw, seg, win, step, margin, seg_base)

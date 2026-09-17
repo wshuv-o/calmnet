@@ -1,0 +1,429 @@
+# Session findings — representation beats architecture
+
+> **Read section 0 first.** The result below is a solid *internal* finding, but
+> the winning method is standard practice in the BCI literature, not a
+> contribution. This document originally framed it as a discovery; that framing
+> was wrong and is corrected in section 0.
+
+Headline: a **1,831-parameter classical pipeline outperforms 131 deep
+architectures and 18 published deep models** on this task, on two cohorts, and
+is the only method that is genuinely movement-invariant.
+
+```
+covariance -> Euclidean Alignment -> log-Euclidean tangent -> logistic regression
+```
+
+| representation | ds007788 acc | R² | MoBI acc | R² |
+|---|---|---|---|---|
+| **raw \| tangent_EA** | **0.776 ± 0.010** | **−0.265** | **0.675** | **−0.961** |
+| raw \| tangent+PLV | 0.780 ± 0.035 | −0.256 | 0.689 | −0.950 |
+| car \| tangent_EA | 0.774 ± 0.012 | −0.267 | 0.669 | −0.941 |
+| raw \| FBCSP | 0.764 ± 0.029 | **+0.187** | 0.689 | −0.134 |
+| raw \| PLV | 0.710 ± 0.035 | +0.020 | 0.646 | −0.247 |
+| raw \| bandpower | 0.634 ± 0.010 | +0.040 | 0.574 | −0.066 |
+| deep composed architecture | 0.695 ± 0.024 | — | 0.588 | — |
+
+R² is intent→motion recoverability. **Negative means movement is not
+recoverable**, i.e. genuinely invariant. R² > 0 means it is not.
+
+Why it works: movement artefact lives in the **second-order structure** of the
+signal and shifts between sessions. Euclidean Alignment whitens each session by
+its own mean covariance — label-free, computed from that session's own data — so
+the artefact is removed before any classifier sees it. Every deep method here
+instead tried to *learn* invariance against it (adversary, HSIC, decorrelation,
+in-network cancellation). All were fighting in the loss for something a
+whitening transform does in closed form.
+
+---
+
+## 0. Novelty assessment — the winning method is not new
+
+The pipeline that won is **established practice**, not a discovery:
+
+- Riemannian tangent-space classification of EEG covariance: Barachant et al.,
+  2012.
+- Euclidean / Riemannian Alignment for cross-session and cross-subject transfer:
+  He & Wu, and tangent-space alignment validated across **18 BCI databases,
+  349 subjects** (PMC9755175).
+- "Riemannian methods match or beat deep learning on small-sample BCI" is
+  reproduced routinely in MOABB benchmarks.
+
+So the honest description of this session's headline is: **the standard pipeline
+for this problem was not tried until late, and when it was, it beat everything
+built before it.** That is a process failure, not a result. Any write-up that
+presents 0.776 as a contribution will be desk-rejected by anyone who knows the
+Riemannian BCI literature.
+
+### What might still be unclaimed
+
+1. **Closed-form second-order alignment beats learned adversarial invariance.**
+   Adversarial gradient reversal, HSIC, cross-covariance decorrelation and
+   in-network motion cancellation were all run against Euclidean Alignment on
+   the same task. EA won on accuracy *and* on invariance. A direct head-to-head
+   of this kind, on a movement-confounded paradigm, is the most promising
+   residue here.
+2. **The invariance probe as a diagnostic** — measuring how recoverable the
+   nuisance variable is from the decoder's own representation, and showing that
+   accuracy gains track it at r = +0.60 across 131 architectures.
+
+### Why neither is publishable yet
+
+- **The real baselines were never run.** No pyriemann MDM, no MOABB pipelines,
+  no published domain-adaptation comparators. Without them there is no way to
+  separate a contribution from a textbook result — which is exactly the mistake
+  made above.
+- **Every R² predating the probe fix is unscored**, including the +0.603
+  correlation the whole argument rests on.
+- **The literature has not been checked** for movement-artefact-invariant BCI
+  decoding, or for existing EA-versus-adversarial comparisons. The residue above
+  may already be claimed.
+- N = 7 + 8, and the two cohorts may share a lab.
+
+### Next action is not another experiment
+
+A proper literature search on (a) movement-artefact-invariant BCI decoding and
+(b) alignment versus adversarial domain-invariance comparisons. If the residue
+survives that, most of the supporting experiments are already built and only
+need re-scoring with the corrected probe.
+
+---
+
+## 1. A metric error invalidated earlier conclusions
+
+The original probe fitted a ridge on the **training** sessions and scored it on
+the **test** sessions. That conflates invariance with distribution shift: a
+representation whose features merely move between sessions scores strongly
+negative while still encoding movement perfectly well inside any session.
+
+| representation | cross-split probe (wrong) | within-test CV probe (honest) |
+|---|---|---|
+| FBCSP | −0.501 "most invariant" | **+0.187** — clearly leaky |
+| tangent_EA | −0.089 | **−0.258** — more invariant |
+| bandpower | +0.007 | +0.034 |
+
+Corrected in `features.invariance_r2_cv` (session-grouped cross-validation
+inside the evaluation set). **Every R² produced before this fix is suspect**,
+including the 131-architecture correlation, the module-ablation verdicts and the
+backbone selection. Those need re-scoring; the models are already trained, so it
+is a re-measurement, not a re-training.
+
+## 2. The confound is real, and larger than previously reported
+
+IMU-only (no EEG at all) reaches **0.870**, above EEGNet (0.819) and
+EEG-Conformer (0.826). Previously reported as 0.839 — understated because
+`dataio` silently substitutes zeros when a session's motion file is missing, and
+those sessions then score exactly 0.500 in the movement baseline. Six sessions
+across five subjects are affected (`calmnet_msa.imu_valid_mask`).
+
+## 3. Architecture search does not move the honest number
+
+131 variants (5 backbone families, 7 readouts, 15 augmentations, 4 independence
+penalties, 4 optimisers, 5 frequency bands, 7k–391k params):
+
+- **0 of 131** beat baseline with R² ≤ 0
+- corr(accuracy, leakage) = **+0.603**
+- capacity buys leakage faster than accuracy: corr(log params, R²) = +0.379 vs
+  corr(log params, accuracy) = +0.262
+- a 310k-param DeepConvNet (0.681) loses to a 7k band-power net (0.688)
+
+Published backbones tell the same story: **EEGConformer scores 0.827 with
+R² +0.456** — the highest accuracy and the worst leakage of 18 models.
+
+## 4. Frequency band traces the leakage/accuracy trade-off monotonically
+
+| band | acc | R² |
+|---|---|---|
+| mu 8–13 | 0.612 | −0.013 |
+| 8–30 (default) | 0.688 | +0.032 |
+| beta 13–30 | 0.709 | +0.101 |
+| broad 4–40 | 0.708 | +0.109 |
+| full 1–45 | 0.718 | +0.127 |
+
+Every Hz added outside mu buys accuracy by buying movement. Survived seed
+replication. This was the signal that the **representation** axis mattered more
+than the architecture axis, and it should have been followed sooner.
+
+## 5. Seed variance kills two published claims
+
+Mean seed sd = **0.028** over 23 replicated variants.
+
+- **Abstention gain (+0.025) is inside the noise.** "Executed accuracy
+  0.694 → 0.719 @ 80% coverage" cannot be claimed from a single seed.
+- **Single-seed leaderboards are selection on noise.** `bb_tcn` topped the
+  131-variant sweep at 0.782; replicated it is **0.712 ± 0.057**. Mean shrinkage
+  across replicated variants: −0.016.
+
+## 6. Negative results worth keeping
+
+- **Multi-subject pooling fails.** Subject identity stayed 0.76–0.80 recoverable
+  (chance 0.143) across every configuration; the shared encoder never found a
+  subject-invariant representation. 7 subjects is far below what adversarial
+  subject-invariance needs. `calmnet_msa.py`, `exp_msa.py`.
+- **In-network motion cancellation fails.** Removed 96.2% of a *synthetic*
+  artefact, but on real data the network used the motion reference as an input
+  feature and decoded the label from it: accuracy 0.806 → 0.908, leakage
+  +0.294 → +0.582. Worst module in the ablation, dropped in both stages.
+- **The composed deep architecture does not transfer.** Best configuration on
+  ds007788 (0.622), worst on MoBI (0.588). Module selection fitted to one cohort.
+- **ASR was untestable as run.** `dataio` z-scores every window to unit variance,
+  and ASR detects artefact by variance exceeding a calibration threshold, so it
+  was a guaranteed no-op. All 10 ASR cells are identical to their non-ASR
+  counterparts. Testing it properly requires applying it to continuous data
+  before epoching.
+
+## 7. Paper/code discrepancies found and fixed
+
+- **Adaptive conformal update sign was inverted** in the paper (both §LSC and
+  Algorithm 1) relative to `calibrate.py`. As printed, coverage collapses to
+  0.009 against a 0.90 target. Fixed.
+- **Invariance claim overstated.** "Movement is no longer linearly or
+  nonlinearly recoverable" was based on the MLP probe (−0.31); the linear probe
+  on the same models gives −0.02, positive for 2 of 7 subjects. A more expressive
+  probe returning a *more* negative R² indicates probe overfitting, not stronger
+  invariance. Rewritten to report both.
+- **CORAL** is claimed in §LSC but absent from the pipeline producing every
+  band-power number. Qualified.
+- Still outstanding: the selective head and `L_cal` in the training objective do
+  not exist in the code (`calmnet_v2.py` now implements a real one), and the
+  three-term SAS gate has never been run with more than one term.
+  **Now run — see section 8.**
+
+---
+
+## 8. CALM-Net v2 finally has a number, and it loses
+
+`calmnet_v2.py` had sat in the tree with no driver since the sweep. `exp_calmnet_v2.py`
+runs it: 7 subjects x 3 seeds x 80 epochs, FBMSNet backbone, conformal calibration
+on a segment-disjoint half of the held-out 30% that plays no part in fitting.
+
+| | CALM-Net v2 | tangent_EA |
+|---|---|---|
+| parameters | 83,694 | 1,831 |
+| balanced accuracy | **0.628 +/- 0.052** | **0.763** |
+| invariance R2_cv | −0.134 | **−0.265** |
+| subjects where it wins on accuracy | 2 of 7 | 5 of 7 |
+| subjects where it is more invariant | 2 of 7 | 5 of 7 |
+
+**It loses on both axes at 46x the parameters.** The two subjects it wins
+(sub-06, sub-07) are the two where tangent_EA is weakest. This is the
+representation-beats-architecture result again, now with the project's own
+best-designed model as the loser rather than a sweep variant.
+
+### The seed problem is worse than section 5 said
+
+Mean within-subject seed sd is **0.071**, 2.5x the 0.028 measured across the
+sweep. sub-04 spans 0.537–0.760 and sub-03 spans 0.533–0.742 across three seeds
+of an identical configuration. Any single-seed number from this model is
+uninterpretable, and the three-seed means above are themselves thin.
+
+### The three-term SAS gate: two of the three terms are nearly inert
+
+First time the whole rule has been run. Acceptance rate of each term alone, and
+the marginal cost of each given the other two:
+
+| term | accepts alone | marginal cost |
+|---|---|---|
+| selective head g >= theta | 0.85 | 0.06 |
+| conformal singleton | 0.49 | **0.19** |
+| wrong-walk bound | 0.67 | 0.05 |
+
+The rule is a conformal filter with two decorations. The **trained selective
+head — the piece added specifically because the paper claimed it and the repo
+lacked it — rejects almost nothing** the other terms would have kept.
+
+### Coverage misses the target by half, and safety is bought by refusing to walk
+
+Achieved coverage **0.381** against a 0.80 target. Executed accuracy 0.712, but
+at 38% coverage that number cannot be compared with the paper's "0.719 @ 80%
+coverage" — different operating point entirely.
+
+**Walk recall is 0.174.** The wrong-walk bound is satisfied (0.040 against a
+0.05 bound) largely because the system almost never commits walk. This is the
+same degenerate solution `cost_weights()` documents for `c_ww=5` — "trivially
+safe and entirely useless" — reached through the decision threshold instead of
+through the loss. Moving the asymmetry out of the objective did not avoid it.
+
+Calibration sets average **103 windows, ~33 of them walk**. A 90% class-conditional
+conformal quantile needs 19+ per class, so the guarantee is nominally valid and
+practically fragile. Any future coverage claim needs more calibration data.
+
+### Independent confirmation of the section 1 metric fix
+
+On a model the fix was not derived from, the old cross-split probe reports
+−0.420 and the corrected probe −0.134. The old probe **overstates invariance by
+0.29** — same direction and similar magnitude as the FBCSP case in section 1.
+
+### The classical winner is not uniformly invariant
+
+Per-subject tangent_EA (this run reproduces `features.json`: mean acc 0.763 vs
+0.7628 recorded, mean R2_cv −0.265):
+
+| | s01 | s02 | s03 | s04 | s05 | s06 | s07 |
+|---|---|---|---|---|---|---|---|
+| acc | 0.972 | 0.675 | 0.939 | 0.794 | 0.785 | 0.574 | 0.601 |
+| R2_cv | **+0.471** | −0.800 | **+0.420** | −0.210 | −0.897 | −0.204 | −0.638 |
+
+**Movement is positively recoverable for 2 of 7 subjects, and they are the two
+highest-accuracy subjects.** corr(acc, R2_cv) across subjects within tangent_EA
+alone is **+0.691** — the same coupling found across the 131 architectures,
+now visible inside the classical pipeline. The headline "the only method that is
+genuinely movement-invariant" is a mean over a split population, and it fails
+exactly where the accuracy comes from. This qualification belongs anywhere the
+0.776/−0.265 pair is quoted.
+
+Note the 0.776 in this document does not match `features.json`, where
+`raw|tangent_ea` is **0.7628**; 0.776 appears to come from the validation split.
+Quote the number the results file contains.
+
+---
+
+## New code
+
+| file | purpose |
+|---|---|
+| `features.py` | representation library: CAR, Laplacian, ASR, CSP/FBCSP, covariance→EA→tangent, PLV, and the corrected `invariance_r2_cv` probe |
+| `exp_features.py` | 5 preprocessings × 5 feature sets, fixed logistic regression |
+| `exp_features_validate.py` | split robustness + cross-cohort transfer, honest probe |
+| `dataio_mobi.py` | second cohort loader (Luu et al. treadmill BCI, 8 subjects, goniometers) |
+| `motion_ts.py` | per-window motion waveforms aligned to EEG windows |
+| `calmnet_arch.py` | motion-referenced canceller + spectral leakage gate (canceller since dropped) |
+| `exp_ablate.py` | module ablation: add-one, leave-one-out, stack |
+| `arch_zoo.py`, `arch_zoo2.py`, `exp_sweep100.py` | 131-variant architecture search |
+| `braindecode_zoo.py`, `select_backbone.py` | 18 published backbones through the same harness |
+| `calmnet_msa.py`, `exp_msa.py` | multi-subject pooling (negative result) |
+| `calmnet_v2.py` | selective head + Mondrian conformal + wrong-walk bound |
+| `exp_calmnet_v2.py` | its driver: multi-seed, fit-disjoint conformal calibration, both probes, per-term gate breakdown (section 8) |
+| `LITERATURE_POSITIONING.md` | step 1 of the Next list: what in section 0's residue is actually unclaimed |
+| `tools/dashboard.py` | live experiment dashboard |
+
+## Next
+
+1. ~~Literature positioning first~~ **done** — `LITERATURE_POSITIONING.md`.
+   Outcome: residue #1 survives only in its narrow form (a *physically
+   measured, label-correlated* nuisance, not subject/session shift, where
+   "simple alignment is competitive" is already the prevailing view). Residue #2
+   is not blocked by the literature but by our own unscored R2 — which reverses
+   the order below.
+2. **Re-score the ablation, the 131-sweep and the backbone selection with
+   `invariance_r2_cv`.** Promoted from 3: the +0.603 correlation is the entire
+   evidence base for residue #2 and it is currently unscored, so this is a
+   precondition for any claim, not a follow-up. Models are trained; this is
+   re-measurement.
+3. Run the actual baselines: pyriemann MDM, MOABB standard pipelines, and — new,
+   from the literature pass — at least one *published* adversarial DA method, so
+   the head-to-head is against something someone published rather than only
+   against in-house adversaries.
+4. Rebuild the paper around whatever survives 1-3 -- NOT around the 0.776
+   number, which is a replication of standard practice. Frame the confound
+   section as Castermans (2014) vs Nathan & Contreras-Vidal (2015): the
+   contribution is the measurement, not the observation.
+5. Decide what to do with CALM-Net v2 (section 8). It loses on both axes at 46x
+   the parameters, its selective head is inert, and its coverage target is
+   missed by half. Either report it as a negative result or cut the SAS
+   machinery from the paper — it currently claims capabilities the run does not
+   support.
+6. Consolidate the sweep files (`exp_sweep.py` is superseded; `arch_zoo`/
+   `arch_zoo2` should merge; `exp_sweep_resume.py` should be a flag).
+7. Check whether ds007788 and the MoBI cohort share a lab — if so the external
+   validation is weaker than it looks and should be described as a different
+   paradigm and sensor rather than an independent replication.
+
+---
+
+# Part II — CALM-Net v3 (SPD manifold) and the r = +0.958 result
+
+## The headline
+
+Across **47 evaluation cells** — two cohorts, 15 subjects, 3 seeds, small (22k)
+and large (544k / 1.4M) models, every module combination —
+
+    corr(balanced accuracy, intent->motion R^2) = +0.958
+
+Accuracy and movement leakage are very nearly the same quantity on this
+paradigm. This is measured with the corrected within-distribution,
+dimension-invariant probe (see Part I §1 and the note below), so it is not the
+probe artefact that inflated earlier numbers.
+
+## Results
+
+ds007788 (7 subjects, 3 seeds each):
+
+| arm | acc | R² | wrong-walk | cov |
+|---|---|---|---|---|
+| large_nocond | **0.859 ± 0.015** | **+0.400** | 0.054 | 0.75 |
+| large_full | 0.799 ± 0.012 | +0.358 | 0.038 | 0.63 |
+| large_noattn | 0.792 ± 0.015 | +0.358 | 0.030 | 0.61 |
+| **bare** | 0.794 ± 0.010 | +0.288 | 0.026 | **0.88** |
+| no_select | 0.781 ± 0.002 | +0.290 | 0.077 | 0.68 |
+| no_cond | 0.774 ± 0.016 | +0.295 | 0.046 | 0.59 |
+| no_couple | 0.774 ± 0.013 | +0.302 | 0.046 | 0.60 |
+| full | 0.762 ± 0.017 | +0.295 | 0.049 | 0.61 |
+| no_align | 0.743 ± 0.022 | **+0.262** | **0.016** | 0.72 |
+
+MoBI (8 subjects, 3 seeds each):
+
+| arm | acc | R² | wrong-walk |
+|---|---|---|---|
+| bare | **0.690 ± 0.005** | **+0.103** | 0.300 |
+| no_align | 0.683 ± 0.016 | +0.084 | 0.280 |
+| no_select | 0.649 ± 0.001 | −0.002 | 0.308 |
+| full | 0.648 ± 0.005 | −0.006 | 0.290 |
+| no_cond | 0.647 ± 0.001 | −0.009 | 0.301 |
+| no_couple | 0.632 ± 0.008 | +0.003 | 0.298 |
+| large_full | 0.610 ± 0.004 | −0.016 | 0.375 |
+
+The ordering is the same on both cohorts: the arms that score highest are the
+arms that leak most, and the arms that are genuinely invariant sit at the bottom.
+
+## Negative results (these are the contribution, such as it is)
+
+**The ConditionalCovariance module does not work.** Schur-complement conditioning
+of the EEG covariance on the synchronised motion waveform, lambda learned per
+band. It removed 97% of a *planted* artefact in isolation (covariance distance
+90.5 -> 2.6) and lambda converged reproducibly to ~0.45-0.50 across every seed
+and arm. On real data `no_cond` matches or beats `full` on both cohorts
+(0.774 vs 0.762 on ds007788; 0.647 vs 0.648 on MoBI) at identical leakage.
+Removing it costs nothing.
+
+**The whole module stack is worse than nothing.** `bare` beats `full` on both
+cohorts (0.794 vs 0.762, and 0.690 vs 0.648). Conditioning, learnable alignment,
+cross-band coupling and the selective head together subtract accuracy and add no
+invariance.
+
+**Removing alignment improves safety.** `no_align` has the lowest leakage
+(+0.262) and lowest wrong-walk (0.016, inside the 0.05 bound) on ds007788.
+
+**The wrong-walk guarantee fails on MoBI**: 0.28-0.375 against a 0.05 target, a
+6x breach on every arm. MoBI is ~89% walk, so the stop-class calibration set is
+too small for the 0.95 quantile to bound anything. A distribution-free bound
+that does not hold is worse than no bound; this needs a finite-sample correction
+before it can be claimed.
+
+## Engineering notes worth keeping
+
+**Benchmark numerical code on REAL data.** cuSOLVER's eigensolver is iterative.
+On `torch.randn` covariances it converges in a few sweeps; on real, ill-
+conditioned EEG covariances it grinds. Every synthetic benchmark said `eigh` was
+fine. On real data, switching to the log-Cholesky chart (`ASPDNetChol`) was
+**18.5x faster** — 258s to 13.9s for 60 epochs — with no change to the manifold.
+Five wrong performance diagnoses preceded finding this.
+
+**`drop_last=True` silently discarded 10% of the training data** (88 of 856
+windows) every epoch on every arm. Correctness bug; invalidated a full result
+set.
+
+**Probe pitfalls, all three of which changed conclusions**: cross-split scoring
+conflates invariance with distribution shift; unregularised ridge R^2 collapses
+with feature width (-0.04 at 50 dims, -4.46 at 1104 on pure noise); and only a
+fixed-width, within-distribution, session-grouped probe is comparable across
+architectures. `features.invariance_r2_cv` is the corrected version and is
+validated against synthetic ground truth in both directions.
+
+## Where this leaves the paper
+
+The r = +0.958 relationship, measured across 47 cells / 15 subjects / 2 cohorts
+with a validated probe, is the strongest and most defensible finding produced.
+It is a statement about the paradigm, not about a model. Everything built to
+beat it — 131 CNN variants, 18 published backbones, multi-subject pooling, a
+motion canceller, a spectral gate, an SPD network with learnable alignment, and
+a Schur-complement conditioning layer — failed, and failed in the same direction.

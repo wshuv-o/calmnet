@@ -1,0 +1,46 @@
+{
+ "family": "temporal_controls",
+ "baseline": "w2.0|none",
+ "seeds_averaged": 4,
+ "tests": [
+  {
+   "arm": "w2.0|forward",
+   "label": "HMM forward filter",
+   "n": 7,
+   "mean_delta": 0.023550233077387777,
+   "sd_delta": 0.020526377489523705,
+   "better_in": 6,
+   "worse_in": 1,
+   "rank_biserial": 0.7142857142857143,
+   "W": 2.0,
+   "p_raw": 0.046875,
+   "p_holm": 0.0625
+  },
+  {
+   "arm": "w2.0|viterbi",
+   "label": "Viterbi decoding (offline only)",
+   "n": 7,
+   "mean_delta": 0.038486840881858386,
+   "sd_delta": 0.03271305046784135,
+   "better_in": 6,
+   "worse_in": 1,
+   "rank_biserial": 0.7142857142857143,
+   "W": 1.0,
+   "p_raw": 0.03125,
+   "p_holm": 0.0625
+  },
+  {
+   "arm": "w2.0|fwdshuf",
+   "label": "control: shuffled window order",
+   "n": 7,
+   "mean_delta": -0.11340841310009639,
+   "sd_delta": 0.03444568435306222,
+   "better_in": 0,
+   "worse_in": 7,
+   "rank_biserial": -1.0,
+   "W": 0.0,
+   "p_raw": 0.015625,
+   "p_holm": 0.046875
+  }
+ ]
+}

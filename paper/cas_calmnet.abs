@@ -1,0 +1,38 @@
+A decoder that drives a powered lower-limb exoskeleton is fitted once and must
+keep working for weeks, while electrode impedance, montage and skin contact
+change the second-order statistics that every spatial filter depends on.
+Re-estimating the input covariance at inference and whitening by it, without
+labels, corrects this shift inside the network and removes the need for a
+calibration session. Such a layer carries a failure mode its offline
+counterpart cannot have. A running estimate tracks whatever is currently
+streaming, and under a protocol that presents classes in long contiguous blocks
+it converges to the active class and whitens away the signal it was inserted to
+protect.
+
+We present a 24{,}181-parameter decoder built around such a layer, and derive a
+lower bound on its adaptation rate from the class-block timescale of the
+recording protocol. On a seven-participant exoskeleton cohort recorded across
+weeks it reaches $0.868 \pm 0.026$ balanced accuracy over three data-split
+seeds. Eight published decoders trained in the same pipeline reach $0.823$ to
+$0.871$ at the first seed, against $0.884$ for this decoder, a margin inside its
+variation across seeds. The layer reduces session-to-session covariance distance
+by \pending{$52.0 \pm 4.5\,\%$ and $83.9 \pm 3.9\,\%$} on two cohorts, in 15 of
+15 participants, against a control with no systematic reduction. On a treadmill
+cohort whose class blocks last 309 windows, the decoder transfers at
+\pending{$0.792$} without the layer, and enabling the layer costs
+\pending{$0.211$}. Slowing adaptation past the block length recovers
+\pending{$0.090$ to $0.098$} on every arm that uses alignment and leaves the arms
+without it within their run-to-run noise, while on the exoskeleton cohort the
+same change costs $0.085$.
+
+The lower bound then predicted a third cohort in advance. With class blocks of
+five windows, both predictions committed before any model was trained held:
+enabling alignment changed accuracy by $+0.002$, and slowing it by $-0.006$,
+where the same slowing had recovered \pending{$0.090$} on the treadmill cohort.
+On that cohort the decoder reaches $0.796$ over three seeds, against $0.783$ for the strongest published decoder, with expected calibration error $0.061$ against $0.077$ to $0.083$. The upper bound, set by the
+drift timescale, could not be measured on these cohorts. Retraining after ICA
+artefact removal lowers accuracy by $0.051$ and leaves it far above chance, and
+the losses do not follow the amount of muscle activity removed. A trained
+selective head adds no accuracy over three seeds and is reported as a negative
+result. The lower bound is a property of the experimental design, so it can be
+checked before a model is trained.

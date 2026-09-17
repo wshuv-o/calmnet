@@ -1,0 +1,44 @@
+% Staging text for the overnight experiments. Methods only: none of this
+% depends on a result, so it was written while the runs were in progress.
+% Results text is added only after the numbers exist.
+
+% ---------------------------------------------------------------- Data
+% insert after the cohort B paragraph
+
+\textbf{Cohort C (motor execution, PhysioNet EEGMMIDB).} Twenty participants,
+S001--S020, from the PhysioNet motor movement and imagery database
+\citep{schalk2004,goldberger2000}: 64-channel EEG recorded at 160\,Hz and
+resampled to 100\,Hz. Only the motor-execution runs are used, and the task is
+rest against movement of the hands or feet. The model is fitted on runs 3, 5,
+7 and 9 and evaluated on runs 11 and 13, with 2\,s windows at 0.5\,s stride,
+each lying wholly inside one annotated period. The protocol alternates the two
+classes about every 4\,s, which gives blocks far shorter than in either other
+cohort. The cohort's analysis plan, including the predictions tested in
+Section~\ref{sec:prereg}, was committed to version control before any model
+was trained on it.
+
+% ---------------------------------------------------------- Preprocessing
+% insert after the preprocessing paragraph
+
+\paragraph{Artefact control} To test whether decoding depends on non-neural
+activity, the proposed configuration was retrained on cohort~A after
+independent component analysis. Each recording was re-referenced to the
+average, a copy band-passed to 1--45\,Hz was decomposed into 30 components with
+the extended Picard algorithm \citep{picard}, and the components that ICLabel
+\citep{iclabel} classified as eye, muscle, heart, line noise or channel noise
+were removed before band-passing to the decoding band. Components classified as
+brain or other were kept. Both arms of the comparison use the training task
+only, so they differ in the cleaning step alone. Gait-related artefact is known
+to be difficult to separate from cortical activity during walking
+\citep{castermans2014,kline2015}, and ICLabel is not trained specifically on
+it, so this control reduces rather than eliminates the question.
+
+% ------------------------------------------------------ Statistical treatment
+% insert at the end of the statistical treatment subsection
+
+Where an arm was run with three seeds, each participant's accuracy is averaged
+over the seeds before pairing, so that run-to-run variation does not enter the
+test as independent samples. Alignment is then compared with an otherwise
+identical arm without it, differing in that single factor, by a two-sided
+Wilcoxon signed-rank test over participants. This is the same design on all
+three cohorts.

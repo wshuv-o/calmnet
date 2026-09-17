@@ -185,7 +185,40 @@ more data + stronger (HSIC) disentanglement to suppress the leakage. (An earlier
 per-subject "LEAKAGE" auto-flag over-called this; the absolute aug-R² shows most gains
 are invariant.)
 
+## H. READ THIS BEFORE TRUSTING ANY LEAKAGE NUMBER ABOVE
+
+Every `intent->motion R^2` in sections A-G is confounded with accuracy and must
+not be compared across arms of differing accuracy. Walk and Stop differ in how
+much the body moves by definition, so the label predicts the IMU, so any decoder
+that tracks the label predicts the IMU.
+
+Measured on real ds007788 data with real IMU features, using predictions made by
+flipping a controlled fraction of the TRUE LABELS (zero movement information by
+construction):
+
+| prediction accuracy | raw R^2 | conditional R^2 |
+|---|---|---|
+| 0.504 | -0.004 | -0.011 |
+| 0.795 | +0.257 | -0.011 |
+| 1.000 | **+0.863** | -0.012 |
+
+`corr(accuracy, raw R^2) = +0.838`, and because the penalty grows ~1.4x faster
+than the accuracy term it is subtracted from,
+**`corr(accuracy, score) = -0.347`** -- the selection metric used throughout this
+project preferred WORSE decoders. (Ranking only; epoch selection used plain
+validation accuracy.)
+
+This retracts the "+0.958 accuracy-leakage correlation" headline of commit
+`3f43429`: reproduced at +0.991 by arms that differ only in post-hoc label
+smoothing and cannot differ in what they encode.
+
+Fix: `features.invariance_r2_conditional`. Under it the tangent+EA
+representation scores **-0.11** -- no excess movement information at all.
+
+Full write-up and the temporal-prior results: `results/FINDINGS_temporal.md`.
+
 ## Open / next
+- Re-run the module ablation under the corrected probe (`ABLATE_OUT=... exp_ablate.py`).
 - More data + HSIC disentanglement jointly (prevent the sub-01-style leakage).
 - Complete reference details + fill author/affiliation in the paper.
 

@@ -1,0 +1,34 @@
+Regenerable caches removed 02:03 to make room for the ICA control.
+Each rebuilds automatically on the next build_epochs call with its settings.
+
+   146.3 MB  sub-01_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_13.0-30.0_z1_v2imu.npz
+   146.0 MB  sub-01_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   146.9 MB  sub-01_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z0_v2imu.npz
+   146.2 MB  sub-01_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+   146.2 MB  sub-02_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_13.0-30.0_z1_v2imu.npz
+   146.3 MB  sub-02_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   146.9 MB  sub-02_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z0_v2imu.npz
+   146.4 MB  sub-02_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+   146.1 MB  sub-03_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_13.0-30.0_z1_v2imu.npz
+   146.1 MB  sub-03_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   146.6 MB  sub-03_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z0_v2imu.npz
+   146.3 MB  sub-03_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+    15.5 MB  sub-04_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_13.0-30.0_z1_v2imu.npz
+   146.4 MB  sub-04_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   146.9 MB  sub-04_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z0_v2imu.npz
+   146.5 MB  sub-04_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+   146.2 MB  sub-05_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   146.5 MB  sub-05_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z0_v2imu.npz
+   146.2 MB  sub-05_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+   143.4 MB  sub-06_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   143.7 MB  sub-06_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z0_v2imu.npz
+   143.5 MB  sub-06_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+   148.1 MB  sub-07_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-13.0_z1_v2imu.npz
+   148.1 MB  sub-07_s1-2-3-4-5-6-7-8-9_training_w2.0_st0.5_8.0-30.0_z1_v2imu.npz
+    67.4 MB  tangent_sub-01.npz
+    67.5 MB  tangent_sub-02.npz
+    67.2 MB  tangent_sub-03.npz
+    67.4 MB  tangent_sub-04.npz
+    67.2 MB  tangent_sub-05.npz
+    66.0 MB  tangent_sub-06.npz
+    68.1 MB  tangent_sub-07.npz

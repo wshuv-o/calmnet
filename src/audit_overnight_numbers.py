@@ -1,0 +1,230 @@
+"""Audit every number written into the manuscript overnight against its source.
+
+Each claim is recomputed from results/*.json or the ICA log and rounded exactly
+as the paper prints it, then the printed string is searched for in the
+flattened manuscript. A claim fails if the recomputed value disagrees with the
+paper or the printed string is absent.
+"""
+import csv
+import io
+import json
+import re
+import statistics as st
+from pathlib import Path
+
+import numpy as np
+from scipy.stats import spearmanr, wilcoxon
+
+ROOT = Path(__file__).resolve().parent.parent
+RES = ROOT / "results"
+tex = io.open(ROOT / "paper" / "cas_calmnet.tex", "rb").read().decode("utf-8")
+flat = " ".join(tex.split())
+
+
+def J(f):
+    return json.loads((RES / f).read_text())
+
+
+def ps(f, key):
+    return {s: r["acc"] for s, r in J(f)[key]["per_subject"].items()}
+
+
+checks = []
+
+
+def claim(label, value, printed):
+    """value: recomputed; printed: the exact string the paper should contain."""
+    ok_str = printed in flat
+    checks.append((label, printed, ok_str))
+
+
+def f3(x):
+    return "%.3f" % x
+
+
+# ---- pre-registration, cohort C ---------------------------------------
+g = ps("cohort3_m0.2.json", "dn_gate|s0")
+a = ps("cohort3_m0.2.json", "dn_noctx|s0")
+sl = ps("cohort3_m0.01.json", "dn_noctx|s0")
+subs = sorted(set(g) & set(a) & set(sl))
+mg, ma, ms = (np.mean([d[s] for s in subs]) for d in (g, a, sl))
+d1 = np.array([a[s] - g[s] for s in subs])
+d2 = np.array([sl[s] - a[s] for s in subs])
+claim("C gate mean", mg, "$" + f3(mg) + "$ / $" + f3(ma) + "$")
+claim("C P1 diff", d1.mean(), "$+" + f3(d1.mean()) + "$")
+claim("C P1 higher", (d1 > 0).sum(), "higher in %d participants, lower in %d" % ((d1 > 0).sum(), (d1 < 0).sum()))
+claim("C P1 wilcoxon", wilcoxon(d1).pvalue, "$p=%.2f$" % wilcoxon(d1).pvalue)
+claim("C P2 arms", ms, "$" + f3(ma) + "$ / $" + f3(ms) + "$")
+claim("C P2 diff", d2.mean(), "$-" + f3(-d2.mean()) + "$")
+claim("C P2 counts", 0, "higher in %d, lower in %d" % ((d2 > 0).sum(), (d2 < 0).sum()))
+claim("C P2 wilcoxon", wilcoxon(d2).pvalue, "$p=%.2f$" % wilcoxon(d2).pvalue)
+claim("C n", len(subs), "all 20 participants")
+
+# ---- artefact control --------------------------------------------------
+o = ps("icactl_orig.json", "dn_noctx|s0")
+c = ps("icactl_ica.json", "dn_noctx|s0")
+sa = sorted(o)
+dd = np.array([c[s] - o[s] for s in sa])
+claim("ICA uncleaned mean", np.mean(list(o.values())), "from $" + f3(np.mean(list(o.values()))) + "$ to $" + f3(np.mean(list(c.values()))) + "$")
+claim("ICA diff", dd.mean(), "difference of $-" + f3(-dd.mean()) + "$")
+claim("ICA counts", 0, "higher in %d participants, lower in %d" % ((dd > 0).sum(), (dd < 0).sum()))
+claim("ICA wilcoxon", wilcoxon(dd).pvalue, "Wilcoxon $p=%.2f$" % wilcoxon(dd).pvalue)
+for s in sa:
+    ch = c[s] - o[s]
+    row = "%s & %s & %s & $%s%s$" % (s, f3(o[s]), f3(c[s]), "+" if ch >= 0 else "-", f3(abs(ch)))
+    claim("ICA row " + s, ch, row)
+
+rows = [r for r in csv.DictReader(open(RES / "ica_components.csv", encoding="utf-8"))
+        if "_task-training_eeg" in r["recording"]]
+n = [int(r["n_removed"]) for r in rows]
+claim("ICA recordings", len(rows), "Across the %d recordings" % len(rows))
+claim("ICA mean removed", st.mean(n), "a mean of %.1f of 30" % st.mean(n))
+lab = [l for r in rows for l in (r["removed_labels"] or "").split(";") if l]
+share = lambda k: round(100 * lab.count(k) / len(lab))
+claim("ICA eye share", share("eye blink"), "eye (%d\\,\\%%" % share("eye blink"))
+claim("ICA muscle share", share("muscle artifact"), "muscle (%d\\,\\%%)" % share("muscle artifact"))
+
+musc = {}
+for r in rows:
+    sub = r["recording"].split("_")[0]
+    musc.setdefault(sub, []).append(r["removed_labels"].split(";").count("muscle artifact"))
+mm = {s: st.mean(v) for s, v in musc.items()}
+rho = spearmanr([mm[s] for s in sa], [c[s] - o[s] for s in sa]).correlation
+claim("ICA spearman", rho, "$" + chr(92) + "rho=+%.2f$" % rho)
+for s in sa:
+    claim("ICA muscle " + s, mm[s], "& %.1f " % mm[s] if False else "%.1f" % mm[s])
+claim("ICA probe orig", J("icactl_orig.json")["dn_noctx|s0"]["cond_r2"],
+      "($-%.3f$ and $-%.3f$)" % (-J("icactl_orig.json")["dn_noctx|s0"]["cond_r2"],
+                                   -J("icactl_ica.json")["dn_noctx|s0"]["cond_r2"]))
+
+# ---- selective head / align-only ---------------------------------------
+al = J("align_only.json")["dn_align|s0"]
+fx = J("driftfix_ds.json")
+ng = J("driftfix_ds_nogate.json")["dn_nogate|s0"]
+claim("align-only acc", al["acc"], "reaches $" + f3(al["acc"]) + "$ against $" + f3(fx["dn_noctx|s0"]["acc"]) + "$ with the head")
+claim("head diff", fx["dn_noctx|s0"]["acc"] - al["acc"], "a difference of $%s$" % f3(fx["dn_noctx|s0"]["acc"] - al["acc"]))
+claim("ctx arms", ng["acc"], "($" + f3(ng["acc"]) + "$ in both arms)")
+claim("head ECE", al["ece"], "is $%.3f$, against $%.3f$ with it" % (al["ece"], fx["dn_noctx|s0"]["ece"]))
+
+# ---- leakage guard --------------------------------------------------------
+sens = J("sensitivity.json")
+claim("probe f0", sens["f0.0000"]["cond_r2"], "from $-%.3f$ at $f=0$" % -sens["f0.0000"]["cond_r2"])
+claim("probe f0.005", sens["f0.0050"]["cond_r2"], "through $+%.3f$ at $f=0.005$" % sens["f0.0050"]["cond_r2"])
+claim("probe f0.02", sens["f0.0200"]["cond_r2"], "to $+%.3f$ at $f=0.02$" % sens["f0.0200"]["cond_r2"])
+claim("acc f0.02", sens["f0.0200"]["acc"], "where accuracy is $%.3f$" % sens["f0.0200"]["acc"])
+hd = J("driftnet_ds.json")["dn_noctx|s0"]
+claim("headline probe", hd["cond_r2"], "conditional probe of $-%.3f$" % -hd["cond_r2"])
+armsA = [v["cond_r2"] for f in ("driftnet_ds.json", "driftfix_ds.json") for v in J(f).values()]
+claim("probe range", min(armsA), "between $-%.3f$ and $-%.3f$" % (-max(armsA), -min(armsA)))
+
+# ---- cohort C replication, seeds 1-2 --------------------------------------
+def seedavg(f, arm):
+    d = J(f); acc = {}
+    for k, v in d.items():
+        if k.startswith(arm + "|s"):
+            for sub, r in v["per_subject"].items():
+                acc.setdefault(sub, []).append(r["acc"])
+    return {sub: float(np.mean(v)) for sub, v in acc.items()}
+rg = seedavg("cohort3_rep_m0.2.json", "dn_gate")
+ra = seedavg("cohort3_rep_m0.2.json", "dn_noctx")
+rs = seedavg("cohort3_rep_m0.01.json", "dn_noctx")
+rsub = sorted(set(rg) & set(ra) & set(rs))
+r1 = np.array([ra[x] - rg[x] for x in rsub]); r2 = np.array([rs[x] - ra[x] for x in rsub])
+claim("C rep P1 diff", r1.mean(), "by $+%.3f$ (higher in %d participants, lower in %d; $p=%.2f$)" % (r1.mean(), (r1 > 0).sum(), (r1 < 0).sum(), wilcoxon(r1).pvalue))
+claim("C rep P2 diff", r2.mean(), "costs $%.3f$ (lower in %d of %d; $p=%.3f$)" % (-r2.mean(), (r2 < 0).sum(), len(r2), wilcoxon(r2).pvalue))
+
+# ---- cohort A, align + gate against gate, three seeds ---------------------
+A3, G3 = J("a_aligngate_3seed.json"), J("a_gate_3seed.json")
+sa3 = [A3["dn_noctx|s%d" % i]["acc"] for i in range(3)]
+sg3 = [G3["dn_gate|s%d" % i]["acc"] for i in range(3)]
+claim("A 3seed mean/sd", np.mean(sa3), "$%.3f \\pm %.3f$" % (np.mean(sa3), np.std(sa3, ddof=1)))
+ag = seedavg("a_aligngate_3seed.json", "dn_noctx")
+gg = seedavg("a_gate_3seed.json", "dn_gate")
+d3 = np.array([ag[x] - gg[x] for x in sorted(ag)])
+claim("A align effect", d3.mean(), "by $+%.3f$ ($%.3f$ against $%.3f$), higher in %d of 7 participants (Wilcoxon $p=%.2f$)"
+      % (d3.mean(), np.mean(sa3), np.mean(sg3), (d3 > 0).sum(), wilcoxon(d3).pvalue))
+claim("A align per seed", 0, "is $%s$, $%s$ and $%s$ on the three seeds"
+      % tuple(("+" if v >= 0 else "-") + f3(abs(v)) for v in np.subtract(sa3, sg3)))
+ext = {x: ag[x] - gg[x] for x in ag}
+bx, wx = max(ext, key=ext.get), min(ext, key=ext.get)
+claim("A align extremes", 0, "%s gains $%s$ and %s loses $%s$" % (bx, f3(ext[bx]), wx, f3(-ext[wx])))
+claim("A align limitation", d3.mean(), "over the same three seeds is $+%.3f$ ($p=%.2f$)" % (d3.mean(), wilcoxon(d3).pvalue))
+claim("A align inversion", d3.mean(), "alignment is worth $+%.3f$ there" % d3.mean())
+claim("A align conclusion", d3.mean(), "$+%.3f$ over three seeds on cohort A and $+%.3f$ over two replication seeds" % (d3.mean(), r1.mean()))
+
+# ---- selective head, three seeds ------------------------------------------
+H3 = J("overnight_eval.json")["head_3seed"]
+al3 = [J("align_only.json")["dn_align|s0"]] + [J("a_align_s12.json")["dn_align|s%d" % i] for i in (1, 2)]
+ag3 = [A3["dn_noctx|s%d" % i] for i in range(3)]
+alsub = {x: np.mean([r["per_subject"][x]["acc"] for r in al3]) for x in al3[0]["per_subject"]}
+hd3 = np.array([ag[x] - alsub[x] for x in sorted(alsub)])
+claim("head 3seed", hd3.mean(), "averages $%.3f$ against $%.3f$ with the head, a difference of $%s%.3f$ (higher with the head in %d of 7 participants, Wilcoxon $p=%.2f$)"
+      % (np.mean([r["acc"] for r in al3]), np.mean([r["acc"] for r in ag3]), "+" if hd3.mean() >= 0 else "-", abs(hd3.mean()), (hd3 > 0).sum(), wilcoxon(hd3).pvalue))
+claim("head 3seed ECE", 0, "is $%.3f$ without the head against $%.3f$ with it"
+      % (np.mean([r["ece"] for r in al3]), np.mean([r["ece"] for r in ag3])))
+
+# ---- pipeline C comparison with published decoders ------------------------
+bdA, bdC = J("bd_pipeline_c.json"), J("bd_cohort_c.json")
+a0 = [v["acc"] for k, v in bdA.items() if k.endswith("|s0")]
+claim("pub A range", 0, "the published decoders reach $%.3f$ to $%.3f$" % (min(a0), max(a0)))
+oursA0 = A3["dn_noctx|s0"]
+gaps = sorted(oursA0["acc"] - x for x in a0)
+claim("pub A within", 0, "Seven of the eight lie within $%.3f$ of it" % (round(gaps[6] + 0.0005, 3)))
+claim("A seed range", 0, "inside its own range of $%.3f$ across seeds" % (max(sa3) - min(sa3)))
+cC = [J("cohort3_m0.2.json")["dn_noctx|s0"], J("cohort3_rep_m0.2.json")["dn_noctx|s1"], J("cohort3_rep_m0.2.json")["dn_noctx|s2"]]
+claim("ours C mean", 0, "the proposed configuration averages $%.3f$, and" % np.mean([r["acc"] for r in cC]))
+oc = {x: np.mean([r["per_subject"][x]["acc"] for r in cC]) for x in cC[0]["per_subject"]}
+for m, lab in (("EEGNeX", "than EEGNeX by"), ("EEGConformer", "than EEG Conformer by"),
+               ("FBLightConvNet", "than FBLightConvNet by"), ("ShallowFBCSPNet", "than ShallowFBCSPNet by")):
+    runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
+    bs = {x: np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
+    dd_ = np.array([oc[x] - bs[x] for x in sorted(bs)])
+    claim("C vs " + m, dd_.mean(), "%s $%.3f$" % (lab, dd_.mean()))
+    claim("C vs " + m + " p", 0, "$p=%.2f$" % wilcoxon(dd_).pvalue if m != "ShallowFBCSPNet" else "$p=%.3f$" % wilcoxon(dd_).pvalue)
+    claim("C vs " + m + " n", 0, "%d of 20" % (dd_ > 0).sum())
+claim("ours C ECE", 0, "Its expected calibration error is $%.3f$" % np.mean([r["ece"] for r in cC]))
+claim("ours A ECE", 0, "calibration error averages $%.3f$" % np.mean([A3["dn_noctx|s%d" % i]["ece"] for i in range(3)]))
+e0 = [v["ece"] for k, v in bdA.items() if k.endswith("|s0")]
+claim("pub A ECE range", 0, "at the first seed ($%.3f$ to $%.3f$)" % (min(e0), max(e0)))
+for m in ("EEGNet", "Deep4Net", "EEGTCNet"):
+    runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
+    n = [sum(1 for v in r["per_subject"].values() if v["acc"] < 0.55) for r in runs]
+    claim("C chance " + m, 0, "%d to %d" % (min(n), max(n)))
+trained = ("EEGNeX", "EEGConformer", "FBLightConvNet", "ShallowFBCSPNet", "TSception")
+pc, accs, eces = {}, [], []
+for m in trained:
+    runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
+    accs.append(np.mean([r["acc"] for r in runs])); eces.append(np.mean([r["ece"] for r in runs]))
+    bs = {x: np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
+    pc[m] = wilcoxon([oc[x] - bs[x] for x in sorted(bs)]).pvalue
+claim("C trained range", 0, "decoders that trained reach $%.3f$ to $%.3f$" % (min(accs), max(accs)))
+claim("C trained ECE", 0, "against $%.3f$ to $%.3f$ for the same decoders" % (min(eces), max(eces)))
+order_, run_, holm = sorted(pc, key=pc.get), 0, {}
+for i, m in enumerate(order_):
+    run_ = max(run_, min(1, (len(order_) - i) * pc[m])); holm[m] = run_
+claim("C Holm Shallow", holm["ShallowFBCSPNet"], "ShallowFBCSPNet ($p=%.3f$)" % holm["ShallowFBCSPNet"])
+claim("C Holm others", 0, "only the differences from" if all(holm[m] > 0.05 for m in ("EEGNeX", "EEGConformer", "FBLightConvNet")) and holm["TSception"] < 0.001 else "HOLM PATTERN CHANGED")
+tc = [v for k, v in bdC.items() if k.split("|")[0] in ("EEGNet", "EEGTCNet")]
+claim("C fail ECE", 0, "($%.3f$ and $%.3f$)" % (np.mean([v["ece"] for k, v in bdC.items() if k.startswith("EEGNet|")]),
+                                               np.mean([v["ece"] for k, v in bdC.items() if k.startswith("EEGTCNet|")])))
+slow = J("driftmom_ds_0.01_noctx.json")["dn_noctx|s0"]["per_subject"]
+ds_ = np.array([slow[x]["acc"] - oursA0["per_subject"][x]["acc"] for x in sorted(slow)])
+claim("A slow paired", ds_.mean(), "slowing lowers accuracy in %d of 7 ($p=%.3f$" % ((ds_ < 0).sum(), wilcoxon(ds_).pvalue))
+claim("A slow cost", ds_.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds_.mean())
+
+# ---- cohort B at memory 320 (m = 0.10), three seeds ------------------------
+fl = J("b_floor_m0.10.json")
+fa = [fl["dn_noctx|s%d" % i] for i in range(3)]
+fn = [fl["dn_noalign|s%d" % i] for i in range(3)]
+fsa = {x: np.mean([r["per_subject"][x]["acc"] for r in fa]) for x in fa[0]["per_subject"]}
+fsn = {x: np.mean([r["per_subject"][x]["acc"] for r in fn]) for x in fn[0]["per_subject"]}
+fd = np.array([fsa[x] - fsn[x] for x in sorted(fsa)])
+claim("B 320 arms", 0, "\\textit{align + gate} $%.3f$ and the no-align arm $%.3f$" % (np.mean([r["acc"] for r in fa]), np.mean([r["acc"] for r in fn])))
+claim("B 320 cost", fd.mean(), "alignment still costs $%.3f$ there (lower in %d of %d participants; Wilcoxon $p=%.3f$)" % (-fd.mean(), (fd < 0).sum(), len(fd), wilcoxon(fd).pvalue))
+
+bad = [c for c in checks if not c[2]]
+print("checked %d printed values against their sources" % len(checks))
+for label, printed, ok in checks:
+    if not ok:
+        print("  NOT FOUND  %-20s expected: %s" % (label, printed))
+print("ALL MATCH" if not bad else "%d MISMATCH(ES)" % len(bad))

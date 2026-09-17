@@ -1,0 +1,18 @@
+{
+  "sub-06": {
+    "subject": "sub-06",
+    "n": 745,
+    "crit_acc": 0.6813725490196079,
+    "imu_acc": 0.9068627450980392,
+    "crit_predicts_motion_r2": -0.32997167059047094,
+    "crit_acc_motion_removed": 0.4362745098039216
+  },
+  "sub-01": {
+    "subject": "sub-01",
+    "n": 748,
+    "crit_acc": 0.7324049116501947,
+    "imu_acc": 0.9166666666666667,
+    "crit_predicts_motion_r2": -0.2544267581532178,
+    "crit_acc_motion_removed": 0.37915543575920935
+  }
+}

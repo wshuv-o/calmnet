@@ -1,0 +1,450 @@
+{
+ "A": {
+  "per_subject": {
+   "sub-01": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      7.522627481735213
+     ],
+     [
+      2,
+      7.831505796545332
+     ],
+     [
+      3,
+      8.107448581178838
+     ],
+     [
+      4,
+      8.245435233156517
+     ],
+     [
+      5,
+      8.18779160966512
+     ],
+     [
+      6,
+      8.610674678605474
+     ],
+     [
+      7,
+      8.270935049479796
+     ],
+     [
+      8,
+      7.962350649000769
+     ]
+    ],
+    "windows_per_session": 313.44444444444446,
+    "fit_ok": true,
+    "d_inf": 8.191060970389541,
+    "tau_sessions": 0.41179345994863087,
+    "tau_windows": 129.0743722794542
+   },
+   "sub-02": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      13.40581361541425
+     ],
+     [
+      2,
+      14.24990748256929
+     ],
+     [
+      3,
+      14.592527665711065
+     ],
+     [
+      4,
+      14.726911990573509
+     ],
+     [
+      5,
+      13.656153205344161
+     ],
+     [
+      6,
+      12.939838757712657
+     ],
+     [
+      7,
+      10.153536531375273
+     ],
+     [
+      8,
+      8.747737093172749
+     ]
+    ],
+    "windows_per_session": 313.55555555555554,
+    "fit_ok": true,
+    "d_inf": 12.809138259210096,
+    "tau_sessions": 0.004729950503645178,
+    "tau_windows": 1.4831022579207433
+   },
+   "sub-03": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      6.27425600403201
+     ],
+     [
+      2,
+      6.816573145207859
+     ],
+     [
+      3,
+      6.669861708467903
+     ],
+     [
+      4,
+      6.923441691595125
+     ],
+     [
+      5,
+      7.112145913412666
+     ],
+     [
+      6,
+      7.177023565064079
+     ],
+     [
+      7,
+      7.021223297255832
+     ],
+     [
+      8,
+      6.83912355671002
+     ]
+    ],
+    "windows_per_session": 313.1111111111111,
+    "fit_ok": true,
+    "d_inf": 6.951049627879139,
+    "tau_sessions": 0.43508826869301764,
+    "tau_windows": 136.2309712418804
+   },
+   "sub-04": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      11.930878861158224
+     ],
+     [
+      2,
+      12.430970336959717
+     ],
+     [
+      3,
+      12.333473028616979
+     ],
+     [
+      4,
+      13.077598368461679
+     ],
+     [
+      5,
+      12.824998160027574
+     ],
+     [
+      6,
+      13.302482241859066
+     ],
+     [
+      7,
+      13.837245752159221
+     ],
+     [
+      8,
+      14.578353912733686
+     ]
+    ],
+    "windows_per_session": 313.44444444444446,
+    "fit_ok": true,
+    "d_inf": 13.249864043848994,
+    "tau_sessions": 0.45930104816278816,
+    "tau_windows": 143.96536187413616
+   },
+   "sub-05": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      5.859219002981609
+     ],
+     [
+      2,
+      6.119861791381866
+     ],
+     [
+      3,
+      6.368545735977709
+     ],
+     [
+      4,
+      6.450279099201316
+     ],
+     [
+      5,
+      6.331775156747845
+     ],
+     [
+      6,
+      6.71172551094805
+     ],
+     [
+      7,
+      7.6555262325372
+     ],
+     [
+      8,
+      7.216954268359662
+     ]
+    ],
+    "windows_per_session": 312.8888888888889,
+    "fit_ok": true,
+    "d_inf": 6.744864599300179,
+    "tau_sessions": 0.5408093175120539,
+    "tau_windows": 169.21322645710487
+   },
+   "sub-06": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      7.623818318254166
+     ],
+     [
+      2,
+      8.228287938023907
+     ],
+     [
+      3,
+      7.77966689506269
+     ],
+     [
+      4,
+      7.8800528858433125
+     ],
+     [
+      5,
+      8.217693030812946
+     ],
+     [
+      6,
+      8.216154139997075
+     ],
+     [
+      7,
+      7.3794443672168155
+     ],
+     [
+      8,
+      7.748429045206993
+     ]
+    ],
+    "windows_per_session": 314.22222222222223,
+    "fit_ok": true,
+    "d_inf": 7.91977336341601,
+    "tau_sessions": 0.2974015132409898,
+    "tau_windows": 93.45016438283547
+   },
+   "sub-07": {
+    "n_sessions": 9,
+    "curve": [
+     [
+      1,
+      11.790396879969002
+     ],
+     [
+      2,
+      10.329303530679573
+     ],
+     [
+      3,
+      10.895901938044673
+     ],
+     [
+      4,
+      11.11144182545124
+     ],
+     [
+      5,
+      11.226933760702186
+     ],
+     [
+      6,
+      11.3365100898789
+     ],
+     [
+      7,
+      10.790903744439087
+     ],
+     [
+      8,
+      8.497696878620651
+     ]
+    ],
+    "windows_per_session": 323.1111111111111,
+    "fit_ok": true,
+    "d_inf": 10.747388357499892,
+    "tau_sessions": 0.008814452993145358,
+    "tau_windows": 2.8480477004518554
+   }
+  },
+  "summary": {
+   "INVALID": "see _INVALID",
+   "n_fitted": 7,
+   "tau_windows_median": 129.0743722794542,
+   "tau_windows_min": 1.4831022579207433,
+   "tau_windows_max": 169.21322645710487
+  }
+ },
+ "B": {
+  "per_subject": {
+   "SL01": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      6.876382125064934
+     ],
+     [
+      2,
+      10.322851145970725
+     ]
+    ],
+    "windows_per_session": 2519.6666666666665,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL02": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      8.337989156719258
+     ],
+     [
+      2,
+      11.12795584373384
+     ]
+    ],
+    "windows_per_session": 2475.6666666666665,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL03": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      5.588978819263109
+     ],
+     [
+      2,
+      8.577902729191589
+     ]
+    ],
+    "windows_per_session": 2485.6666666666665,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL04": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      4.585235087056509
+     ],
+     [
+      2,
+      6.3812153584811355
+     ]
+    ],
+    "windows_per_session": 2459.0,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL05": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      5.996148518732167
+     ],
+     [
+      2,
+      8.98564331484939
+     ]
+    ],
+    "windows_per_session": 2480.6666666666665,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL06": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      6.289063183012678
+     ],
+     [
+      2,
+      8.114615927535388
+     ]
+    ],
+    "windows_per_session": 2456.3333333333335,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL07": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      5.165775933994495
+     ],
+     [
+      2,
+      6.116692571519943
+     ]
+    ],
+    "windows_per_session": 2451.0,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   },
+   "SL08": {
+    "n_sessions": 3,
+    "curve": [
+     [
+      1,
+      6.064286365405941
+     ],
+     [
+      2,
+      6.8549602874339985
+     ]
+    ],
+    "windows_per_session": 2488.6666666666665,
+    "fit_ok": false,
+    "reason": "only 2 distinct session gaps; a saturating fit needs at least 4"
+   }
+  },
+  "summary": {
+   "INVALID": "see _INVALID",
+   "n_fitted": 0,
+   "note": "no subject supported a saturating fit"
+  }
+ },
+ "_INVALID": {
+  "verdict": "DO NOT USE the tau_windows / tau_sessions values from this file.",
+  "reason": "Every fitted tau is below 1 session, but 1 session is the smallest gap sampled, so the timescale is extrapolated from the assumed exponential shape rather than measured. d(gap) is flat from gap 1 to gap 8 for 5 of 7 subjects and DECREASES for sub-02 and sub-07, so there is no gradient to fit.",
+  "what the data do support": "an upper bound only: session-to-session drift is complete within one session. That does not constrain the estimator memory mu, which is far shorter than a session.",
+  "consequence": "the admissible-band CEILING is unmeasurable on both cohorts (cohort B has only 2 distinct gaps). Claim the floor (mu > tau_blk) only."
+ }
+}
