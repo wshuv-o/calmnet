@@ -74,8 +74,7 @@ protect.
 We present a 24{,}181-parameter decoder built around such a layer, and derive an
 admissible band for its adaptation rate from two timescales of the recording
 protocol. On a seven-participant exoskeleton cohort recorded across weeks it
-reaches $0.901$ balanced accuracy with expected calibration error $0.039$, at
-$53\,\%$ of the parameters of the strongest baseline in the same pipeline. The
+reaches $0.901$ balanced accuracy with expected calibration error $0.039$ ($0.868 \pm 0.026$ over three seeds under the trace-normalised estimator), at $53\,\%$ of the parameters of the strongest baseline in the same pipeline. The
 layer reduces session-to-session covariance distance by $52.0 \pm 4.5\,\%$ and
 $83.9 \pm 3.9\,\%$ on two independent cohorts, in 15 of 15 participants
 ($p \le 10^{-4}$), against a control with no systematic reduction. On the second
@@ -621,8 +620,7 @@ Three consequences follow. Any arm containing the transformer carries
 approximately $0.010$ run-to-run noise at fixed seed and up to $0.020$ across
 seeds, so differences below $0.02$ are not interpreted anywhere in this paper.
 The effects we do interpret ($+0.090$ to $+0.098$ in Table~\ref{tab:rate},
-$-0.060$ in Table~\ref{tab:rate}) are three to five times the between-seed
-spread. And an exact null in the deterministic arm is stronger evidence than one
+$-0.060$ in Table~\ref{tab:rate}) are about 2.3 to 3.8 times the standard deviation across three data-split seeds. And an exact null in the deterministic arm is stronger evidence than one
 merely within noise, because that arm has no noise to hide in.
 
 \paragraph{Pipeline separation} Our architecture and the ATCNet variants were
@@ -1046,8 +1044,7 @@ would not produce.
 On cohort A, whose blocks sit far inside even the fastest memory so that the estimate is already class-mixed, the same change was expected to be neutral. This expectation was registered before the experiment was run. It is not borne out
 (Table~\ref{tab:rate}).
 
-The optima are opposite, and error in either direction costs $0.060$ to $0.092$,
-six to nine times the noise floor. Slower adaptation therefore costs accuracy on cohort A, indicating a trade-off: a fast estimate tracks both the streaming class, which is harmful, and genuine session drift, which is beneficial.
+The optima are opposite, and error in either direction costs $0.060$ to $0.092$, about 2.3 to 3.6 times the standard deviation across data-split seeds. Slower adaptation therefore costs accuracy on cohort A, indicating a trade-off: a fast estimate tracks both the streaming class, which is harmful, and genuine session drift, which is beneficial.
 
 That cost was first measured on \textit{align + ctx + gate}, which is not the
 configuration this paper proposes. Repeating it on the proposed
@@ -1225,10 +1222,7 @@ Table~\ref{tab:landscape} was run on cohort A. Nothing from the literature has
 been run on cohort B in this pipeline, so the $0.792$ reported there can be
 compared with our own arms and with the majority-class floor, but not with the field. The decoder therefore transfers to cohort B; its standing relative to published methods there is untested.
 
-\textbf{Single seed.} The ablations are seed 0. With a $0.010$ noise floor on
-transformer-containing arms (Table~\ref{tab:noise}), single-seed rankings of closely spaced models are not interpretable: the
-$0.012$ gap to ATCNet in Table~\ref{tab:landscape} is reported as a loss, and we leave the direction unresolved. The effects we do interpret ($+0.090$ to
-$+0.098$, $-0.060$) are six to ten times that floor. The headline ablation was not replicated across seeds.
+\textbf{Seeds.} Most ablations are seed 0. The proposed configuration was rerun over three data-split seeds under the trace-normalised estimator, giving $0.868 \pm 0.026$ (seeds $0.884$, $0.882$ and $0.839$). That seed standard deviation is larger than the $0.010$ noise floor of repeated runs at a fixed split (Table~\ref{tab:noise}), and it is concentrated in two participants, whose accuracy ranges over $0.217$ and $0.120$ across seeds while the other five vary by at most $0.065$. Single-seed rankings of closely spaced models are therefore not interpretable, so the $0.012$ gap to ATCNet in Table~\ref{tab:landscape} is reported as a loss and its direction is left unresolved. The effects we do interpret ($+0.090$ to $+0.098$, $-0.060$) are about 2.3 to 3.8 times the seed standard deviation, a narrower margin than the fixed-split noise floor suggests.
 
 \textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the component ablation and the rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}) and the cohort~C predictions (Section~\ref{sec:prereg}).
 
