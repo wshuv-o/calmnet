@@ -212,6 +212,16 @@ ds_ = np.array([slow[x]["acc"] - oursA0["per_subject"][x]["acc"] for x in sorted
 claim("A slow paired", ds_.mean(), "slowing lowers accuracy in %d of 7 ($p=%.3f$" % ((ds_ < 0).sum(), wilcoxon(ds_).pvalue))
 claim("A slow cost", ds_.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds_.mean())
 
+# ---- cohort B at memory 320 (m = 0.10), three seeds ------------------------
+fl = J("b_floor_m0.10.json")
+fa = [fl["dn_noctx|s%d" % i] for i in range(3)]
+fn = [fl["dn_noalign|s%d" % i] for i in range(3)]
+fsa = {x: np.mean([r["per_subject"][x]["acc"] for r in fa]) for x in fa[0]["per_subject"]}
+fsn = {x: np.mean([r["per_subject"][x]["acc"] for r in fn]) for x in fn[0]["per_subject"]}
+fd = np.array([fsa[x] - fsn[x] for x in sorted(fsa)])
+claim("B 320 arms", 0, "\\textit{align + gate} $%.3f$ and the no-align arm $%.3f$" % (np.mean([r["acc"] for r in fa]), np.mean([r["acc"] for r in fn])))
+claim("B 320 cost", fd.mean(), "alignment still costs $%.3f$ there (lower in %d of %d participants; Wilcoxon $p=%.3f$)" % (-fd.mean(), (fd < 0).sum(), len(fd), wilcoxon(fd).pvalue))
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:

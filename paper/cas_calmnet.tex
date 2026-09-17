@@ -1015,8 +1015,13 @@ whitening by it removes the between-class difference. Cohort A's blocks
 If this mechanism is responsible, slowing adaptation until the memory exceeds a class block should restore cohort B. The memory is approximately 160, 640 and 3200 windows
 at $m=0.2$, $0.05$ and $0.01$, so the crossing of
 $\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
-\pending{[Intermediate memories of 320 and 1600 windows, three seeds each, are in
-progress.]}
+At a memory of 320 windows, just above the class block, three seeds under the
+current estimator give \textit{align + gate} $0.638$ and the no-align arm
+$0.767$, so alignment still costs $0.129$ there (lower in 7 of 8 participants;
+Wilcoxon $p=0.023$). Just above the floor the layer therefore remains harmful on
+this cohort; how much of the loss at 160 windows it removes awaits the matched
+three-seed run at that memory. \pending{[Three-seed points at 160, 1600 and 3200
+windows under the same estimator are in progress.]}
 
 \begin{figure*}[t]
 \centering
