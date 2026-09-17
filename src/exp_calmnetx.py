@@ -61,7 +61,8 @@ from calmnet_msa import imu_valid_mask
 from abstain import balanced_accuracy
 from calibrate import expected_calibration_error, softmax_np, fit_temperature
 from train import set_seed, DEVICE
-from exp_temporal import streams, onset_metrics
+from exp_temporal import (streams, onset_metrics, forward_filter,
+                          transition_matrix)
 from exp_globalnorm import normalise
 from atcnet_plus import build_atcnet_plus, selective_loss
 from driftnet import build_driftnet
@@ -208,6 +209,9 @@ def context_index(strm, n, k=K_CTX, s=S_CTX):
 # training task, dropping the extra trial recordings; the ICA control uses it for
 # both of its arms, so the two differ only in the cleaning step.
 ICA = os.environ.get("CX_ICA", "0") == "1"
+# E1: causal HMM forward filter over the decoder output. Off by default so
+# the unsmoothed arm still runs and the two are comparable in one file.
+SMOOTH = os.environ.get("CX_SMOOTH", "0") == "1"
 FULL = os.environ.get("CX_FULL", "1") == "1"
 
 
@@ -262,7 +266,8 @@ def run(d, arm, seed):
     use_context = cfg["use_ctx"]
     k = K_CTX if use_context else 1
     Xf, Xc, Xt = normalise("global", d["Xf"], d["Xc"], d["Xt"])
-    tXf, tyf, ixf, _ = make_split(Xf, d["yf"], d["sf"], d["tf"], d["gf"], k)
+    tXf, tyf, ixf, strm_f = make_split(Xf, d["yf"], d["sf"], d["tf"],
+                                       d["gf"], k)
     tXc, tyc, ixc, _ = make_split(Xc, d["yc"], d["sc"], d["tc"], d["gc"], k)
     tXt, tyt, ixt, strm_t = make_split(Xt, d["yt"], d["st"], d["tt"], d["gt"], k)
 
@@ -311,6 +316,29 @@ def run(d, arm, seed):
     lg, gate = infer(model, tXt, ixt)
     p = softmax_np(lg, T)
     pred = p.argmax(1)
+    p_raw = p
+    if SMOOTH:
+        # Windows are decoded independently, yet Walk and Stop persist for
+        # 12-32 s. A causal forward filter over the calibrated posteriors adds
+        # the dwell structure back without seeing any future window, which is
+        # the only variant an exoskeleton could run online.
+        #
+        # The transition matrix and the class prior come from the FITTING
+        # labels only. Estimating them from the test stream would let the
+        # filter read the labels it is being scored against.
+        A = transition_matrix(d["yf"], strm_f, n_cls=2)
+        pi = np.bincount(d["yf"], minlength=2).astype(float)
+        pi = pi / pi.sum()
+        # The filtered posterior replaces the raw one everywhere downstream, so
+        # accuracy, calibration and the onset metrics all describe the SAME
+        # predictor. Scoring accuracy on the filtered output while reporting
+        # calibration from the raw output would describe two different systems
+        # in one row. p_raw is kept so the pair can still be compared.
+        p = p.copy()
+        for st in strm_t:
+            st = np.asarray(st)
+            p[st] = forward_filter(p_raw[st], A, pi)
+        pred = p.argmax(1)
     del model
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
@@ -324,10 +352,17 @@ def run(d, arm, seed):
     # post-hoc confidence threshold
     kk = max(1, int(0.9 * len(gate)))
     sel = np.argsort(-gate)[:kk]
-    return {"acc": balanced_accuracy(d["yt"], pred),
-            "ece": expected_calibration_error(p, d["yt"]),
-            "acc_at_90": balanced_accuracy(d["yt"][sel], pred[sel]),
-            "cond_r2": r2, **dep}
+    res = {"acc": balanced_accuracy(d["yt"], pred),
+           "ece": expected_calibration_error(p, d["yt"]),
+           "acc_at_90": balanced_accuracy(d["yt"][sel], pred[sel]),
+           "cond_r2": r2, **dep}
+    if SMOOTH:
+        # The unfiltered pair from the same trained model, so the gain from
+        # filtering is a within-run difference and not a comparison across two
+        # separately trained networks.
+        res["acc_unsmoothed"] = balanced_accuracy(d["yt"], p_raw.argmax(1))
+        res["ece_unsmoothed"] = expected_calibration_error(p_raw, d["yt"])
+    return res
 
 
 def main():
