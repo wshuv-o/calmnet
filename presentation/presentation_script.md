@@ -1,6 +1,6 @@
 # CALM-Net midterm presentation: speaking script
 
-Deck: `CALM-Net_midterm_presentation_final.pptx`, 20 slides, about 13 minutes in total.
+Deck: `CALM-Net_midterm_presentation_final.pptx`, 21 slides, about 14 minutes in total.
 
 ## Slide 1. Title  (about 20 s)
 
@@ -36,21 +36,33 @@ The third is a design rule, read from the recording protocol, that sets how fast
 
 Together these answer our research question: can a compact decoder adapt to session drift without labels while remaining accurate and reliable?
 
-## Slide 5. Literature Review  (about 50 s)
+## Slide 5. Literature Review  (about 55 s)
 
-We reviewed four areas of related work.
+We reviewed related work in four areas. The first two are exoskeleton BCI and EEG decoding models.
 
-In exoskeleton BCI, recent work includes the NeuroRex longitudinal dataset, deep-learning control of lower-limb exoskeletons, error-related potentials, and robot-assisted gait.
+Sarkar and colleagues released the NeuroRex dataset, which we use as cohort A: seven healthy participants walking and standing with an EEG-controlled exoskeleton over nine sessions, with synchronised EEG, EOG, inertial and exoskeleton recordings.
 
-For EEG decoding, EEGNet, ShallowFBCSPNet and EEG Conformer are widely used models.
+Ferrero and colleagues achieved closed-loop, asynchronous walk and stop control of a lower-limb exoskeleton with a deep-learning decoder, and used transfer learning to shorten the calibration in each session.
 
-For domain alignment, Euclidean alignment and Riemannian Procrustes analysis align covariance matrices across sessions and subjects.
+Soriano-Segura and colleagues characterised error-related potentials during exoskeleton commands and detected them with deep learning, as a safety signal. Tortora and colleagues examined how cortical and muscular activity change across robot-assisted gait modes.
 
-For test-time adaptation, methods such as Tent and NOTE update models on unlabelled test data.
+For decoding, Schirrmeister and colleagues showed that convolutional networks decode movement-related EEG, with the shallow network learning band-power features similar to filter-bank common spatial patterns. EEGNet uses depthwise and separable convolutions to reduce the parameter count by an order of magnitude, and EEG Conformer adds a transformer encoder to a convolutional stem.
+
+In summary, exoskeleton control from EEG is well established, and compact convolutional decoders are the standard models. Their spatial filters are learned during training and stay fixed in later sessions.
+
+## Slide 6. Literature Review (Continued)  (about 55 s)
+
+The other two areas are covariance-based alignment and test-time adaptation.
+
+Barachant and colleagues represented each EEG trial by its covariance matrix and classified trials by Riemannian distance to the class means.
+
+He and Wu proposed Euclidean alignment, which whitens the trials of each subject or session by the inverse square root of their mean covariance, so recordings become comparable without labels. Riemannian Procrustes analysis, by Rodrigues and colleagues, re-centres, stretches and rotates covariance distributions to transfer a classifier between subjects and sessions.
+
+In test-time adaptation, Tent updates normalisation parameters on unlabelled test data by minimising prediction entropy, and NOTE handles temporally correlated test streams with instance-aware batch normalisation and a prediction-balanced memory. SelectiveNet trains a classifier together with a selection head that abstains on uncertain inputs.
 
 The research gap is that existing alignment methods operate offline on complete recordings. Our work places alignment inside the network, adapts it online without labels, and provides a rule for choosing its adaptation rate.
 
-## Slide 6. Proposed Architecture  (about 60 s)
+## Slide 7. Proposed Architecture  (about 60 s)
 
 This is our proposed decoder. The input is 60 channels of EEG in four-second windows at 100 Hz.
 
@@ -64,7 +76,7 @@ Finally, the selective head outputs the walk or stop decision with its confidenc
 
 The default configuration has 24,181 parameters.
 
-## Slide 7. Adaptive Alignment Method  (about 50 s)
+## Slide 8. Adaptive Alignment Method  (about 50 s)
 
 The alignment layer maintains an exponential moving average of the spatial covariance of incoming windows.
 
@@ -76,7 +88,7 @@ The adaptation rate sets how many windows the estimate remembers. Our rule is th
 
 The key idea is that session drift is corrected inside the network, and the recording protocol determines the adaptation rate before training.
 
-## Slide 8. Datasets and Experimental Setup  (about 45 s)
+## Slide 9. Datasets and Experimental Setup  (about 45 s)
 
 We use three datasets.
 
@@ -88,7 +100,7 @@ Cohort C is the PhysioNet motor execution dataset with 20 participants. For this
 
 All models use the same protocol: 8 to 30 Hz filtering, AdamW optimisation with early stopping, and three data-split seeds. Seven published decoders were trained with identical settings for comparison.
 
-## Slide 9. Session Drift Reduction  (about 40 s)
+## Slide 10. Session Drift Reduction  (about 40 s)
 
 First, we measured how much session drift the alignment layer removes. The bars show the Riemannian distance between the training-session covariance and each test session.
 
@@ -96,13 +108,13 @@ Orange is the raw signal, grey is a control that never updates its estimate, and
 
 Alignment reduces the distance by 45.9 percent on cohort A and 62.5 percent on cohort B, and the reduction appears in all 15 participants. The control leaves the distance unchanged, which shows that the reduction comes from adaptation.
 
-## Slide 10. Per-Participant Drift Reduction  (about 25 s)
+## Slide 11. Per-Participant Drift Reduction  (about 25 s)
 
 This table gives the values for every participant.
 
 On cohort A, the reduction ranges from 38.7 to 51.2 percent, and on cohort B from 43.8 to 82.1 percent.
 
-## Slide 11. Comparison with Baseline Models  (about 60 s)
+## Slide 12. Comparison with Baseline Models  (about 60 s)
 
 Here we compare our decoder with published models, all trained in the same pipeline and averaged over three data-split seeds.
 
@@ -114,7 +126,7 @@ On cohort B, the protocol rule selects the configuration without alignment, whic
 
 Calibration error also stays low, 0.058 on cohort A and 0.061 on cohort C.
 
-## Slide 12. Alignment Estimate During Recording  (about 45 s)
+## Slide 13. Alignment Estimate During Recording  (about 45 s)
 
 This figure shows why the adaptation rate matters. The top row traces the alignment estimate during a recording, and the bottom row shows its distance to the walk and stop covariances.
 
@@ -122,7 +134,7 @@ On cohort A, where class blocks are short, the estimate stays between the two cl
 
 On cohort B, where class blocks are long, a fast estimate follows the class currently being performed. This is exactly the situation our adaptation rate rule is designed to detect.
 
-## Slide 13. Adaptation Rate Analysis  (about 40 s)
+## Slide 14. Adaptation Rate Analysis  (about 40 s)
 
 We tested the rule on cohort B by changing the adaptation rate.
 
@@ -130,7 +142,7 @@ As the estimator memory increases from 160 to 3200 windows, accuracy rises from 
 
 Because cohort B has class blocks longer than the default memory, the rule selects the configuration without alignment, which reaches 0.729.
 
-## Slide 14. Prospective Validation on Cohort C  (about 40 s)
+## Slide 15. Prospective Validation on Cohort C  (about 40 s)
 
 To test the rule in advance, we registered two predictions for cohort C before training any model on it.
 
@@ -138,7 +150,7 @@ The first prediction was that enabling alignment would not reduce accuracy. The 
 
 Both predictions were confirmed: accuracy changed by plus 0.002 with alignment, and the slower rate made no meaningful difference. Two additional data-split seeds support the same conclusions.
 
-## Slide 15. Ablation Study  (about 35 s)
+## Slide 16. Ablation Study  (about 35 s)
 
 The ablation study on cohort A shows the contribution of each component, averaged over three seeds.
 
@@ -146,7 +158,7 @@ Adding the alignment layer raises balanced accuracy from 0.842 with the gate alo
 
 The cross-epoch context module reduces spurious activations from 1.60 to 1.16 per minute of standing, which is valuable for safe exoskeleton control.
 
-## Slide 16. Artefact Analysis  (about 40 s)
+## Slide 17. Artefact Analysis  (about 40 s)
 
 Because walking can introduce artefacts, we retrained the decoder after removing non-neural components with independent component analysis and ICLabel.
 
@@ -154,13 +166,13 @@ After cleaning, mean balanced accuracy is 0.785, well above chance, and the chan
 
 These results are consistent with the decoder using neural EEG activity.
 
-## Slide 17. Scalp Topography  (about 30 s)
+## Slide 18. Scalp Topography  (about 30 s)
 
 This topography shows one participant. The right panel compares 8 to 30 Hz power during walking and standing.
 
 Power decreases over sensorimotor electrodes during walking, which is consistent with mu and beta desynchronisation during movement.
 
-## Slide 18. Limitations and Future Work  (about 35 s)
+## Slide 19. Limitations and Future Work  (about 35 s)
 
 Our current work has some limitations.
 
@@ -168,7 +180,7 @@ The datasets include 7, 8 and 20 participants. All results come from recorded da
 
 In future work, we plan real-time evaluation with an exoskeleton, larger cohorts, and recording protocols designed to refine the adaptation rate rule.
 
-## Slide 19. Conclusion  (about 30 s)
+## Slide 20. Conclusion  (about 30 s)
 
 To conclude, we presented a compact EEG decoder with an adaptive alignment layer that corrects session drift without labels.
 
@@ -176,6 +188,6 @@ The decoder reduces session drift by 46 to 63 percent, achieves accuracy compara
 
 This approach supports longitudinal use of EEG-controlled exoskeletons with less recalibration.
 
-## Slide 20. References  (about 10 s)
+## Slide 21. References  (about 10 s)
 
 These are the works we cited. Thank you for your attention. We are happy to take your questions.

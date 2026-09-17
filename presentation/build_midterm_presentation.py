@@ -186,28 +186,74 @@ write(get(s, "TextBox 10"), [P(R("Research question:  ", 17, bold=True),
                                R("can a compact decoder adapt to session drift without labels while remaining accurate "
                                  "and reliable?", 17, italic=True, color=GRY))])
 
-# ------------------------------------------------------------------ 5 literature review
-s = clone(5)
-title(s, "Literature Review")
-boxes = {
-    "Rectangle 4": ("Exoskeleton BCI", ["NeuroRex dataset  [Sarkar 2026]", "Deep-learning control  [Ferrero 2024]",
-                                        "Error potentials  [Soriano 2025]", "Robot-assisted gait  [Tortora 2023]"]),
-    "Rectangle 5": ("EEG decoding models", ["EEGNet  [Lawhern 2018]", "ShallowFBCSPNet  [Schirrmeister 2017]",
-                                            "EEG Conformer  [Song 2023]"]),
-    "Rectangle 6": ("Domain alignment", ["Euclidean alignment  [He 2020]", "Riemannian Procrustes  [Rodrigues 2019]",
-                                         "Riemannian classifiers  [Barachant 2012]"]),
-    "Rectangle 7": ("Test-time adaptation", ["Entropy minimisation  [Wang 2021]", "Temporal correlation  [Gong 2022]",
-                                             "Selective prediction  [Geifman 2019]"]),
-}
-for name, (head, items) in boxes.items():
-    write(get(s, name), [P(R(head, 15, bold=True), sa=9, ls=1.05)] +
-          [P(R(it, 12, color=GRY), sa=7, ls=1.1) for it in items])
-write(get(s, "Rectangle 8"), [P(R("RESEARCH GAP", 14, bold=True), sa=4, ls=1.1),
-                              P(R("Existing alignment methods operate offline on complete recordings. This work places "
-                                  "alignment inside the network, adapts it online without labels, and provides a rule "
-                                  "for choosing its adaptation rate.", 19), sa=8, ls=1.14)])
-write(get(s, "TextBox 9"), [P(R("Citations shown as [first author, year]; full entries are listed on the References slide.",
-                                10.5, italic=True, color=GRY))])
+# ------------------------------------------------------------------ 5-6 literature review
+# two wide boxes per slide (the proposal's four boxes merged in pairs), each paper
+# summarised in one sentence, and the proposal's summary box underneath
+BOX_W = (11.93 - 0.11) / 2
+
+
+def review_slide(heading, columns, box_head, box_text, box_h=3.30):
+    s = clone(5, skip=("Rectangle 6", "Rectangle 7"))
+    title(s, heading)
+    for name, left, (head, entries) in zip(("Rectangle 4", "Rectangle 5"), (0.70, 0.70 + BOX_W + 0.11), columns):
+        sh = get(s, name)
+        place(sh, left=left, top=1.60, width=BOX_W, height=box_h)
+        write(sh, [P(R(head, 16, bold=True), sa=8, ls=1.05)] +
+              [P(R(tag + "  ", 13, bold=True), R(text, 13, color=GRY), sa=7, ls=1.08) for tag, text in entries])
+    gap = get(s, "Rectangle 8")
+    place(gap, top=1.60 + box_h + 0.14, height=6.40 - (1.60 + box_h + 0.14))
+    write(gap, [P(R(box_head, 14, bold=True), sa=4, ls=1.1), P(R(box_text, 17), sa=6, ls=1.12)])
+    write(get(s, "TextBox 9"), [P(R("Citations shown as [first author, year]; full entries are listed on the "
+                                    "References slide.", 10.5, italic=True, color=GRY))])
+    return s
+
+
+review_slide("Literature Review", [
+    ("Exoskeleton BCI", [
+        ("[Sarkar 2026]", "Released a longitudinal dataset of seven healthy participants walking and standing with an "
+                          "EEG-controlled exoskeleton over nine sessions, with synchronised EEG, EOG, inertial and "
+                          "exoskeleton recordings."),
+        ("[Ferrero 2024]", "Achieved closed-loop, asynchronous walk and stop control of a lower-limb exoskeleton with a "
+                           "deep-learning decoder; transfer learning shortened the calibration recorded in each session."),
+        ("[Soriano 2025]", "Characterised error-related potentials evoked while commanding a lower-limb exoskeleton and "
+                           "detected them with deep learning, as a safety signal for the interface."),
+        ("[Tortora 2023]", "Examined how cortical and muscular activity change across robot-assisted gait modes during "
+                           "exoskeleton walking."),
+    ]),
+    ("EEG decoding models", [
+        ("[Schirrmeister 2017]", "Showed that deep and shallow convolutional networks decode movement-related EEG, with "
+                                 "the shallow network learning the band-power features of filter-bank common spatial "
+                                 "patterns."),
+        ("[Lawhern 2018]", "Introduced EEGNet, which uses depthwise and separable convolutions to reduce the parameter "
+                           "count by an order of magnitude and performs well across four BCI paradigms."),
+        ("[Song 2023]", "Proposed EEG Conformer, which adds a transformer encoder to a convolutional stem so that local "
+                        "and long-range temporal features are learned together."),
+    ]),
+], "SUMMARY",
+    "Exoskeleton control from EEG is well established, and compact convolutional decoders are the standard models. "
+    "Their spatial filters are learned during training and stay fixed in later sessions.",
+    box_h=3.55)
+
+review_slide("Literature Review (Continued)", [
+    ("Covariance-based alignment", [
+        ("[Barachant 2012]", "Represented each EEG trial by its spatial covariance matrix and classified trials by "
+                             "Riemannian distance to the mean covariance of each class."),
+        ("[He 2020]", "Proposed Euclidean alignment, which whitens the trials of each subject or session by the inverse "
+                      "square root of their mean covariance, so that recordings become comparable without labels."),
+        ("[Rodrigues 2019]", "Proposed Riemannian Procrustes analysis, which re-centres, stretches and rotates "
+                             "covariance distributions to transfer a classifier between subjects and sessions."),
+    ]),
+    ("Test-time adaptation and selective prediction", [
+        ("[Wang 2021]", "Proposed Tent, which updates the normalisation parameters of a network on unlabelled test "
+                        "data by minimising the entropy of its predictions."),
+        ("[Gong 2022]", "Proposed NOTE for temporally correlated test streams, combining instance-aware batch "
+                        "normalisation with a prediction-balanced memory of test samples."),
+        ("[Geifman 2019]", "Proposed SelectiveNet, which trains a classifier together with a selection head that "
+                           "abstains on uncertain inputs at a chosen coverage."),
+    ]),
+], "RESEARCH GAP",
+    "Existing alignment methods operate offline on complete recordings. This work places alignment inside the network, "
+    "adapts it online without labels, and provides a rule for choosing its adaptation rate.")
 
 # ------------------------------------------------------------------ 6 architecture
 figure_slide("Proposed Architecture", ASSETS / "fig_arch_paper.png",
@@ -348,8 +394,8 @@ s = clone(11)
 write(get(s, "TextBox 4"), [P(R("Works cited on these slides, keyed to their [author, year] tags.", 12.5, italic=True, color=GRY))])
 left = [
     ("[Sarkar 2026]", "S. Sarkar et al., “EEG-controlled exoskeleton for walking and standing: a longitudinal multimodal dataset,” Sci. Data, 2026. (OpenNeuro ds007788)"),
-    ("[Ferrero 2024]", "L. Ferrero et al., “Brain-machine interface based on deep learning to control a lower-limb robotic exoskeleton,” J. NeuroEng. Rehabil., 21(48), 2024."),
-    ("[Soriano 2025]", "P. Soriano-Segura, M. Ortiz et al., “Characterization of error-related potentials during exoskeleton command via deep learning,” J. NeuroEng. Rehabil., 2025."),
+    ("[Ferrero 2024]", "L. Ferrero et al., “Brain-machine interface based on deep learning to control asynchronously a lower-limb robotic exoskeleton,” J. NeuroEng. Rehabil., 21(48), 2024."),
+    ("[Soriano 2025]", "P. Soriano-Segura, M. Ortiz et al., “Characterization of error-related potentials during the command of a lower-limb exoskeleton based on deep learning,” J. NeuroEng. Rehabil., 2025."),
     ("[Tortora 2023]", "S. Tortora et al., “Cortical and muscular activity under robot-assisted gait modes during exoskeleton walking,” 2023."),
     ("[Luu 2017]", "T. P. Luu et al., “Real-time EEG-based brain-computer interface to a virtual avatar enhances cortical involvement in human treadmill walking,” Sci. Rep., 7:8895, 2017."),
     ("[Schalk 2004]", "G. Schalk et al., “BCI2000: a general-purpose brain-computer interface (BCI) system,” IEEE TBME, 51(6):1034-1043, 2004."),

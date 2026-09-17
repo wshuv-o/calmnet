@@ -44,14 +44,35 @@ SCRIPT = [
         "Together these answer our research question: can a compact decoder adapt to session drift without labels "
         "while remaining accurate and reliable?",
     ]),
-    ("Literature Review", 50, [
-        "We reviewed four areas of related work.",
-        "In exoskeleton BCI, recent work includes the NeuroRex longitudinal dataset, deep-learning control of "
-        "lower-limb exoskeletons, error-related potentials, and robot-assisted gait.",
-        "For EEG decoding, EEGNet, ShallowFBCSPNet and EEG Conformer are widely used models.",
-        "For domain alignment, Euclidean alignment and Riemannian Procrustes analysis align covariance matrices "
-        "across sessions and subjects.",
-        "For test-time adaptation, methods such as Tent and NOTE update models on unlabelled test data.",
+    ("Literature Review", 55, [
+        "We reviewed related work in four areas. The first two are exoskeleton BCI and EEG decoding models.",
+        "Sarkar and colleagues released the NeuroRex dataset, which we use as cohort A: seven healthy participants "
+        "walking and standing with an EEG-controlled exoskeleton over nine sessions, with synchronised EEG, EOG, "
+        "inertial and exoskeleton recordings.",
+        "Ferrero and colleagues achieved closed-loop, asynchronous walk and stop control of a lower-limb exoskeleton "
+        "with a deep-learning decoder, and used transfer learning to shorten the calibration in each session.",
+        "Soriano-Segura and colleagues characterised error-related potentials during exoskeleton commands and "
+        "detected them with deep learning, as a safety signal. Tortora and colleagues examined how cortical and "
+        "muscular activity change across robot-assisted gait modes.",
+        "For decoding, Schirrmeister and colleagues showed that convolutional networks decode movement-related EEG, "
+        "with the shallow network learning band-power features similar to filter-bank common spatial patterns. "
+        "EEGNet uses depthwise and separable convolutions to reduce the parameter count by an order of magnitude, "
+        "and EEG Conformer adds a transformer encoder to a convolutional stem.",
+        "In summary, exoskeleton control from EEG is well established, and compact convolutional decoders are the "
+        "standard models. Their spatial filters are learned during training and stay fixed in later sessions.",
+    ]),
+    ("Literature Review (Continued)", 55, [
+        "The other two areas are covariance-based alignment and test-time adaptation.",
+        "Barachant and colleagues represented each EEG trial by its covariance matrix and classified trials by "
+        "Riemannian distance to the class means.",
+        "He and Wu proposed Euclidean alignment, which whitens the trials of each subject or session by the inverse "
+        "square root of their mean covariance, so recordings become comparable without labels. Riemannian "
+        "Procrustes analysis, by Rodrigues and colleagues, re-centres, stretches and rotates covariance "
+        "distributions to transfer a classifier between subjects and sessions.",
+        "In test-time adaptation, Tent updates normalisation parameters on unlabelled test data by minimising "
+        "prediction entropy, and NOTE handles temporally correlated test streams with instance-aware batch "
+        "normalisation and a prediction-balanced memory. SelectiveNet trains a classifier together with a selection "
+        "head that abstains on uncertain inputs.",
         "The research gap is that existing alignment methods operate offline on complete recordings. Our work "
         "places alignment inside the network, adapts it online without labels, and provides a rule for choosing "
         "its adaptation rate.",
