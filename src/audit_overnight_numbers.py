@@ -228,7 +228,6 @@ claim("A slow 3seed", 0, "slow arm averages $%.3f \\pm %.3f$ against $%.3f \\pm 
 claim("A slow cost", ds3.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds3.mean())
 claim("A slow paired", 0, "lower in %d of 7 participants (Wilcoxon $p=%.3f$" % ((ds3 < 0).sum(), wilcoxon(ds3).pvalue))
 claim("A slow per seed", 0, "The cost is $%s$, $%s$ and $%s$ on the three seeds" % tuple("-%.3f" % (a - r["acc"]) if a > r["acc"] else "+%.3f" % (r["acc"] - a) for r, a in zip(s3, sa3)))
-claim("A slow abstract", ds3.mean(), "slowing costs $%.3f$ over three seeds" % -ds3.mean())
 
 # ---- drift reduction against adaptation rate --------------------------------
 DM = J("drift_momentum.json")["summary"]
@@ -263,7 +262,6 @@ claim("B 1600", 0, "$%.3f$ at 1600 (%d of 8; $p=%.2f$)" % (cur[1600][1], cur[160
 claim("B 3200", 0, "$%.3f$ at 3200 (%d of 8; $p=%.2f$)" % (cur[3200][1], cur[3200][2], cur[3200][3]))
 claim("B abstract", 0, "at $%.3f$ without the layer over three seeds" % gateB)
 claim("B abstract cost", 0, "and enabling the layer costs $%.3f$," % cur[160][1])
-claim("B abstract slow", 0, "to $%.3f$ at a memory of 320 windows and $%.3f$ at 3200" % (cur[320][1], cur[3200][1]))
 claim("B external", 0, "against the gate-only arm ($%.3f$ against $%.3f$; lower in %d of 8 participants, Wilcoxon $p=%.3f$)" % (cur[160][0], gateB, cur[160][2], cur[160][3]))
 claim("B residual", 0, "still costs $%.3f$ and $%.3f$ on cohort B against the gate-only arm" % (cur[1600][1], cur[3200][1]))
 claim("B recovery", recB, "gives up $%.3f$ against a memory of 3200 windows" % recB)
@@ -283,7 +281,6 @@ for m in sorted({k.split("|")[0] for k in BB}):
     RB[m] = (np.mean([r["acc"] for r in runs]), np.mean([r["ece"] for r in runs]), dB.mean(), (dB > 0).sum(), wilcoxon(dB).pvalue)
 accB = [v[0] for v in RB.values()]; eceB = [v[1] for v in RB.values()]
 belowB = [v for v in RB.values() if v[2] > 0]
-claim("B pub range abstract", 0, "level with eight published decoders ($%.3f$ to $%.3f$)" % (min(accB), max(accB)))
 claim("B pub range", 0, "averages $%.3f$ over three seeds, against $%.3f$ to $%.3f$ for the published decoders" % (gateB, min(accB), max(accB)))
 claim("B pub below", 0, "higher than seven of them, by $%.3f$ to $%.3f$" % (min(v[2] for v in belowB), max(v[2] for v in belowB)))
 claim("B TSception", 0, "$%.3f$ below TSception (higher in %d of 8 participants; Wilcoxon $p=%.2f$)" % (-RB["TSception"][2], RB["TSception"][3], RB["TSception"][4]))

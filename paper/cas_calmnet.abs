@@ -1,39 +1,22 @@
-A decoder that drives a powered lower-limb exoskeleton is fitted once and must
-keep working for weeks, while electrode impedance, montage and skin contact
-change the second-order statistics that every spatial filter depends on.
-Re-estimating the input covariance at inference and whitening by it, without
-labels, corrects this shift inside the network and removes the need for a
-calibration session. Such a layer carries a failure mode its offline
-counterpart cannot have. A running estimate tracks whatever is currently
-streaming, and under a protocol that presents classes in long contiguous blocks
-it converges to the active class and whitens away the signal it was inserted to
-protect.
+An EEG decoder for a lower-limb exoskeleton is fitted once but must work
+for weeks, while changes in electrode impedance and montage shift
+the covariance its spatial filters depend on. Re-estimating the input covariance
+at inference and whitening by it, without labels, corrects this shift inside the
+network. Under a protocol that presents classes in long blocks, however, the
+running estimate converges to the active class and whitens away the signal it
+should protect.
 
 We present a 24{,}181-parameter decoder built around such a layer, and derive a
 lower bound on its adaptation rate from the class-block timescale of the
-recording protocol. On a seven-participant exoskeleton cohort recorded across
-weeks it reaches $0.868 \pm 0.026$ balanced accuracy over three data-split
-seeds. Eight published decoders trained in the same pipeline average $0.817$ to $0.878$
-over the same seeds, and no difference from this decoder is significant. The layer reduces session-to-session covariance distance
-by $45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of
-15 participants, against a control with no systematic reduction. On a treadmill cohort whose class blocks last 309 windows, the decoder transfers
-at $0.729$ without the layer over three seeds, level with eight published decoders
-($0.617$ to $0.734$), and enabling the layer costs $0.149$,
-lower in 8 of 8 participants. Slowing adaptation reduces that cost gradually,
-to $0.091$ at a memory of 320 windows and $0.031$ at 3200, where it is no longer
-significant, and the layer does not become beneficial at any rate measured, while on the exoskeleton cohort slowing costs $0.050$ over three
-seeds.
-
-The lower bound then predicted a third cohort in advance. With class blocks of
-five windows, both predictions committed before any model was trained held:
-enabling alignment changed accuracy by $+0.002$, and slowing it by $-0.006$,
-where slowing reduces the cost of alignment on the treadmill cohort.
-On that cohort the decoder reaches $0.796$ over three seeds, against $0.783$ for the strongest published decoder, with expected calibration error $0.061$ against $0.077$ to $0.083$. The upper bound, set by the
-drift timescale, could not be measured on these cohorts. Retraining after ICA
-artefact removal lowers accuracy by $0.051$ and leaves it far above chance, and
-the losses do not follow the amount of muscle activity removed. On the
-exoskeleton cohort no component, alignment included, is shown to change accuracy
-relative to the convolutional stem alone, paired across participants over two
-seeds, and a trained selective head adds no accuracy over three seeds and is
-reported as a negative result. The lower bound is a property of the experimental design, so it can be
-checked before a model is trained.
+recording protocol. The layer reduces session-to-session covariance distance by
+$45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of 15
+participants. On a seven-participant exoskeleton cohort the decoder reaches
+$0.868 \pm 0.026$ balanced accuracy over three seeds, level with eight published
+decoders, and no component, alignment included, is shown to change accuracy
+relative to the convolutional stem alone. On a treadmill cohort whose class
+blocks last 309 windows, the decoder transfers at $0.729$ without the layer over three seeds, and enabling the layer costs $0.149$,
+lower in 8 of 8 participants. The lower bound then predicted a third cohort in
+advance: both registered predictions held, and the decoder reached $0.796$
+against $0.783$ for the strongest published decoder, with calibration error
+$0.061$. The upper bound, set by the drift timescale, was not measurable; the lower
+bound can be checked from the recording protocol before training.

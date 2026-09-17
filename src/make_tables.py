@@ -443,7 +443,7 @@ def t_ratecurve():
         "at memories of 1600 and 3200 windows.",
         "rrrrrr",
         "$m$ & Memory & align + gate & Cost & Lower in & $p$",
-        rows)
+        rows, fit=True)
 
 
 
@@ -590,7 +590,7 @@ def t_repr():
         "lllrr",
         "Comparison & Power content & Condition & Control & $" + BS +
         "Delta$",
-        rows, wide=False)
+        rows, wide=False, fit=True)
 
 
 def t_norm():
@@ -810,7 +810,7 @@ def t_noise():
         "the transformer. \\textbf{Differences below 0.02 are not interpreted "
         "anywhere in this work}, and differences below the seed spread are "
         "reported without a ranking." % (lo, hi),
-        "llrr", "Arm & Transformer & $n$ & Spread", rows)
+        "llrr", "Arm & Transformer & $n$ & Spread", rows, fit=True)
 
 
 def main():

@@ -11,48 +11,49 @@ We submit the above manuscript for consideration as an original research
 article in Applied Soft Computing.
 
 A brain–computer interface that drives a powered lower-limb exoskeleton is
-fitted once and must keep working for weeks, while electrode impedance,
-montage and skin contact alter the second-order statistics that every spatial
-filter depends on. Correcting that shift inside the network, by re-estimating
-the input covariance at inference and whitening by it without labels, removes
-the need for a per-session calibration block. We show that this design works,
-characterise a failure mode it carries that its offline counterpart cannot,
-and give a check that predicts which of the two regimes a given recording
-protocol falls into before any model is trained.
+fitted once and must keep working for weeks, while electrode impedance and
+montage change the covariance that its spatial filters depend on. We place a
+label-free covariance alignment layer inside a compact decoder, so that each new
+session is whitened by a running estimate of its own covariance at inference,
+without a calibration block. We also identify when such a layer fails, and give
+a check, read from the recording protocol, that predicts this before any model
+is trained.
 
-The manuscript reports three results. First, a 24,181-parameter decoder
-reaches 0.901 balanced accuracy with an expected calibration error of 0.039 on
-a seven-participant, nine-session exoskeleton cohort recorded across weeks, at
-53% of the parameters of the strongest baseline evaluated in the same pipeline.
-Second, the alignment layer reduces session-to-session covariance distance by
-52.0 ± 4.5% and 83.9 ± 3.9% on two independent cohorts, in 15 of 15
-participants (p ≤ 10⁻⁴), against a control that shares every code path but
-never updates its estimate. Third, a running covariance estimate tracks
-whichever class is currently streaming; where a protocol presents classes in
-blocks longer than the estimator's memory, the layer whitens away the signal it
-was inserted to protect. The admissible adaptation rate is therefore bounded
-below by the class-block timescale and above by the drift timescale, and both
-bounds are properties of the experimental design rather than of the model.
+The manuscript reports three results. First, the alignment layer reduces
+session-to-session covariance distance by 45.9 ± 4.9% and 62.5 ± 12.2% on two
+independent cohorts, in 15 of 15 participants, against a control that shares
+every code path but never updates its estimate. Second, the 24,181-parameter
+decoder reaches 0.868 ± 0.026 balanced accuracy over three data-split seeds on a
+seven-participant exoskeleton cohort recorded across weeks, level with eight
+published decoders trained in the same pipeline, and 0.796 with an expected
+calibration error of 0.061 on a twenty-participant motor-execution cohort,
+against 0.783 for the strongest published decoder. Third, a running estimate
+tracks whichever class is currently streaming. Where class blocks outlast the
+estimator's memory, the layer removes the class signal, which costs 0.149
+balanced accuracy on a treadmill cohort, lower in 8 of 8 participants. The lower
+bound on the adaptation rate that follows from this was tested on the
+motor-execution cohort with both predictions committed before any model was
+trained on it, and both held.
 
-We draw the editor's attention to two aspects of the work. Evaluation is
-external: the second cohort was recorded in an independent laboratory, with
-different sensors, a different task framing and reversed class balance. The
-decoder transfers, reaching 0.792 there, while the alignment layer does not,
-and the manuscript reports that inversion in full rather than confining itself
-to the cohort on which the layer succeeds. We also report a component that did
-not work: the trained selective head lowers balanced accuracy on retained
-windows in 14 of the 18 arms measured, and we present this as a negative result
-rather than as a feature of the architecture.
+We draw the editor's attention to two aspects of the work. The evaluation spans
+three cohorts from different laboratories and paradigms, with every published
+decoder trained in one pipeline over the same seeds and compared by paired tests
+across participants. The manuscript also states the limits of its evidence: on
+the exoskeleton cohort no component, alignment included, is shown to change
+accuracy relative to the convolutional stem alone, a trained selective head adds
+no accuracy, and the upper bound on the adaptation rate could not be measured
+on these cohorts.
 
-The work suits Applied Soft Computing in combining a compact neural
-architecture for a physiological control problem with an analysis of when a
-widely used adaptation technique is applicable. Its practical contribution is a
-design-time check that requires no training run.
+The work suits Applied Soft Computing in combining a compact neural architecture
+for a physiological control problem with an analysis of when a widely used
+adaptation technique applies. Its practical contribution is a design-time check
+that requires no training run.
 
 The manuscript is original, has not been published previously, and is not under
 consideration elsewhere. All authors have approved the submission and declare
-no competing financial or personal interests. The data supporting the primary
-cohort are publicly available (OpenNeuro ds007788).
+no competing financial or personal interests. All three datasets are publicly
+available, and all code, configurations and result files are in the
+accompanying repository.
 
 Thank you for considering our submission.
 
