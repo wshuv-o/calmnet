@@ -101,7 +101,7 @@ def fig_topography(sub="sub-01"):
     for ax, vals, title, cmap in (
             (axes[0], power, "channel power before alignment", "viridis"),
             (axes[1], gain, r"gain applied by $\mathbf{M}^{-1/2}$", "magma"),
-            (axes[2], diff, r"8--30 Hz power, Walk vs Stop (dB)", "RdBu_r")):
+            (axes[2], diff, "8-30 Hz power, Walk vs Stop (dB)", "RdBu_r")):
         v = np.asarray(vals, float)
         lim = np.max(np.abs(v)) if cmap == "RdBu_r" else None
         im, _ = mne.viz.plot_topomap(
@@ -110,9 +110,8 @@ def fig_topography(sub="sub-01"):
         ax.set_title(title, fontsize=7.5, pad=6)
         cb = fig.colorbar(im, ax=ax, fraction=0.045, pad=0.04)
         cb.ax.tick_params(labelsize=6)
-    S.panel(axes[0], "a", x=-0.10, y=1.10)
-    S.panel(axes[1], "b", x=-0.10, y=1.10)
-    S.panel(axes[2], "c", x=-0.10, y=1.10)
+    for ax_, L_ in zip(axes, "abc"):
+        S.panel(ax_, L_, x=-0.22, y=1.16)
     S.save(fig, "fig_topography")
 
     order = np.argsort(-gain)
@@ -129,6 +128,43 @@ def fig_topography(sub="sub-01"):
     print("  8-30 Hz, largest INCREASE during walk: " +
           ", ".join("%s %+.2f dB" % (es.ch_names[i], diff[i]) for i in od[-6:]),
           flush=True)
+
+    # Persist, so the text can quote these instead of describing the maps.
+    import json
+    stats = {
+        "_note": ("Single participant, cohort A, first three sessions. Panel "
+                  "(c) is ABSOLUTE 8-30 Hz band power (4th-order Butterworth, "
+                  "per-channel variance), reported as 10*log10(walk/stop). It "
+                  "is NOT the layer's covariance diagonal, which is "
+                  "trace-normalised per window and therefore relative: under "
+                  "that normalisation a decrease anywhere is forced by an "
+                  "increase elsewhere. The sensorimotor decrease and the "
+                  "posterior increase are spatially separable, which is all "
+                  "this shows; posterior sites are also where neck EMG "
+                  "appears, and optic flow during walking accounts for an "
+                  "occipital increase equally well."),
+        "subject": sub,
+        "sessions": [int(x) for x in sess[:3]],
+        "n_windows": int(len(X)),
+        "band_hz": [8.0, 30.0],
+        "walk_minus_stop_db": {es.ch_names[i]: round(float(diff[i]), 3)
+                               for i in range(len(diff))},
+        "whitening_gain": {es.ch_names[i]: round(float(gain[i]), 3)
+                           for i in range(len(gain))},
+        "largest_decrease": [[es.ch_names[i], round(float(diff[i]), 2)]
+                             for i in od[:8]],
+        "largest_increase": [[es.ch_names[i], round(float(diff[i]), 2)]
+                             for i in od[-8:][::-1]],
+        "highest_gain": [[es.ch_names[i], round(float(gain[i]), 2)]
+                         for i in np.argsort(-gain)[:8]],
+        "lowest_gain": [[es.ch_names[i], round(float(gain[i]), 2)]
+                        for i in np.argsort(-gain)[-8:][::-1]],
+    }
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
+                       "results", "topography_stats.json")
+    with open(out, "w") as f:
+        json.dump(stats, f, indent=1)
+    print("  wrote results/topography_stats.json", flush=True)
 
 
 # ================================================================= manifold
