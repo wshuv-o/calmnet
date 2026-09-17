@@ -103,6 +103,11 @@ DRIFT_ARMS = {
 MODEL = os.environ.get("CX_MODEL", "atcplus")
 if MODEL == "driftnet":
     ARMS = DRIFT_ARMS
+# CX_MODEL=bd:EEGNeX+ShallowFBCSPNet runs published braindecode decoders in this
+# pipeline, each under the wrapper the stock-ATCNet `base` arm uses, so they are
+# comparable with it and with DriftNet (pipelines are never compared across).
+elif MODEL.startswith("bd:"):
+    ARMS = {n: dict(use_ctx=False, use_gate=False, bd=n) for n in MODEL[3:].split("+")}
 # CX_ARMS restricts the run to named arms. Used when a question only needs a
 # subset -- e.g. "does slow adaptation hold on cohort A" is answered by
 # dn_full vs dn_noalign alone, and the other three arms are already measured
@@ -265,6 +270,9 @@ def run(d, arm, seed):
     if MODEL == "driftnet":
         model = build_driftnet(Xf.shape[1], Xf.shape[2], 2, size=SIZE,
                                **cfg).to(DEVICE)
+    elif "bd" in cfg:
+        from atcnet_plus import build_bd_plus
+        model = build_bd_plus(cfg["bd"], Xf.shape[1], Xf.shape[2], 2).to(DEVICE)
     else:
         model = build_atcnet_plus(Xf.shape[1], Xf.shape[2], 2, **cfg).to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-2)

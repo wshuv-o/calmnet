@@ -133,6 +133,19 @@ def build_atcnet_plus(n_chan, n_time, n_outputs=2, rate=True, use_ctx=True,
     return ATCNetPlus(net, feat_dim, n_outputs, use_ctx, use_gate, **kw)
 
 
+def build_bd_plus(name, n_chan, n_time, n_outputs=2, sfreq=100.0, **kw):
+    """Any braindecode decoder under the identical wrapper stock ATCNet gets.
+
+    final_layer -> Identity, then the same LayerNorm-Linear-GELU projection and
+    linear classifier as the `base` arm (context and gate off), so a published
+    model and stock ATCNet differ only in the backbone.
+    """
+    from braindecode_zoo import BDBackbone
+    bb = BDBackbone(name, n_chan=n_chan, n_time=n_time, sfreq=sfreq)
+    return ATCNetPlus(bb.net, bb.feat_dim, n_outputs, use_ctx=False,
+                      use_gate=False, **kw)
+
+
 def selective_loss(out, y, weight=None, target_coverage=0.9, lam=32.0):
     """CE on the covered set + quadratic coverage penalty + full-coverage aux.
 
