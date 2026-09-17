@@ -17,18 +17,17 @@ seeds. Eight published decoders trained in the same pipeline reach $0.823$ to
 $0.871$ at the first seed, against $0.884$ for this decoder, a margin inside its
 variation across seeds. The layer reduces session-to-session covariance distance
 by $45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of
-15 participants, against a control with no systematic reduction. On a treadmill
-cohort whose class blocks last 309 windows, the decoder transfers at
-\pending{$0.792$} without the layer, and enabling the layer costs
-\pending{$0.211$}. Slowing adaptation past the block length recovers
-\pending{$0.090$ to $0.098$} on every arm that uses alignment and leaves the arms
-without it within their run-to-run noise, while on the exoskeleton cohort the
-same change costs $0.050$ over three seeds.
+15 participants, against a control with no systematic reduction. On a treadmill cohort whose class blocks last 309 windows, the decoder transfers
+at $0.763$ without the layer over three seeds, and enabling the layer costs $0.183$.
+Slowing adaptation reduces that cost gradually, to $0.125$ at a memory of 320
+windows and $0.068$ at 1600, and the layer does not become beneficial at any rate
+measured, while on the exoskeleton cohort slowing costs $0.050$ over three
+seeds.
 
 The lower bound then predicted a third cohort in advance. With class blocks of
 five windows, both predictions committed before any model was trained held:
 enabling alignment changed accuracy by $+0.002$, and slowing it by $-0.006$,
-where the same slowing had recovered \pending{$0.090$} on the treadmill cohort.
+where slowing reduces the cost of alignment on the treadmill cohort.
 On that cohort the decoder reaches $0.796$ over three seeds, against $0.783$ for the strongest published decoder, with expected calibration error $0.061$ against $0.077$ to $0.083$. The upper bound, set by the
 drift timescale, could not be measured on these cohorts. Retraining after ICA
 artefact removal lowers accuracy by $0.051$ and leaves it far above chance, and

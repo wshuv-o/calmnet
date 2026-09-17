@@ -217,7 +217,7 @@ claim("A slow 3seed", 0, "slow arm averages $%.3f \\pm %.3f$ against $%.3f \\pm 
 claim("A slow cost", ds3.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds3.mean())
 claim("A slow paired", 0, "lower in %d of 7 participants (Wilcoxon $p=%.3f$" % ((ds3 < 0).sum(), wilcoxon(ds3).pvalue))
 claim("A slow per seed", 0, "The cost is $%s$, $%s$ and $%s$ on the three seeds" % tuple("-%.3f" % (a - r["acc"]) if a > r["acc"] else "+%.3f" % (r["acc"] - a) for r, a in zip(s3, sa3)))
-claim("A slow abstract", ds3.mean(), "same change costs $%.3f$ over three seeds" % -ds3.mean())
+claim("A slow abstract", ds3.mean(), "slowing costs $%.3f$ over three seeds" % -ds3.mean())
 
 # ---- drift reduction against adaptation rate --------------------------------
 DM = J("drift_momentum.json")["summary"]
@@ -236,14 +236,23 @@ for c, lab in (("ds007788", "A"), ("mobi", "B")):
     claim("drift %s t" % lab, sm["t"], "$t=%.2f$" % sm["t"])
 
 # ---- cohort B at memory 320 (m = 0.10), three seeds ------------------------
-fl = J("b_floor_m0.10.json")
-fa = [fl["dn_noctx|s%d" % i] for i in range(3)]
-fn = [fl["dn_noalign|s%d" % i] for i in range(3)]
-fsa = {x: np.mean([r["per_subject"][x]["acc"] for r in fa]) for x in fa[0]["per_subject"]}
-fsn = {x: np.mean([r["per_subject"][x]["acc"] for r in fn]) for x in fn[0]["per_subject"]}
-fd = np.array([fsa[x] - fsn[x] for x in sorted(fsa)])
-claim("B 320 arms", 0, "\\textit{align + gate} $%.3f$ and the no-align arm $%.3f$" % (np.mean([r["acc"] for r in fa]), np.mean([r["acc"] for r in fn])))
-claim("B 320 cost", fd.mean(), "alignment still costs $%.3f$ there (lower in %d of %d participants; Wilcoxon $p=%.3f$)" % (-fd.mean(), (fd < 0).sum(), len(fd), wilcoxon(fd).pvalue))
+f10, f02, bgB = J("b_floor_m0.10.json"), J("b_floor_m0.02.json"), J("b_gate_aligngate_3seed.json")
+refr = [v for d_ in (f10, f02) for k, v in d_.items() if k.startswith("dn_noalign|")]
+psub = lambda runs: {x: np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
+rsB = psub(refr); refB = np.mean(list(rsB.values()))
+cur = {}
+for mem, d_ in ((160, bgB), (320, f10), (1600, f02)):
+    runs = [v for k, v in sorted(d_.items()) if k.startswith("dn_noctx|")]
+    a_ = psub(runs); dd_ = np.array([a_[x] - rsB[x] for x in sorted(rsB)])
+    cur[mem] = (np.mean([r["acc"] for r in runs]), -dd_.mean(), (dd_ < 0).sum(), wilcoxon(dd_).pvalue)
+claim("B ref", refB, "averaged over its six runs ($%.3f$)" % refB)
+claim("B 160", 0, "Alignment costs $%.3f$ at a memory of 160 windows (lower in %d of 8 participants; Wilcoxon $p=%.3f$)" % (cur[160][1], cur[160][2], cur[160][3]))
+claim("B 320", 0, "$%.3f$ at 320 (%d of 8; $p=%.3f$)" % (cur[320][1], cur[320][2], cur[320][3]))
+claim("B 1600", 0, "$%.3f$ at 1600 (%d of 8; $p=%.2f$)" % (cur[1600][1], cur[1600][2], cur[1600][3]))
+claim("B abstract", 0, "at $%.3f$ without the layer over three seeds, and enabling the layer costs $%.3f$" % (refB, cur[160][1]))
+claim("B external", 0, "$-%.3f$ on cohort B over three seeds ($%.3f$ against $%.3f$" % (cur[160][1], cur[160][0], refB))
+claim("B residual", 0, "alignment still costs $%.3f$ on cohort B ($%.3f$ against $%.3f$)" % (cur[1600][1], cur[1600][0], refB))
+claim("B drift 0.02", 0, "removes only $%.1f\\,\\%%$ of session drift" % (100 * J("drift_momentum.json")["summary"]["m0.02"]["mean"]))
 
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))

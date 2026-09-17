@@ -4,7 +4,7 @@ Every value wrapped in `\pending{}` renders red. Each is listed here with the ru
 that will replace it. When all are final, change the macro in the preamble to
 `\newcommand{\pending}[1]{#1}` (one line) and delete this file.
 
-Updated 2026-09-17 14:45.
+Updated 2026-09-17 16:05.
 
 | Red item (where) | Current value | Replaced by | Machine | Result file |
 |---|---|---|---|---|
@@ -24,7 +24,8 @@ Updated 2026-09-17 14:45.
 - Cohort A seed 0 comparison: ours 0.884; published 0.823–0.871.
 - Cohort A three-seed results: align + gate 0.868 ± 0.026; alignment +0.026 (p = 0.22); head −0.001 (p = 1.00).
 - Cohort A slow rate at seed 0: −0.085, lower in 7 of 7, p = 0.016.
-- Cohort B at memory 320 (m = 0.10), three seeds, current estimator: align + gate 0.638, no-align 0.767, alignment −0.129 (lower in 7 of 8, p = 0.023). From the other session's b_floor_m0.10.json, verified here.
+- Cohort B three-seed rate curve, current estimator (b_gate_aligngate_3seed.json dn_noctx, b_floor_m0.10.json, b_floor_m0.02.json; no-align reference averaged over its six runs, 0.763): alignment costs 0.183 at memory 160 (7 of 8, p = 0.016), 0.125 at 320 (7 of 8, p = 0.023), 0.068 at 1600 (6 of 8, p = 0.15). Gradual recovery, no step at 309, never beneficial. Replaces 0.792, 0.581, 0.211 in the abstract, external validation, limitations and conclusion.
+- Drift reduction against rate, cohort A (drift_momentum.json): 45.9, 26.8, 12.1, 2.3, 0.2 % at m = 0.2, 0.1, 0.05, 0.02, 0.01. In Discussion item 1, the slow-adaptation section and the residual remark.
 - Session drift (rerun without trace normalisation, drift_fixed.json): 45.9 ± 4.9 % (A, t = −9.46, p = 8e−5) and 62.5 ± 12.2 % (B, t = −12.33, p = 5e−6), 15 of 15; control changes distance by < 0.1 %. Fig. 2 and tab:drift regenerated from it.
 - Cohort A slow rate on align + gate, three seeds (a_slow_noctx_3seed.json): 0.819 ± 0.017 against 0.868 ± 0.026, cost −0.050, lower in 7 of 7, p = 0.016; per seed −0.085, −0.056, −0.008.
 
