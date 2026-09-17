@@ -4,13 +4,12 @@ Every value wrapped in `\pending{}` renders red. Each is listed here with the ru
 that will replace it. When all are final, change the macro in the preamble to
 `\newcommand{\pending}[1]{#1}` (one line) and delete this file.
 
-Updated 2026-09-17 20:05. Red remains only in three rows of tab:ablation3; the manuscript text has none.
-
-| Red item (where) | Replaced by | Machine | Result file |
-|---|---|---|---|
-| tab:ablation3 rows align + ctx (1 of 3 seeds), ctx + gate (2 of 3), stem only (1 of 3) | dn_nogate and dn_stem seeds 1-2; dn_noalign seed 2 | RTX 5080 (a_ablation_s12.json); RTX 2060 (a_ablation_s12_2060.json, ~21:20) | regenerate with `cd src && python make_tables.py` |
+Updated 2026-09-17 21:45. No red remains in the manuscript or the generated tables.
 
 ## Final (black) since the last update
+
+- tab:ablation3 complete: align + ctx and ctx + gate over three seeds, stem only over seeds 1-2 (seed 0 in driftnet_ds.json predates the estimator fix, rule 2). New columns compare every arm with the stem-only arm, paired over participants on seeds 1-2, Wilcoxon, Holm over six contrasts: stem leads on the mean (0.882), others 0.019-0.027 below, higher in at most 3 of 7, Holm p >= 0.94. Nothing bolded.
+- Text narrowed accordingly (ablation paragraph, external validation, protocol switch, limitations, conclusion, abstract): on cohort A no component, alignment included, is shown to raise or lower accuracy relative to the stem; the measured effect of alignment there is the drift reduction. Spurious activations are higher on the mean with alignment (1.60 vs 0.89; 1.17 vs 0.74) but in only 3 of 7 participants (p = 0.44, 0.81).
 
 - tab:ablation3 (new, generated): three-seed ablation under the current estimator; align + gate, align only, gate only and align + ctx + gate complete. The seed-0 tab:ablation and Fig. ablation are kept, labelled seed 0 / original estimator, and point to it.
 - Cross-epoch context over three seeds: accuracy 0.868 -> 0.859 (below the 0.02 interpreted), ECE 0.058 -> 0.073, spurious activations 1.60 -> 1.16 per minute (27 %).
@@ -31,4 +30,4 @@ Updated 2026-09-17 20:05. Red remains only in three rows of tab:ablation3; the m
 - "Cohort B's band is empty", the bracketed upper bound, fitted tau_drift values (both invalid).
 - tab:norm caption counts corrected; tab:noise transformer flag corrected.
 
-Audit: `python src/audit_overnight_numbers.py` checks 121 printed values against results/.
+Audit: `python src/audit_overnight_numbers.py` checks 128 printed values against results/.

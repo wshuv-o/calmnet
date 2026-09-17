@@ -106,9 +106,11 @@ where slowing reduces the cost of alignment on the treadmill cohort.
 On that cohort the decoder reaches $0.796$ over three seeds, against $0.783$ for the strongest published decoder, with expected calibration error $0.061$ against $0.077$ to $0.083$. The upper bound, set by the
 drift timescale, could not be measured on these cohorts. Retraining after ICA
 artefact removal lowers accuracy by $0.051$ and leaves it far above chance, and
-the losses do not follow the amount of muscle activity removed. A trained
-selective head adds no accuracy over three seeds and is reported as a negative
-result. The lower bound is a property of the experimental design, so it can be
+the losses do not follow the amount of muscle activity removed. On the
+exoskeleton cohort no component, alignment included, is shown to change accuracy
+relative to the convolutional stem alone, paired across participants over two
+seeds, and a trained selective head adds no accuracy over three seeds and is
+reported as a negative result. The lower bound is a property of the experimental design, so it can be
 checked before a model is trained.
 \end{abstract}
 
@@ -719,9 +721,11 @@ stem only          & $0.827\pm0.124$ & 0.082 & 0.823 & 0.73 \\
 }
 \end{table}
 
-Table~\ref{tab:ablation3} repeats the ablation over three data-split seeds
-under the current estimator; its conclusions are drawn in the paragraphs below
-where three seeds exist for the arms compared.
+Table~\ref{tab:ablation3} repeats the ablation under the current estimator,
+over three data-split seeds for six arms and two for the stem-only arm, and
+compares every arm with the stem-only arm paired over participants. Where it
+and the single-seed table disagree, the paragraphs below follow
+Table~\ref{tab:ablation3}.
 
 The acc@90 value for the \textit{align + ctx} arm is withheld because with the
 selection head disabled the model emits near-constant confidence, so ranking by
@@ -752,9 +756,21 @@ while the stem-only arm is deterministic at $0.827$. Against the $0.010$ noise f
 trace-normalised one ($0.862$ against $0.834$) from the estimator-fix run of
 Section~\ref{sec:rejected}. The lower figure should be read with care: the
 no-align arm is inert to the estimator, so its $0.834$ differs from $0.827$
-only by run-to-run variation, and part of the gap between the two figures is that noise. The comparison that isolates alignment most directly, \textit{align + gate} against \textit{gate} with nothing else changed, was repeated over three data-split seeds under the trace-normalised estimator. With each participant's accuracy averaged over seeds, alignment raises accuracy by $+0.026$ ($0.868$ against $0.842$), higher in 6 of 7 participants (Wilcoxon $p=0.22$). The effect is $+0.067$, $+0.029$ and $-0.019$ on the three seeds, and it is uneven across participants: sub-04 gains $0.179$ and sub-05 loses $0.127$, each with the same sign on every seed. The gain from alignment on cohort A is therefore close to the trace-normalised single-seed figure of $+0.028$, and with seven participants it is not significant. The
-modules do not stack; they depend on the alignment stage to be
-useful at all.
+only by run-to-run variation, and part of the gap between the two figures is that noise. The comparison that isolates alignment most directly, \textit{align + gate} against \textit{gate} with nothing else changed, was repeated over three data-split seeds under the trace-normalised estimator. With each participant's accuracy averaged over seeds, alignment raises accuracy by $+0.026$ ($0.868$ against $0.842$), higher in 6 of 7 participants (Wilcoxon $p=0.22$). The effect is $+0.067$, $+0.029$ and $-0.019$ on the three seeds, and it is uneven across participants: sub-04 gains $0.179$ and sub-05 loses $0.127$, each with the same sign on every seed. The gain from alignment on cohort A is therefore close to the trace-normalised single-seed figure of $+0.028$, and with seven participants it is not significant.
+Seeds 1 and 2 of Table~\ref{tab:ablation3} remove the single-seed ordering as
+well. There the stem-only arm leads on the grand mean ($0.882$), every other arm
+lies $0.019$ to $0.027$ below it paired over the same seeds and is higher in at
+most 3 of 7 participants, and no difference is distinguishable from zero
+(Holm-corrected $p \geq 0.94$). Against the full configuration the stem's lead
+is carried by two participants (sub-05 $+0.137$, sub-01 $+0.075$) and reversed
+by a third (sub-04 $-0.130$). The alignment arms also average more spurious
+activations per minute than the corresponding arms without alignment ($1.60$
+against $0.89$ over three seeds with the gate, and $1.17$ against $0.74$ over
+seeds 1 and 2 with context and gate), yet they are higher in only 3 of 7
+participants ($p=0.44$ and $p=0.81$). On cohort A, therefore, neither alignment
+nor the other modules are shown to raise accuracy over the stem, and none is
+shown to lower it. The measured effect of alignment on this cohort is the
+reduction in session drift (Section~\ref{sec:mechanism}).
 
 \paragraph{Cross-epoch context} Over three seeds under the current estimator
 (Table~\ref{tab:ablation3}), adding it changes accuracy from $0.868$ to $0.859$, a
@@ -944,7 +960,7 @@ classes split $87.7/12.3$. What does not transfer is the alignment layer. The
 best cohort-A configuration is the worst cohort-B one, and the ordering inverts, with all three arms that use alignment falling
 below both arms that do not. The layer is worth $+0.074$ on cohort A
 ($0.901$ against $0.827$) and $-0.149$ on cohort B over three seeds against the gate-only arm ($0.580$ against $0.729$;
-lower in 8 of 8 participants, Wilcoxon $p=0.008$). The cohort A figure comes from one seed and also removes the context module. Against the gate-only arm over three seeds, alignment is worth $+0.026$ there (Section~\ref{sec:ablation}), so the size of the inversion comes mostly from the loss on cohort B.
+lower in 8 of 8 participants, Wilcoxon $p=0.008$). The cohort A figure comes from one seed and also removes the context module. Against the gate-only arm over three seeds, alignment is worth $+0.026$ there (Section~\ref{sec:ablation}), so the size of the inversion comes mostly from the loss on cohort B. Over seeds 1 and 2 no arm differs from the stem alone on cohort A (Table~\ref{tab:ablation3}), so the inversion sets that loss against no measurable effect on cohort A.
 The remainder of the results characterises this inversion.
 
 \paragraph{A protocol-level switch} The two cohorts do not require
@@ -955,7 +971,10 @@ $\tau_{\mathrm{blk}} < \mu$ and cohort B's $\tau_{\mathrm{blk}}=309$ does not.
 Enabling alignment exactly when the lower bound is satisfied selects $0.901$ on
 cohort A and $0.792$ on cohort B, the best configuration of
 Table~\ref{tab:external} on each at seed 0, from one model and one rule
-evaluated before any training.
+evaluated before any training. Over seeds 1 and 2 the cohort A half of that
+selection is unconfirmed, because the stem-only arm leads there without a
+significant difference (Table~\ref{tab:ablation3}); what the switch is shown to
+do is avoid the loss on cohort B.
 
 \paragraph{Learnability of the switch} The architecture
 already contains a learnable version of it: the blend weight
@@ -1339,7 +1358,7 @@ tracking directly.
 
 Several limitations constrain the interpretation of these results.
 
-\textbf{Seeds.} The component ablation and the rate tables are single-seed.
+\textbf{Seeds.} The component ablation of Table~\ref{tab:ablation} and the rate tables are single-seed; Table~\ref{tab:ablation3} repeats the ablation over three seeds, two for the stem-only arm.
 The proposed configuration was rerun over three data-split seeds under the
 trace-normalised estimator, giving $0.868 \pm 0.026$ (seeds $0.884$, $0.882$ and
 $0.839$). That seed standard deviation is larger than the $0.010$ noise floor of
@@ -1348,11 +1367,13 @@ two participants, whose accuracy ranges over $0.217$ and $0.120$ across seeds
 while the other five vary by at most $0.065$. The rate effects are therefore reported over three seeds with paired tests
 (Table~\ref{tab:ratecurve}, Section~\ref{sec:twosided}). The paired alignment effect on cohort A over the same three seeds is
 $+0.026$ ($p=0.22$) and is negative on one seed, so the benefit of alignment
-where the lower bound holds is small and unconfirmed at this sample size. The
+where the lower bound holds is small and unconfirmed at this sample size, and
+over seeds 1 and 2 the stem-only arm leads every arm on the mean without a
+significant paired difference (Table~\ref{tab:ablation3}). The
 loss where it fails is $0.149$ on cohort B over three seeds (lower in 8 of 8
 participants; $p=0.008$). The published decoders were run over the same three seeds on cohorts A and C.
 
-\textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the component ablation and the rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the three-seed alignment comparison on cohort A (Section~\ref{sec:ablation}),
+\textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the single-seed component ablation and the single-seed rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the three-seed alignment comparison and the two-seed contrasts against the stem on cohort A (Section~\ref{sec:ablation}, Table~\ref{tab:ablation3}),
 the comparison with published decoders on cohort~C (Section~\ref{sec:compare})
 and the cohort~C predictions (Section~\ref{sec:prereg}).
 
@@ -1408,7 +1429,7 @@ design-time check.
 The condition has predicted a new cohort correctly in advance. With class
 blocks of five windows, enabling alignment cost nothing and slowing it brought
 no gain, where slowing recovered $0.118$ over three seeds on the cohort with long
-blocks. Where the lower bound holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C. Where it fails, alignment costs $0.149$ over three seeds. The condition is therefore most useful as a design-time guard against that loss.
+blocks. Where the lower bound holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C, and on cohort A the stem alone leads every arm on the mean over seeds 1 and 2, again without a significant difference. Where it fails, alignment costs $0.149$ over three seeds. The condition is therefore most useful as a design-time guard against that loss.
 
 The immediate open question is the upper bound. Neither cohort here resolves
 the drift timescale: cohort A's session covariances are already at their plateau

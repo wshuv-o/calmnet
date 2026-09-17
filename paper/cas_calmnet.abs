@@ -31,7 +31,9 @@ where slowing reduces the cost of alignment on the treadmill cohort.
 On that cohort the decoder reaches $0.796$ over three seeds, against $0.783$ for the strongest published decoder, with expected calibration error $0.061$ against $0.077$ to $0.083$. The upper bound, set by the
 drift timescale, could not be measured on these cohorts. Retraining after ICA
 artefact removal lowers accuracy by $0.051$ and leaves it far above chance, and
-the losses do not follow the amount of muscle activity removed. A trained
-selective head adds no accuracy over three seeds and is reported as a negative
-result. The lower bound is a property of the experimental design, so it can be
+the losses do not follow the amount of muscle activity removed. On the
+exoskeleton cohort no component, alignment included, is shown to change accuracy
+relative to the convolutional stem alone, paired across participants over two
+seeds, and a trained selective head adds no accuracy over three seeds and is
+reported as a negative result. The lower bound is a property of the experimental design, so it can be
 checked before a model is trained.

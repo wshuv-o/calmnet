@@ -299,6 +299,45 @@ claim("ctx 3seed acc", 0, "adding it changes accuracy from $%.3f$ to $%.3f$" % (
 claim("ctx 3seed ece", 0, "raises ECE from $%.3f$ to $%.3f$" % (mm_(agA, "ece"), mm_(fullA, "ece")))
 claim("ctx 3seed fa", 0, "reduces spurious activations from $%.2f$ to $%.2f$ per minute, a $%.0f" % (faG, faF, 100 * (faG - faF) / faG))
 
+# ---- cohort A ablation, seeds 1-2, every arm against the stem alone ---------
+import sys as _sys
+_sys.path.insert(0, str(ROOT / "src"))
+from make_tables import ablation3_paired  # noqa: E402
+PA = ablation3_paired()
+PJ = J("a_ablation_paired.json")
+assert abs(PA["align + ctx + gate"][0] + PJ["contrasts"]["dn_stem_vs_dn_full"]["delta_mean"]) < 1e-9
+assert abs(PA["align + ctx"][0] + PJ["contrasts"]["dn_stem_vs_dn_nogate"]["delta_mean"]) < 1e-9
+stem12 = PJ["per_arm"]["dn_stem"]["grand_mean"]
+gaps = [-v[0] for v in PA.values()]
+claim("stem leads", stem12, "the stem-only arm leads on the grand mean ($%s$)" % f3(stem12))
+claim("stem gap range", 0, "lies $%s$ to $%s$ below it" % (f3(min(gaps)), f3(max(gaps))))
+claim("stem higher max", 0, "higher in at most %d of 7 participants" % max(v[1] for v in PA.values()))
+claim("stem holm min", 0, "Holm-corrected $p \\geq %.2f$" % min(v[4] for v in PA.values()))
+SF = PJ["per_arm"]["dn_stem"]["per_subject"]; FF = PJ["per_arm"]["dn_full"]["per_subject"]
+claim("stem vs full subs", 0, "(sub-05 $%+.3f$, sub-01 $%+.3f$) and reversed by a third (sub-04 $%+.3f$)"
+      % (SF["sub-05"] - FF["sub-05"], SF["sub-01"] - FF["sub-01"], SF["sub-04"] - FF["sub-04"]))
+
+
+def _fa(files_arm, seeds):
+    arm, files = files_arm
+    runs = {}
+    for f in files:
+        for k, v in J(f).items():
+            runs.setdefault(k, v)
+    subs = sorted(runs["%s|s%d" % (arm, seeds[0])]["per_subject"])
+    return np.mean([[runs["%s|s%d" % (arm, s)]["per_subject"][x]["false_onsets_per_min"] for x in subs]
+                    for s in seeds], axis=0)
+
+
+from make_tables import ABL3_SRC  # noqa: E402
+fa_ag, fa_g = _fa(ABL3_SRC["align + gate"], (0, 1, 2)), _fa(ABL3_SRC["gate only"], (0, 1, 2))
+fa_f, fa_n = _fa(ABL3_SRC["align + ctx + gate"], (1, 2)), _fa(ABL3_SRC["ctx + gate"], (1, 2))
+claim("FA align gate", 0, "($%.2f$ against $%.2f$ over three seeds with the gate, and $%.2f$ against $%.2f$ over"
+      % (fa_ag.mean(), fa_g.mean(), fa_f.mean(), fa_n.mean()))
+claim("FA paired", 0, "higher in only %d of 7 participants ($p=%.2f$ and $p=%.2f$)"
+      % ((fa_ag > fa_g).sum(), wilcoxon(fa_ag - fa_g).pvalue, wilcoxon(fa_f - fa_n).pvalue))
+assert (fa_ag > fa_g).sum() == (fa_f > fa_n).sum()
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:

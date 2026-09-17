@@ -447,23 +447,58 @@ def t_ratecurve():
 
 
 
-def t_ablation3():
-    """Cohort A component ablation over three data-split seeds, current estimator.
-    Seed 0 of the context and stem arms comes from the estimator-fix run; the
-    align + gate seed-0 rerun reproduced that run exactly, so the seeds pool."""
+ABL3_SRC = {
+    "align + gate":       ("dn_noctx",   ["a_aligngate_3seed.json"]),
+    "align only":         ("dn_align",   ["align_only.json", "a_align_s12.json"]),
+    "gate only":          ("dn_gate",    ["a_gate_3seed.json"]),
+    "align + ctx + gate": ("dn_full",    ["driftfix_ds.json", "a_ablation_s12.json"]),
+    "align + ctx":        ("dn_nogate",  ["driftfix_ds_nogate.json", "a_ablation_s12.json"]),
+    "ctx + gate":         ("dn_noalign", ["driftfix_ds.json", "a_ablation_s12_2060.json"]),
+    # seed 0 (driftnet_ds.json) predates the per-window covariance fix: rule 2
+    "stem only":          ("dn_stem",    ["a_ablation_s12.json"]),
+}
+
+
+def ablation3_paired(seeds=(1, 2), ref="stem only"):
+    """Each arm against the stem-only arm, paired over participants.
+
+    Per-participant accuracy is averaged over the seeds every arm shares (1 and
+    2), then compared by Wilcoxon signed-rank and Holm-corrected over the
+    contrasts. Returns {label: (delta_mean, n_higher, n, p, p_holm)}."""
     import numpy as _np
-    src = {
-        "align + gate":       ("dn_noctx",   ["a_aligngate_3seed.json"]),
-        "align only":         ("dn_align",   ["align_only.json", "a_align_s12.json"]),
-        "gate only":          ("dn_gate",    ["a_gate_3seed.json"]),
-        "align + ctx + gate": ("dn_full",    ["driftfix_ds.json", "a_ablation_s12.json"]),
-        "align + ctx":        ("dn_nogate",  ["driftfix_ds_nogate.json", "a_ablation_s12.json"]),
-        "ctx + gate":         ("dn_noalign", ["driftfix_ds.json", "a_ablation_s12_2060.json", "a_ablation_s12.json"]),
-        "stem only":          ("dn_stem",    ["driftnet_ds.json", "a_ablation_s12.json"]),
-    }
+    from scipy.stats import wilcoxon as _w
+    from paired_tests import holm as _holm
+    pp = {}
+    for lab, (arm, files) in ABL3_SRC.items():
+        runs = {}
+        for f in files:
+            for k, v in L(f).items():
+                runs.setdefault(k, v)
+        subs = sorted(runs["%s|s%d" % (arm, seeds[0])]["per_subject"])
+        pp[lab] = (subs, _np.mean([[runs["%s|s%d" % (arm, s)]["per_subject"][x]["acc"] for x in subs]
+                                   for s in seeds], axis=0))
+    labs = [lab for lab in ABL3_SRC if lab != ref]
+    out, ps = {}, []
+    for lab in labs:
+        assert pp[lab][0] == pp[ref][0]
+        d = pp[lab][1] - pp[ref][1]
+        p = float(_w(d).pvalue)
+        ps.append(p)
+        out[lab] = [float(d.mean()), int((d > 0).sum()), len(d), p]
+    for lab, ph in zip(labs, _holm(_np.array(ps))):
+        out[lab].append(float(ph))
+    return {k: tuple(v) for k, v in out.items()}
+
+
+def t_ablation3():
+    """Cohort A component ablation, current estimator. Seed 0 of the context arms
+    comes from the estimator-fix run; the align + gate seed-0 rerun reproduced
+    that run exactly, so the seeds pool. Paired contrasts use seeds 1 and 2."""
+    import numpy as _np
     gated = {"dn_noctx", "dn_gate", "dn_full", "dn_noalign"}
+    paired = ablation3_paired()
     rows = []
-    for lab, (arm, files) in src.items():
+    for lab, (arm, files) in ABL3_SRC.items():
         runs = {}
         for f in files:
             for k, v in L(f).items():
@@ -471,26 +506,32 @@ def t_ablation3():
                     runs[k] = v
         rs = [runs[k] for k in sorted(runs)]
         n = len(rs)
-        if n < 3:
-            cells = [pend("pending")] * 4
+        acc_ = [r["acc"] for r in rs]
+        cells = ["%.3f $" % _np.mean(acc_) + BS + "pm$ %.3f" % _np.std(acc_, ddof=1),
+                 "%.3f" % _np.mean([r["ece"] for r in rs]),
+                 "%.3f" % _np.mean([r["acc_at_90"] for r in rs]) if arm in gated else "---",
+                 "%.2f" % _np.mean([r["false_onsets_per_min"] for r in rs])]
+        if lab in paired:
+            dm, hi, nn, p, ph = paired[lab]
+            cells += ["$%+.3f$" % dm, "%d of %d" % (hi, nn), "%.2f" % ph]
         else:
-            acc_ = [r["acc"] for r in rs]
-            cells = ["%.3f $" % _np.mean(acc_) + BS + "pm$ %.3f" % _np.std(acc_, ddof=1),
-                     "%.3f" % _np.mean([r["ece"] for r in rs]),
-                     "%.3f" % _np.mean([r["acc_at_90"] for r in rs]) if arm in gated else "---",
-                     "%.2f" % _np.mean([r["false_onsets_per_min"] for r in rs])]
-        rows.append("%s & %d of 3 & %s & %s & %s & %s %s" % ((lab, n) + tuple(cells) + (EOL,)))
+            cells += ["---"] * 3
+        rows.append("%s & %d of 3 & %s %s" % (lab, n, " & ".join(cells), EOL))
     return table(
         "tab:ablation3",
-        "Component ablation on cohort A over three data-split seeds under the "
-        "current estimator: balanced accuracy (mean $" + BS + "pm$ SD across "
-        "seeds), ECE, accuracy at $90" + BS + "," + BS + "%$ coverage and "
-        "spurious activations per minute of standing, each averaged over seeds. "
-        "Acc@90 is withheld for arms without a trained gate, whose confidence "
-        "ranks windows in recording order. " + pend("Red cells await seeds in "
-        "progress."),
-        "lrrrrr",
-        "Components & Seeds & Acc & ECE & Acc@90 & FA/min",
+        "Component ablation on cohort A under the current estimator: balanced "
+        "accuracy (mean $" + BS + "pm$ SD across seeds), ECE, accuracy at $90"
+        + BS + "," + BS + "%$ coverage and spurious activations per minute of "
+        "standing, each averaged over seeds. Acc@90 is withheld for arms without a "
+        "trained gate, whose confidence ranks windows in recording order. Seed 0 of "
+        "the stem-only arm predates the estimator fix and is excluded. The last "
+        "three columns compare each arm with the stem-only arm over seeds 1 and 2, "
+        "which every arm shares, paired over the 7 participants: difference in mean "
+        "accuracy, participants higher than the stem-only arm, and the Wilcoxon "
+        "signed-rank $p$, Holm-corrected over the six contrasts.",
+        "lrrrrrrrr",
+        "Components & Seeds & Acc & ECE & Acc@90 & FA/min & $" + BS + "Delta$ stem & Higher & $p_{"
+        + BS + "mathrm{Holm}}$",
         rows, fit=True)
 
 # ===================================================================== mega 3
