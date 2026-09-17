@@ -155,6 +155,8 @@ EV = load("overnight_eval.json")
 C3 = EV.get("cohort3", {})
 P1, P2 = C3.get("P1", {}), C3.get("P2", {})
 ICAC = EV.get("ica_control", {})
+MSA = EV.get("multiseed_A", {})
+MSA_SEEDS = [a - g for a, g in zip(MSA.get("aligngate_seed_means", []), MSA.get("gate_seed_means", []))]
 
 
 def done(r):
@@ -255,12 +257,19 @@ table(s, ["Configuration", "Balanced acc.", "ECE", "Parameters"],
       0.7, 1.75, [4.43, 2.5, 2.5, 2.5], hh=0.52, dr=0.52, size=16, bold_rows=(0,))
 tf = box(s, Inches(0.7), Inches(5.15), Inches(11.93), Inches(1.9))
 para(tf, [("0.901 at 53 % of ATCNet's parameters. ", {"size": 17, "bold": True}),
-          ("Removing alignment costs 0.074 on this cohort. Seven participants, nine sessions each, "
-           "fitted on sessions 1–3 and tested on sessions 4–9 recorded weeks later.", {"size": 17, "color": GRY})],
+          ("Seven participants, nine sessions each, fitted on sessions 1–3 and tested on sessions 4–9 "
+           "recorded weeks later.", {"size": 17, "color": GRY})],
      17, first=True, space=10, lh=1.25)
 para(tf, [("Over three seeds: 0.868 ± 0.026 ", {"size": 16, "bold": True}),
-          ("(corrected estimator). The single-seed figure is the top of that range; two participants "
-           "carry most of the variation.", {"size": 16, "color": GRY})], 16, lh=1.2)
+          ("(corrected estimator), the single-seed figure being the top of that range.", {"size": 16, "color": GRY})],
+     16, space=6, lh=1.2)
+if done(MSA):
+    para(tf, [("Alignment over three seeds: %s " % sgn(MSA["mean_diff"]), {"size": 16, "bold": True}),
+              ("against the gate-only arm (%s), higher in %d of %d participants, p = %.2f. "
+               "Positive on %d seeds, negative on %d."
+               % (f3(MSA["mean_a"]), MSA["b_higher"], MSA["n"], MSA["wilcoxon_p"],
+                  sum(d > 0 for d in MSA_SEEDS), sum(d < 0 for d in MSA_SEEDS)), {"size": 16, "color": GRY})],
+         16, lh=1.2)
 
 # ═══ 8 · IS THE ACCURACY NEURAL ═══
 s = slide(); header(s, "Is the Accuracy Neural")
@@ -313,7 +322,8 @@ para(tf, [("The decoder transfers. ", {"size": 18, "bold": True}),
           ("Without alignment it reaches 0.792 on an independent laboratory's data, with different sensors and "
            "reversed class balance.", {"size": 18, "color": GRY})], 18, first=True, space=14, lh=1.2)
 para(tf, [("The alignment layer inverts. ", {"size": 18, "bold": True}),
-          ("It adds 0.074 on cohort A and costs 0.211 on cohort B.", {"size": 18, "color": GRY})],
+          ("It adds 0.074 on cohort A at seed 0 (%s over three seeds) and costs 0.211 on cohort B."
+           % (sgn(MSA["mean_diff"]) if done(MSA) else "pending"), {"size": 18, "color": GRY})],
      18, lh=1.2)
 
 # ═══ 10 · WHY IT FAILS ON COHORT B ═══
@@ -400,6 +410,7 @@ s = slide(); header(s, "Limitations and Next Steps")
 tf = box(s, Inches(0.7), Inches(1.6), Inches(5.85), Inches(5.4))
 para(tf, "Limitations", 19, BLK, bold=True, first=True, space=12)
 for t in ["Headline over three seeds is 0.868 ± 0.026; most other arms are single seed.",
+          "Where the band holds, alignment's gain is small: +0.026 over three seeds on cohort A (p = 0.22).",
           "Condition 1 was formulated after cohort B; cohort C is its first advance test.",
           "No published decoder has been run on cohort B.",
           "The leakage probe cannot register artefact constant within a class."]:

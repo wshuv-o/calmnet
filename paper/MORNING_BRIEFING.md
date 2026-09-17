@@ -12,7 +12,7 @@ account is in `OVERNIGHT_LOG.md`.
 | `paper/cas_calmnet.pdf` | updated manuscript, 20 pages |
 | `paper/cas_calmnet_overleaf.zip` | Overleaf package, verified by compiling from scratch |
 
-## The four results that matter
+## The five results that matter
 
 **1. A prediction registered in advance came true, on an independent cohort.**
 Before any model touched PhysioNet EEGMMIDB (20 participants), two predictions
@@ -41,11 +41,25 @@ The submitted paper stated a 0.5-40 Hz band and Adam at lr 10⁻³. The code use
 **8-30 Hz** and **AdamW at 3×10⁻⁴**, plus EOG regression the paper called "no
 artefact step". None changes a number; each would have defeated reproduction.
 
-## Still running when this was written
+**5. Alignment's gain on cohort A is smaller than the submitted paper said.**
+The submitted paper credits alignment with **+0.074** on cohort A. That was one
+seed, and the comparison also removed the context module. The clean comparison,
+align + gate against gate with nothing else changed, finished at 07:12 over
+three seeds: **+0.026** (0.868 against 0.842), higher in 6 of 7 participants,
+**p = 0.22**. Per seed it is +0.067, +0.029 and −0.019, so it changes sign once.
+sub-04 gains 0.179 and sub-05 loses 0.127, each on every seed. More seeds would
+not make this significant, because sub-05's consistent loss caps the test at
+seven participants, so no further runs were started.
 
-Cohort A, gate against align + gate, three seeds each. Align + gate ends
-~06:05 and gate ~07:40. It removes "single seed" from the headline. See the
-last section of `OVERNIGHT_LOG.md` for whether it finished and was integrated.
+The paper now says this in four places (ablation, cross-cohort paragraph,
+limitations, conclusion). Read together with cohort C (+0.002 registered,
++0.014 on replication seeds) the picture is consistent: **where the band holds,
+alignment gains a little; where it fails, it costs 0.211.** The conclusion
+now presents the condition as a design-time guard against that loss.
+
+## Nothing is still running
+
+Every queued job finished. The GPU is idle.
 
 ## Decisions only you can make
 
@@ -54,7 +68,11 @@ last section of `OVERNIGHT_LOG.md` for whether it finished and was integrated.
 2. **Headline estimator.** The paper leads with 0.901 (original estimator). The
    reviewer plan asks for the trace-normalised estimator throughout, which gives
    0.884. The ablation is now complete under both.
-3. **Abstract format.** Structured headings were removed on the editorial
+3. **How to frame alignment.** The conclusion now calls the condition "most
+   useful as a design-time guard" against the 0.211 loss, because the gain
+   where the band holds is small (result 5). That is my wording; change it if
+   you prefer another emphasis, but keep the +0.026 and p = 0.22.
+4. **Abstract format.** Structured headings were removed on the editorial
    advice. Check whether Applied Soft Computing requires them.
 
 ## Things you should know before presenting
@@ -74,6 +92,10 @@ last section of `OVERNIGHT_LOG.md` for whether it finished and was integrated.
 
 ## Likely questions at 10:00
 
+- **"How much does alignment actually add?"** On cohort A, +0.026 over three
+  seeds (p = 0.22), smaller than the single-seed +0.074 on slide 9, which now
+  shows both. Its value is clearest on cohort B, where applying it against the
+  band costs 0.211, and the band says so before training. Slide 7.
 - **"The midterm said the accuracy was confound. Why 0.901 now?"** The midterm's
   leakage measure scored R² = 0.863 on a decoder carrying no movement
   information; it was confounded with accuracy and was withdrawn. Slide 8 gives

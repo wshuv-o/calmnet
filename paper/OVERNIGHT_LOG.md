@@ -699,3 +699,40 @@ still larger than seed noise, by much less. The paper must say so.
 The paired alignment effect on cohort A (align + gate against gate, seeds
 averaged per participant) needs the gate arm, which started at 06:07.
 
+### 07:19 — Cohort A alignment over three seeds gains +0.026 (p = 0.22)
+
+Gate arm finished at 07:12 (queue 2 done). Align + gate against gate, same
+seeds, trace-normalised estimator, seed-averaged per participant.
+
+| seed | align + gate | gate | difference |
+|---|---|---|---|
+| 0 | 0.884 | 0.817 | +0.067 |
+| 1 | 0.882 | 0.852 | +0.029 |
+| 2 | 0.839 | 0.858 | −0.019 |
+| **mean** | **0.868** | **0.842** | **+0.026** |
+
+| subject | seed-averaged difference |
+|---|---|
+| sub-01 | +0.029 |
+| sub-02 | +0.002 |
+| sub-03 | +0.019 |
+| sub-04 | +0.179 |
+| sub-05 | −0.127 |
+| sub-06 | +0.068 |
+| sub-07 | +0.011 |
+
+Higher in 6 of 7, Wilcoxon p = 0.22.
+
+**What this changes.** The submitted +0.074 was a single seed and also removed
+the context module. The clean three-seed figure is about a third of that, agrees
+with the trace-normalised single-seed +0.028, and is not significant. sub-05
+loses on every seed, which caps the Wilcoxon p at seven participants, so more
+seeds would not change the conclusion and none were started.
+
+**Integrated** (c25f8ea): ablation section (new label sec:ablation), the
+cross-cohort paragraph now qualifies +0.074, the Seeds and paired-test
+limitations, and a conclusion sentence presenting the condition as a guard
+against the 0.211 loss. "An order of magnitude below alignment's own
+contribution" was corrected to "well below" (0.007 against 0.028 is about four
+times). Audit extended to 52 values, all match. Deck slides 7, 9 and 14 updated
+and rendered; no overflow.
