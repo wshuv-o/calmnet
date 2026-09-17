@@ -102,9 +102,41 @@
  },
  "multiseed_A": {
   "label": "cohort A: align+gate minus gate, seed-averaged",
-  "status": "pending",
-  "gate_seed_means": [],
-  "aligngate_seed_means": []
+  "n": 7,
+  "mean_a": 0.8422152823207408,
+  "mean_b": 0.8681900813762501,
+  "mean_diff": 0.025974799055509288,
+  "sd_diff": 0.09074379518675747,
+  "b_higher": 6,
+  "b_lower": 1,
+  "per_subject_diff": {
+   "sub-01": 0.029294199860237513,
+   "sub-02": 0.0016404602303015103,
+   "sub-03": 0.0185185185185186,
+   "sub-04": 0.17918932918932917,
+   "sub-05": -0.12657025114687814,
+   "sub-06": 0.06830708304909772,
+   "sub-07": 0.01144425368795865
+  },
+  "wilcoxon_p": 0.21875,
+  "gate_seed_means": [
+   0.8166634145961843,
+   0.852418390488972,
+   0.8575640418770661
+  ],
+  "aligngate_seed_means": [
+   0.8841623361578639,
+   0.8817570605899284,
+   0.8386508473809581
+  ],
+  "aligngate_mean_sd": [
+   0.8681900813762501,
+   0.025609980406296487
+  ],
+  "gate_mean_sd": [
+   0.8422152823207408,
+   0.022277632060249894
+  ]
  },
  "multiseed_B": {
   "label": "cohort B: align+gate minus gate, seed-averaged",
@@ -182,6 +214,8 @@
   "note": "Seeds 1-2 only. The registered verdict is seed 0 and is not changed by these."
  },
  "reproducibility": {
-  "status": "pending"
+  "original": 0.8841623361578639,
+  "rerun": 0.8841623361578639,
+  "abs_diff": 0.0
  }
 }

@@ -133,6 +133,25 @@ r1 = np.array([ra[x] - rg[x] for x in rsub]); r2 = np.array([rs[x] - ra[x] for x
 claim("C rep P1 diff", r1.mean(), "by $+%.3f$ (higher in %d participants, lower in %d; $p=%.2f$)" % (r1.mean(), (r1 > 0).sum(), (r1 < 0).sum(), wilcoxon(r1).pvalue))
 claim("C rep P2 diff", r2.mean(), "costs $%.3f$ (lower in %d of %d; $p=%.3f$)" % (-r2.mean(), (r2 < 0).sum(), len(r2), wilcoxon(r2).pvalue))
 
+# ---- cohort A, align + gate against gate, three seeds ---------------------
+A3, G3 = J("a_aligngate_3seed.json"), J("a_gate_3seed.json")
+sa3 = [A3["dn_noctx|s%d" % i]["acc"] for i in range(3)]
+sg3 = [G3["dn_gate|s%d" % i]["acc"] for i in range(3)]
+claim("A 3seed mean/sd", np.mean(sa3), "$%.3f \\pm %.3f$" % (np.mean(sa3), np.std(sa3, ddof=1)))
+ag = seedavg("a_aligngate_3seed.json", "dn_noctx")
+gg = seedavg("a_gate_3seed.json", "dn_gate")
+d3 = np.array([ag[x] - gg[x] for x in sorted(ag)])
+claim("A align effect", d3.mean(), "by $+%.3f$ ($%.3f$ against $%.3f$), higher in %d of 7 participants (Wilcoxon $p=%.2f$)"
+      % (d3.mean(), np.mean(sa3), np.mean(sg3), (d3 > 0).sum(), wilcoxon(d3).pvalue))
+claim("A align per seed", 0, "is $%s$, $%s$ and $%s$ on the three seeds"
+      % tuple(("+" if v >= 0 else "-") + f3(abs(v)) for v in np.subtract(sa3, sg3)))
+ext = {x: ag[x] - gg[x] for x in ag}
+bx, wx = max(ext, key=ext.get), min(ext, key=ext.get)
+claim("A align extremes", 0, "%s gains $%s$ and %s loses $%s$" % (bx, f3(ext[bx]), wx, f3(-ext[wx])))
+claim("A align limitation", d3.mean(), "over the same three seeds is $+%.3f$ ($p=%.2f$)" % (d3.mean(), wilcoxon(d3).pvalue))
+claim("A align inversion", d3.mean(), "alignment is worth $+%.3f$ there" % d3.mean())
+claim("A align conclusion", d3.mean(), "$+%.3f$ over three seeds on cohort A and $+%.3f$ over two replication seeds" % (d3.mean(), r1.mean()))
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:
