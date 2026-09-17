@@ -606,7 +606,11 @@ noise. Across three data-split seeds the proposed configuration spans $0.839$ to
 $0.884$, a range of $0.046$ and a standard deviation of $0.026$
 (Table~\ref{tab:noise}), several times the fixed-seed figure. This is the
 quantity that governs whether two models can be ranked, and differences between
-models smaller than it are reported without a ranking.
+models smaller than it are reported without a ranking. The spread also
+differs between arms. On cohort B at a memory of 320 windows it is $0.003$ for
+\textit{align + gate} and $0.037$ for the no-align arm, which contains the
+transformer, so single-seed values of the no-align arm on that cohort lie inside
+its own seed spread.
 
 Any arm containing the transformer carries approximately $0.010$ run-to-run
 noise at a fixed seed, so differences below $0.02$ are not interpreted anywhere

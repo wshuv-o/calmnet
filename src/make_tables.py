@@ -627,6 +627,14 @@ def t_noise():
         if len(vs) >= 3:
             spreads.append(max(vs) - min(vs))
             rows.append("%s & no & %d & %.4f %s" % (lab, len(vs), max(vs) - min(vs), EOL))
+    fl = L("b_floor_m0.10.json")
+    if fl:
+        rows.append(BS + "midrule")
+        rows.append(group("Cohort B, memory 320 windows, three data-split seeds", 4))
+        for arm, lab, tfm in (("dn_noctx", "align + gate", "no"), ("dn_noalign", "no-align", "yes")):
+            vs = [v["acc"] for k, v in fl.items() if k.split("|")[0] == arm]
+            if len(vs) >= 3:
+                rows.append("%s & %s & %d & %.4f %s" % (lab, tfm, len(vs), max(vs) - min(vs), EOL))
     bd = L("bd_pipeline_c.json")
     multi = {}
     for k, v in bd.items():
