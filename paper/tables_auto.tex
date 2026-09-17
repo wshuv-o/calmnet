@@ -15,8 +15,8 @@ Ours, align + gate & 24\,181 & 0.884 & 0.042 & 0.868 $\pm$ 0.026 & 0.796 & 0.061
 \multicolumn{7}{l}{\textit{Published decoders, same pipeline}} \\
 EEGTCNet \citep{eegtcnet} & 7\,062 & 0.871 & 0.077 & \pending{pending} & 0.585$^\dagger$ & 0.054 \\
 FBLightConvNet & 23\,760 & 0.870 & 0.059 & \pending{pending} & 0.778 & 0.077 \\
-ShallowFBCSPNet \citep{schirrmeister} & 206\,962 & 0.870 & 0.068 & \pending{pending} & 0.765 & 0.078 \\
-EEGNet \citep{lawhern} & 27\,666 & 0.868 & 0.062 & \pending{pending} & 0.630$^\dagger$ & 0.059 \\
+ShallowFBCSPNet \citep{schirrmeister} & 206\,962 & 0.870 & 0.068 & 0.849 $\pm$ 0.020 & 0.765 & 0.078 \\
+EEGNet \citep{lawhern} & 27\,666 & 0.868 & 0.062 & 0.856 $\pm$ 0.028 & 0.630$^\dagger$ & 0.059 \\
 EEGNeX \citep{eegnex} & 71\,010 & 0.862 & 0.068 & \pending{pending} & 0.783 & 0.083 \\
 EEGConformer \citep{conformer} & 445\,442 & 0.857 & 0.066 & \pending{pending} & 0.783 & 0.077 \\
 TSception \citep{tsception} & 182\,098 & 0.856 & 0.076 & \pending{pending} & 0.723 & 0.079 \\
@@ -172,6 +172,10 @@ align only & no & 3 & 0.0320 \\
 \multicolumn{4}{l}{\textit{Cohort B, memory 320 windows, three data-split seeds}} \\
 align + gate & no & 3 & 0.0028 \\
 no-align & yes & 3 & 0.0369 \\
+\midrule
+\multicolumn{4}{l}{\textit{Across data-split seeds, published decoders, same pipeline}} \\
+EEGNet & --- & 3 & 0.0518 \\
+ShallowFBCSPNet & --- & 3 & 0.0393 \\
 \bottomrule
 \end{tabular}
 \end{table}
