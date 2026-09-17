@@ -736,3 +736,23 @@ against the 0.211 loss. "An order of magnitude below alignment's own
 contribution" was corrected to "well below" (0.007 against 0.028 is about four
 times). Audit extended to 52 values, all match. Deck slides 7, 9 and 14 updated
 and rendered; no overflow.
+
+### 08:21 — The selective head over three seeds adds -0.001 (p = 1.00)
+
+With the GPU idle at 07:20 and 2.5 hours left, the most decision-relevant run
+was align-only on seeds 1 and 2: the case for removing the head rested on seed 0
+alone. Settings identical to align_only.json (CX_FULL=1, momentum 0.2,
+trace-normalised estimator); job script tools/morning_align_seeds.py.
+
+| seed | align only | align + gate | head adds | ECE align | ECE align + gate |
+|---|---|---|---|---|---|
+| 0 | 0.883 | 0.884 | +0.002 | 0.038 | 0.042 |
+| 1 | 0.875 | 0.882 | +0.007 | 0.054 | 0.055 |
+| 2 | 0.851 | 0.839 | -0.012 | 0.071 | 0.078 |
+| **mean** | **0.869** | **0.868** | **-0.001** | **0.054** | **0.058** |
+
+Seed-averaged per participant: higher with the head in 4 of 7,
+Wilcoxon p = 1.00. The seed-0 conclusion holds on three seeds: the head adds
+no accuracy that the data can distinguish and does not improve calibration.
+Integrated in the selective-head paragraph ("On this single-seed evidence"
+became "On this evidence"), deck slide 13, briefing result 3; audit extended.

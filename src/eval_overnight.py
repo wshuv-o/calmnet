@@ -127,6 +127,33 @@ def main():
         "P2_seeds12": paired(a_c, s_c, "P2 replication, seeds 1-2: m=0.01 minus m=0.2"),
         "note": "Seeds 1-2 only. The registered verdict is seed 0 and is not changed by these."}
 
+    # Selective head over three seeds: align-only (seed 0 in align_only.json,
+    # seeds 1-2 in a_align_s12.json) against align+gate, seed-averaged per
+    # participant. b minus a is what the head adds.
+    runs_al = {}
+    for fname in ("align_only.json", "a_align_s12.json"):
+        p = RES / fname
+        if p.exists():
+            for k, v in json.loads(p.read_text()).items():
+                if k.startswith("dn_align|s"):
+                    runs_al[k] = v
+    al_acc, al_means, al_ece = {}, [], []
+    for k in sorted(runs_al):
+        al_means.append(float(runs_al[k]["acc"])); al_ece.append(float(runs_al[k]["ece"]))
+        for sub, v in runs_al[k].get("per_subject", {}).items():
+            al_acc.setdefault(sub, []).append(float(v["acc"]))
+    ag, agm = seed_avg("a_aligngate_3seed.json", "dn_noctx")
+    if len(runs_al) == 3 and ag:
+        al = {"per_subject": {sub: {"acc": float(np.mean(a))} for sub, a in al_acc.items()}}
+        rec = paired(al, ag, "cohort A: align+gate minus align-only (what the head adds), seed-averaged")
+        ag_raw = json.loads((RES / "a_aligngate_3seed.json").read_text())
+        rec["align_seed_means"], rec["aligngate_seed_means"] = al_means, agm
+        rec["align_seed_ece"] = al_ece
+        rec["aligngate_seed_ece"] = [float(ag_raw["dn_noctx|s%d" % i]["ece"]) for i in range(3)]
+        out["head_3seed"] = rec
+    else:
+        out["head_3seed"] = {"status": "pending", "align_seeds_found": sorted(runs_al)}
+
     # Reproducibility: align+gate has no transformer and is reported
     # bit-identical across repeats, so its seed-0 rerun should give 0.884.
     rerun = arm("a_aligngate_3seed.json", "dn_noctx|s0")

@@ -152,6 +152,17 @@ claim("A align limitation", d3.mean(), "over the same three seeds is $+%.3f$ ($p
 claim("A align inversion", d3.mean(), "alignment is worth $+%.3f$ there" % d3.mean())
 claim("A align conclusion", d3.mean(), "$+%.3f$ over three seeds on cohort A and $+%.3f$ over two replication seeds" % (d3.mean(), r1.mean()))
 
+# ---- selective head, three seeds ------------------------------------------
+H3 = J("overnight_eval.json")["head_3seed"]
+al3 = [J("align_only.json")["dn_align|s0"]] + [J("a_align_s12.json")["dn_align|s%d" % i] for i in (1, 2)]
+ag3 = [A3["dn_noctx|s%d" % i] for i in range(3)]
+alsub = {x: np.mean([r["per_subject"][x]["acc"] for r in al3]) for x in al3[0]["per_subject"]}
+hd3 = np.array([ag[x] - alsub[x] for x in sorted(alsub)])
+claim("head 3seed", hd3.mean(), "averages $%.3f$ against $%.3f$ with the head, a difference of $%s%.3f$ (higher with the head in %d of 7 participants, Wilcoxon $p=%.2f$)"
+      % (np.mean([r["acc"] for r in al3]), np.mean([r["acc"] for r in ag3]), "+" if hd3.mean() >= 0 else "-", abs(hd3.mean()), (hd3 > 0).sum(), wilcoxon(hd3).pvalue))
+claim("head 3seed ECE", 0, "is $%.3f$ without the head against $%.3f$ with it"
+      % (np.mean([r["ece"] for r in al3]), np.mean([r["ece"] for r in ag3])))
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:

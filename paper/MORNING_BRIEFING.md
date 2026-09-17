@@ -34,7 +34,8 @@ deck invites.
 Alignment alone reaches **0.883**; with the head, **0.884**. **This reverses my
 advice from last evening**, when I said the head should stay because it seemed
 to add +0.016. That figure came from mixing estimators. On this evidence the
-head could be removed.
+head could be removed. **Now on three seeds** (finished 08:21): 0.869 without
+the head against 0.868 with it, difference −0.001, p = 1.00; ECE 0.054 against 0.058.
 
 **4. The methods section had four errors, now fixed.**
 The submitted paper stated a 0.5-40 Hz band and Adam at lr 10⁻³. The code uses
@@ -59,11 +60,12 @@ now presents the condition as a design-time guard against that loss.
 
 ## Nothing is still running
 
-Every queued job finished. The GPU is idle.
+Every job finished, including a last align-only run on seeds 1 and 2
+started at 07:20 for result 3. The GPU is idle.
 
 ## Decisions only you can make
 
-1. **Remove the selective head?** The data now supports it (result 3). It
+1. **Remove the selective head?** The data now supports it over three seeds (result 3). It
    needs a re-run without the head and changes to the architecture and figure.
 2. **Headline estimator.** The paper leads with 0.901 (original estimator). The
    reviewer plan asks for the trace-normalised estimator throughout, which gives
