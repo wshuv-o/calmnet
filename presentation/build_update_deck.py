@@ -257,7 +257,10 @@ tf = box(s, Inches(0.7), Inches(5.15), Inches(11.93), Inches(1.9))
 para(tf, [("0.901 at 53 % of ATCNet's parameters. ", {"size": 17, "bold": True}),
           ("Removing alignment costs 0.074 on this cohort. Seven participants, nine sessions each, "
            "fitted on sessions 1–3 and tested on sessions 4–9 recorded weeks later.", {"size": 17, "color": GRY})],
-     17, first=True, lh=1.25)
+     17, first=True, space=10, lh=1.25)
+para(tf, [("Over three seeds: 0.868 ± 0.026 ", {"size": 16, "bold": True}),
+          ("(corrected estimator). The single-seed figure is the top of that range; two participants "
+           "carry most of the variation.", {"size": 16, "color": GRY})], 16, lh=1.2)
 
 # ═══ 8 · IS THE ACCURACY NEURAL ═══
 s = slide(); header(s, "Is the Accuracy Neural")
@@ -396,14 +399,14 @@ para(tf, "Calibration (ECE 0.039) is a separate result and stands.", 15, GRY, it
 s = slide(); header(s, "Limitations and Next Steps")
 tf = box(s, Inches(0.7), Inches(1.6), Inches(5.85), Inches(5.4))
 para(tf, "Limitations", 19, BLK, bold=True, first=True, space=12)
-for t in ["Headline ablation is a single seed.",
+for t in ["Headline over three seeds is 0.868 ± 0.026; most other arms are single seed.",
           "Condition 1 was formulated after cohort B; cohort C is its first advance test.",
           "No published decoder has been run on cohort B.",
           "The leakage probe cannot register artefact constant within a class."]:
     para(tf, [("•  ", {"size": 16, "bold": True}), (t, {"size": 16, "color": GRY})], 16, space=10, lh=1.2)
 tf = box(s, Inches(6.8), Inches(1.6), Inches(5.85), Inches(5.4))
 para(tf, "Next", 19, BLK, bold=True, first=True, space=12)
-for t in ["Multi-seed headline, about 47 GPU hours.",
+for t in ["Three seeds for every ablation arm.",
           "A cohort whose blocks outlast drift, to test the empty band.",
           "Published baselines on cohort B.",
           "Measure the drift timescale directly, without a decoder."]:
