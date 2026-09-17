@@ -45,15 +45,31 @@ from dataio import build_epochs, list_sessions
 from driftnet import AdaptiveAlignment
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-OUT = RESULTS / "drift.json"
+OUT = RESULTS / os.environ.get("DRIFT_OUT", "drift.json")
 SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN, BATCH = 3, 32
 
 
-def cov(a):
+def cov(a, trace_norm=False):
+    """Mean spatial covariance. NOT trace-normalised by default.
+
+    The Riemannian distance used here is affine-invariant, so dividing by the
+    mean eigenvalue is redundant for a raw comparison. It is not harmless after
+    a whitening transform: whitening rescales two sessions' traces by different
+    factors, and dividing each by its own trace reintroduces a relative scale
+    that the distance IS sensitive to.
+
+    Measured consequence. With trace normalisation the momentum-0 control moved
+    the distance by up to +122 % on cohort A, so it was not the null control the
+    caption claimed. Without it the control is exactly null (6.925 -> 6.925 on
+    sub-01), which is what affine invariance requires, and the reported drift
+    reduction falls by roughly 5 points because part of it was this artefact.
+    """
     ac = a - a.mean(-1, keepdims=True)
     c = np.einsum("nct,ndt->cd", ac, ac) / (len(a) * a.shape[-1])
-    return c / (np.trace(c) / c.shape[0] + 1e-12)
+    if trace_norm:
+        return c / (np.trace(c) / c.shape[0] + 1e-12)
+    return c
 
 
 def riemannian(A, B):
