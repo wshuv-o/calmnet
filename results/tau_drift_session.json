@@ -297,6 +297,7 @@
    }
   },
   "summary": {
+   "INVALID": "see _INVALID",
    "n_fitted": 7,
    "tau_windows_median": 129.0743722794542,
    "tau_windows_min": 1.4831022579207433,
@@ -435,8 +436,15 @@
    }
   },
   "summary": {
+   "INVALID": "see _INVALID",
    "n_fitted": 0,
    "note": "no subject supported a saturating fit"
   }
+ },
+ "_INVALID": {
+  "verdict": "DO NOT USE the tau_windows / tau_sessions values from this file.",
+  "reason": "Every fitted tau is below 1 session, but 1 session is the smallest gap sampled, so the timescale is extrapolated from the assumed exponential shape rather than measured. d(gap) is flat from gap 1 to gap 8 for 5 of 7 subjects and DECREASES for sub-02 and sub-07, so there is no gradient to fit.",
+  "what the data do support": "an upper bound only: session-to-session drift is complete within one session. That does not constrain the estimator memory mu, which is far shorter than a session.",
+  "consequence": "the admissible-band CEILING is unmeasurable on both cohorts (cohort B has only 2 distinct gaps). Claim the floor (mu > tau_blk) only."
  }
 }
