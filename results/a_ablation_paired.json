@@ -1,0 +1,128 @@
+{
+ "_note": "Paired across participants, which is the unit of replication. Grand-mean differences without a paired test are not reportable: the stem leads the full model by 0.025 on the mean and the paired test does not distinguish that from zero across seven participants. All cells from a_ablation_s12.json, one estimator version, one harness.",
+ "source": "a_ablation_s12.json",
+ "seeds": [
+  "1",
+  "2"
+ ],
+ "subjects": [
+  "sub-01",
+  "sub-02",
+  "sub-03",
+  "sub-04",
+  "sub-05",
+  "sub-06",
+  "sub-07"
+ ],
+ "per_arm": {
+  "dn_full": {
+   "grand_mean": 0.857788272249033,
+   "per_subject": {
+    "sub-01": 0.8859503843466108,
+    "sub-02": 0.8348590416479514,
+    "sub-03": 0.9912032501360704,
+    "sub-04": 0.9333799533799534,
+    "sub-05": 0.8225872793717439,
+    "sub-06": 0.8696933475803255,
+    "sub-07": 0.6668446492805755
+   }
+  },
+  "dn_nogate": {
+   "grand_mean": 0.8553283375667784,
+   "per_subject": {
+    "sub-01": 0.9256324248777079,
+    "sub-02": 0.8089792467404497,
+    "sub-03": 0.9887539849156364,
+    "sub-04": 0.9304700854700855,
+    "sub-05": 0.8086517378119897,
+    "sub-06": 0.8411903080207749,
+    "sub-07": 0.6836205751308044
+   }
+  },
+  "dn_stem": {
+   "grand_mean": 0.8824487452697312,
+   "per_subject": {
+    "sub-01": 0.9610761705101327,
+    "sub-02": 0.8386528487745895,
+    "sub-03": 0.9909975896120053,
+    "sub-04": 0.8034693084693085,
+    "sub-05": 0.9596967576393749,
+    "sub-06": 0.8482287849609718,
+    "sub-07": 0.7750197569217353
+   }
+  }
+ },
+ "contrasts": {
+  "dn_stem_vs_dn_full": {
+   "delta_mean": 0.024660473020698164,
+   "delta_sd": 0.09059038999967448,
+   "paired_t_p": 0.49847119636990567,
+   "wilcoxon_p": 0.578125,
+   "wins": 4,
+   "n": 7,
+   "largest_gain": [
+    "sub-05",
+    0.13710947826763098
+   ],
+   "largest_loss": [
+    "sub-04",
+    -0.12991064491064486
+   ]
+  },
+  "dn_stem_vs_dn_nogate": {
+   "delta_mean": 0.027120407702952782,
+   "delta_sd": 0.08596544450096892,
+   "paired_t_p": 0.4358632295828347,
+   "wilcoxon_p": 0.21875,
+   "wins": 6,
+   "n": 7,
+   "largest_gain": [
+    "sub-05",
+    0.15104501982738516
+   ],
+   "largest_loss": [
+    "sub-04",
+    -0.12700077700077694
+   ]
+  },
+  "dn_nogate_vs_dn_full": {
+   "delta_mean": -0.0024599346822546148,
+   "delta_sd": 0.024168125278561638,
+   "paired_t_p": 0.7967233947273948,
+   "wilcoxon_p": 0.6875,
+   "wins": 2,
+   "n": 7,
+   "largest_gain": [
+    "sub-01",
+    0.03968204053109714
+   ],
+   "largest_loss": [
+    "sub-06",
+    -0.02850303955955058
+   ]
+  }
+ },
+ "seed_spread": {
+  "dn_full": {
+   "per_seed": [
+    0.8571626455017535,
+    0.8584138989963124
+   ],
+   "range": 0.0012512534945589016
+  },
+  "dn_nogate": {
+   "per_seed": [
+    0.8556602683872745,
+    0.8549964067462825
+   ],
+   "range": 0.0006638616409919695
+  },
+  "dn_stem": {
+   "per_seed": [
+    0.8809024607718788,
+    0.8839950297675834
+   ],
+   "range": 0.0030925689957045366
+  }
+ }
+}
