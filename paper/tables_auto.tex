@@ -26,6 +26,28 @@ Deep4Net \citep{schirrmeister} & 717\,417 & 0.817 & 0.069 & 0.549$^\dagger$ & 0.
 \end{tabular}
 \end{table*}
 
+\begin{table}[t]
+\caption{Component ablation on cohort A over three data-split seeds under the current estimator: balanced accuracy (mean $\pm$ SD across seeds), ECE, accuracy at $90\,\%$ coverage and spurious activations per minute of standing, each averaged over seeds. Acc@90 is withheld for arms without a trained gate, whose confidence ranks windows in recording order. \pending{Red cells await seeds in progress.}}
+\label{tab:ablation3}
+\centering
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Components & Seeds & Acc & ECE & Acc@90 & FA/min \\
+\midrule
+align + gate & 3 of 3 & 0.868 $\pm$ 0.026 & 0.058 & 0.835 & 1.60 \\
+align only & 3 of 3 & 0.869 $\pm$ 0.017 & 0.054 & --- & 1.54 \\
+gate only & 3 of 3 & 0.842 $\pm$ 0.022 & 0.076 & 0.827 & 0.89 \\
+align + ctx + gate & 3 of 3 & 0.859 $\pm$ 0.002 & 0.072 & 0.818 & 1.16 \\
+align + ctx & 1 of 3 & \pending{pending} & \pending{pending} & \pending{pending} & \pending{pending} \\
+ctx + gate & 2 of 3 & \pending{pending} & \pending{pending} & \pending{pending} & \pending{pending} \\
+stem only & 1 of 3 & \pending{pending} & \pending{pending} & \pending{pending} & \pending{pending} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
 \begin{table*}[t]
 \caption{The adaptation-rate condition, single seed. Momentum $m$ sets the estimator's memory to roughly $32/m$ windows: 160, 640 and 3200. \textbf{Every arm that uses alignment gains as the memory crosses the class-block length, and neither arm that omits it responds}; the stem-only arm reproduces 0.737 exactly at all three settings despite a 160-fold change. The lower block applies the identical change to the cohort whose blocks are short, where it costs 0.060, so the two cohorts have opposite optima. Three-seed values for cohort B are in Table~\ref{tab:ratecurve}, and for cohort A in Section~\ref{sec:twosided}.}
 \label{tab:rate}

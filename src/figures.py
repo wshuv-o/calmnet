@@ -175,12 +175,12 @@ def fig_rate():
     # direct labels rather than a legend box, de-collided by a minimum gap
     ends.sort()
     for i in range(1, len(ends)):
-        if ends[i][0] - ends[i - 1][0] < 0.022:
-            ends[i] = (ends[i - 1][0] + 0.022, ends[i][1], ends[i][2])
+        if ends[i][0] - ends[i - 1][0] < 0.016:
+            ends[i] = (ends[i - 1][0] + 0.016, ends[i][1], ends[i][2])
     for yv, lab, c in ends:
-        ax.text(2.09, yv, lab, fontsize=6.0, color=c, va="center")
+        ax.text(2.14, yv, lab, fontsize=6.0, color=c, va="center")
     ax.axvspan(-0.18, 1.0, color=VERM, alpha=0.07, lw=0, zorder=0)
-    S.note(ax, 0.41, 0.800, "memory $<$" + NL + "class block", ha="center",
+    S.note(ax, 0.70, 0.574, "memory $<$" + NL + "class block", ha="center",
            va="top", color=VERM, fontsize=6.2)
     ax.set_xticks(x)
     ax.set_xticklabels([r"$0.20$" + NL + r"$160$", r"$0.05$" + NL + r"$640$",
@@ -188,6 +188,7 @@ def fig_rate():
     ax.set_xlabel("momentum $m$ / memory (windows)")
     ax.set_ylabel("balanced accuracy")
     ax.set_xlim(-0.2, 3.35)
+    ax.set_ylim(0.53, 0.80)
     ax.grid(axis="y")
     ax.set_axisbelow(True)
     S.panel(ax, "a", x=-0.30)
@@ -216,37 +217,52 @@ def fig_rate():
     ax.set_axisbelow(True)
     S.panel(ax, "b", x=-0.30)
 
-    # (c) the admissible band
+    # (c) measured effect of alignment against estimator memory, three seeds,
+    # current estimator: align + gate minus gate only, for every cohort. No
+    # upper bound is drawn: tau_drift was not measured.
     ax = axes[2]
-    UP_LO, UP_HI = 160, 3200
-    ax.axvspan(UP_LO, UP_HI, color=GREY, alpha=0.10, lw=0, zorder=0)
-    S.note(ax, np.sqrt(UP_LO * UP_HI), 1.72, r"$\tau_{\mathrm{drift}}$ bracket",
-           ha="center", fontsize=6.4)
-    for i, (lab, blk, sk) in enumerate([("cohort A", 18, "noalign"),
-                                        ("cohort B", 309, "ours")]):
-        yy = 1 - i
-        c = SERIES[sk]["color"]
-        if blk < UP_LO:
-            ax.plot([blk, UP_LO], [yy, yy], lw=5, color=c, alpha=0.35,
-                    solid_capstyle="butt", zorder=2)
-            S.note(ax, np.sqrt(blk * UP_LO), yy + 0.17, "admissible",
-                   ha="center", color=c, fontsize=6.4)
-        else:
-            ax.fill_between([blk, UP_HI], yy - 0.10, yy + 0.10, facecolor="none",
-                            edgecolor=VERM, hatch="////", lw=0.0, alpha=0.9,
-                            zorder=2)
-            S.note(ax, np.sqrt(blk * UP_HI), yy + 0.17, "empty",
-                   ha="center", color=VERM, fontsize=6.4)
-        ax.plot([blk], [yy], marker="|", ms=9, mew=1.6, color=c, zorder=5)
-        S.note(ax, blk, yy - 0.34, r"$\tau_{\mathrm{blk}}=%d$" % blk,
-               ha="center", color=c, fontsize=6.2)
-        ax.text(12, yy, lab, ha="right", va="center", fontsize=6.8, color=c)
+
+    def m3(files, arm):
+        vs = []
+        for f in files:
+            vs += [v["acc"] for k, v in L(f).items() if k.split("|")[0] == arm]
+        return float(np.mean(vs)) if len(vs) >= 3 else None
+
+    cohorts = [
+        ("cohort A", 18, "noalign", m3(["a_gate_3seed.json"], "dn_gate"),
+         [(160, m3(["a_aligngate_3seed.json"], "dn_noctx")),
+          (3200, m3(["a_slow_noctx_3seed.json"], "dn_noctx"))]),
+        ("cohort B", 309, "ours", m3(["b_gate_aligngate_3seed.json"], "dn_gate"),
+         [(160, m3(["b_gate_aligngate_3seed.json"], "dn_noctx")),
+          (320, m3(["b_floor_m0.10.json"], "dn_noctx")),
+          (1600, m3(["b_floor_m0.02.json"], "dn_noctx")),
+          (3200, m3(["b_aligngate_m001_3seed.json"], "dn_noctx"))]),
+        ("cohort C", 5, "ours_alt", m3(["cohort3_m0.2.json", "cohort3_rep_m0.2.json"], "dn_gate"),
+         [(160, m3(["cohort3_m0.2.json", "cohort3_rep_m0.2.json"], "dn_noctx")),
+          (3200, m3(["cohort3_m0.01.json", "cohort3_rep_m0.01.json"], "dn_noctx"))]),
+    ]
+    ax.axhline(0.0, color=GREY, lw=0.8, zorder=1)
+    ends = []
+    for lab, blk, sk, gate, pts in cohorts:
+        pts = [(mem, v - gate) for mem, v in pts if v is not None and gate is not None]
+        if not pts:
+            continue
+        st = dict(SERIES[sk])
+        ax.plot([p[0] for p in pts], [p[1] for p in pts], **st)
+        ax.axvline(blk, color=st["color"], ls=":", lw=0.9, zorder=1)
+        ends.append((pts[-1][1], lab, st["color"]))
+    ends.sort()
+    for i in range(1, len(ends)):
+        if ends[i][0] - ends[i - 1][0] < 0.022:
+            ends[i] = (ends[i - 1][0] + 0.022, ends[i][1], ends[i][2])
+    for yv, lab, c in ends:
+        ax.text(3900, yv, " " + lab, fontsize=6.4, color=c, va="center")
     ax.set_xscale("log")
-    ax.set_xlim(11, 6000)
-    ax.set_ylim(-0.7, 1.95)
-    ax.set_yticks([])
-    ax.spines["left"].set_visible(False)
-    ax.set_xlabel("adaptation memory (windows)")
+    ax.set_xlim(3, 12000)
+    ax.set_xlabel("estimator memory (windows)")
+    ax.set_ylabel("effect of alignment")
+    ax.grid(axis="y")
+    ax.set_axisbelow(True)
     S.panel(ax, "c", x=-0.10)
     S.save(fig, "fig_rate")
 

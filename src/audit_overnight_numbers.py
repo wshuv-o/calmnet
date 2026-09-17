@@ -290,6 +290,15 @@ claim("B TSception", 0, "$%.3f$ below TSception (higher in %d of 8 participants;
 claim("B align below all", 0, "the configuration averages $%.3f$, below every published decoder" % cur[160][0])
 claim("B ECE", 0, "its calibration error is $%.3f$, against $%.3f$ to $%.3f$" % (np.mean([r["ece"] for r in gtB]), min(eceB), max(eceB)))
 
+# ---- cross-epoch context over three seeds ---------------------------------
+fullA = [J("driftfix_ds.json")["dn_full|s0"]] + [J("a_ablation_s12.json")["dn_full|s%d" % i] for i in (1, 2)]
+agA = [A3["dn_noctx|s%d" % i] for i in range(3)]
+mm_ = lambda runs, k: float(np.mean([r[k] for r in runs]))
+faG, faF = mm_(agA, "false_onsets_per_min"), mm_(fullA, "false_onsets_per_min")
+claim("ctx 3seed acc", 0, "adding it changes accuracy from $%.3f$ to $%.3f$" % (mm_(agA, "acc"), mm_(fullA, "acc")))
+claim("ctx 3seed ece", 0, "raises ECE from $%.3f$ to $%.3f$" % (mm_(agA, "ece"), mm_(fullA, "ece")))
+claim("ctx 3seed fa", 0, "reduces spurious activations from $%.2f$ to $%.2f$ per minute, a $%.0f" % (faG, faF, 100 * (faG - faF) / faG))
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:

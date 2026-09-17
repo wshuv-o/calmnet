@@ -691,8 +691,8 @@ reported separately in Table~\ref{tab:noise}. (b)
 Balanced accuracy at $90\,\%$ coverage, obtained by declining the least-confident $10\,\%$ of windows. It sits \emph{below} full-coverage
 accuracy for every arm with a trained gate. (c)
 Balanced accuracy against spurious activations per minute of standing, showing
-the cross-epoch context as a selectable operating point. \pending{[To be
-regenerated with three seeds.]}}
+the cross-epoch context as a selectable operating point. Three-seed values
+under the current estimator are in Table~\ref{tab:ablation3}.}
 \label{fig:ablation}
 \end{figure*}
 
@@ -700,11 +700,10 @@ regenerated with three seeds.]}}
 \caption{Component ablation, cohort A, single seed. Accuracy is the mean over 7
 participants with the between-subject SD. Acc@90 is accuracy at $90\,\%$
 coverage; FA/min is spurious activations per minute of standing. All cells use
-the original estimator so that arms are mutually comparable.
-\pending{Values await three seeds under the trace-normalised estimator.}}
+the original estimator so that arms are mutually comparable. Three-seed
+values under the current estimator are in Table~\ref{tab:ablation3}.}
 \label{tab:ablation}
 \centering
-\color{red}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrrr}
 \toprule
@@ -719,6 +718,10 @@ stem only          & $0.827\pm0.124$ & 0.082 & 0.823 & 0.73 \\
 \end{tabular}%
 }
 \end{table}
+
+Table~\ref{tab:ablation3} repeats the ablation over three data-split seeds
+under the current estimator; its conclusions are drawn in the paragraphs below
+where three seeds exist for the arms compared.
 
 The acc@90 value for the \textit{align + ctx} arm is withheld because with the
 selection head disabled the model emits near-constant confidence, so ranking by
@@ -753,10 +756,13 @@ only by run-to-run variation, and part of the gap between the two figures is tha
 modules do not stack; they depend on the alignment stage to be
 useful at all.
 
-\paragraph{Cross-epoch context} Adding it costs \pending{$0.023$}
-accuracy and raises ECE from \pending{$0.039$ to $0.074$}, while reducing spurious
-activations from \pending{$1.64$ to $1.26$} per minute, a \pending{$23\,\%$}
-reduction. It is therefore reported as a selectable safety mode, outside the default configuration. Removing it also removes 594{,}816 of the model's 618{,}997
+\paragraph{Cross-epoch context} Over three seeds under the current estimator
+(Table~\ref{tab:ablation3}), adding it changes accuracy from $0.868$ to $0.859$, a
+difference below the $0.02$ this paper interprets for arms containing the
+transformer, raises ECE from $0.058$ to $0.072$, and reduces spurious activations from
+$1.60$ to $1.16$ per minute, a $27\,\%$ reduction. Paired tests are not
+available because seed 0 of the context arm did not retain per-participant
+rows. It is therefore reported as a selectable safety mode, outside the default configuration. Removing it also removes 594{,}816 of the model's 618{,}997
 parameters, which is what makes the default configuration compact.
 
 \subsection{Artefact control}
@@ -1109,10 +1115,12 @@ and at the two slowest rates its remaining cost is not significant.
 single seed; the shaded region is where the estimator memory is shorter than a
 class block. Measurement points are marked because the sweep is sparse. (b) The
 same change applied to both cohorts at matched estimator version, giving
-opposite signs. (c) The admissible band of Condition~\ref{prop:band}. Its lower bound is
-$\tau_{\mathrm{blk}}$; its upper bound, $\tau_{\mathrm{drift}}$, was not measured
-on these cohorts (Section~\ref{sec:limits}). \pending{[Panel (c) to be redrawn
-without a drawn upper bound; panel (a) to be regenerated with three seeds.]}}
+opposite signs. (c) Effect of alignment on balanced accuracy (\textit{align + gate} minus gate
+only) against estimator memory, three data-split seeds under the current
+estimator, for all three cohorts; dotted lines mark each cohort's
+$\tau_{\mathrm{blk}}$. The effect on cohort B recovers gradually as the memory
+passes its block length and does not become positive. No upper bound is drawn,
+because $\tau_{\mathrm{drift}}$ was not measured (Section~\ref{sec:limits}).}
 \label{fig:rate}
 \end{figure*}
 
