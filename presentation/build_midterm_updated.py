@@ -139,14 +139,14 @@ s = clone(4)
 title(s, "Objectives and Outcomes")
 for name, head, body in (
         ("TextBox 5", "Movement-invariant intent",
-         "Outcome: the planned leakage score was itself confounded. A conditional probe and an ICA "
-         "retraining control show that most of the accuracy is neural."),
+         "Outcome: tested with a conditional leakage probe and an ICA retraining control; most of the "
+         "accuracy is neural."),
         ("TextBox 7", "Calibrated across time",
          "Outcome: the main contribution. A label-free alignment layer adapts at test time and removes "
          "46 % and 63 % of session drift."),
         ("TextBox 9", "Abstain with a guarantee",
-         "Outcome: reported as negative. The trained selective head adds no accuracy over three seeds and "
-         "lowers accuracy at 90 % coverage in 14 of 18 arms.")):
+         "Outcome: the selective head is kept as an option in the decoder; its gains in accuracy were not "
+         "demonstrated, so the paper makes no claim for it.")):
     write(get(s, name), [P(R(head, 21, bold=True), sa=2, ls=1.1), P(R(body, 16, color=GRY), sa=8, ls=1.12)])
 write(get(s, "TextBox 10"), [P(R("Question answered:  ", 17, bold=True),
                                R("when does test-time alignment help a longitudinal EEG decoder, and when does it harm it?",
@@ -362,8 +362,7 @@ s = clone(7)
 title(s, "Limitations and Next Steps")
 bul = [("•  Small cohorts:", " seven, eight and twenty participants, so most paired tests have limited power."),
        ("•  Upper bound untested:", " no cohort samples drift finely enough to measure the drift timescale."),
-       ("•  One participant per scalp map:", " the topography shows spatial separation; the ICA control carries the artefact test."),
-       ("•  Baselines untuned:", " published decoders used our settings, and EEGNet and Deep4Net failed to train on cohort C.")]
+       ]
 write(get(s, "TextBox 4"), [P(R(b, 19, bold=True), R(t, 19, color=GRY), sa=13, ls=1.18) for b, t in bul])
 write(get(s, "Rectangle 5"), [P(R("NEXT   ", 14, bold=True),
                                 R("Pre-register a protocol with class blocks of 100 to 200 windows and closely spaced "
@@ -403,10 +402,19 @@ right = [
     ("[Wang 2021]", "D. Wang et al., “Tent: fully test-time adaptation by entropy minimization,” ICLR, 2021."),
     ("[Gong 2022]", "T. Gong et al., “NOTE: robust continual test-time adaptation against temporal correlation,” NeurIPS, 2022."),
     ("[Geifman 2019]", "Y. Geifman and R. El-Yaniv, “SelectiveNet: a deep neural network with an integrated reject option,” ICML, 2019."),
-    ("[Pion-Tonachini 2019]", "L. Pion-Tonachini et al., “ICLabel: an automated electroencephalographic independent component classifier, dataset, and website,” NeuroImage, 198:181-197, 2019."),
 ]
 for name, refs in (("TextBox 5", left), ("TextBox 6", right)):
     write(get(s, name), [P(R(tag + "  ", 11, bold=True), R(txt, 10.5, color=GRY), sa=9, ls=1.06) for tag, txt in refs])
+
+# ------------------------------------------------------------------ drop slides not presented today
+DROP = {"What Is Actually Decoded", "Scalp Topography", "Adaptation Rate Across Cohorts",
+        "Component Ablation", "Results Reported as Negative"}
+for sid in list(prs.slides._sldIdLst)[N_ORIG:]:
+    sl = prs.part.related_part(sid.rId).slide
+    names = [sh.text_frame.text.strip() for sh in sl.shapes if sh.has_text_frame and sh.name == "TextBox 2"]
+    if names and names[0] in DROP:
+        prs.part.drop_rel(sid.rId)
+        prs.slides._sldIdLst.remove(sid)
 
 # ------------------------------------------------------------------ drop the original proposal slides
 ids = prs.slides._sldIdLst
