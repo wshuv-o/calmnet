@@ -661,3 +661,41 @@ it holds to four decimals. The run also confirms that tonight's changes to
 `exp_calmnetx.py` (progress output, the ICA and FULL switches, two new arms)
 left the existing configuration's results untouched.
 
+### 06:08 — Cohort A headline over three seeds: 0.868 ± 0.026
+
+Align + gate, cohort A, full data, trace-normalised estimator.
+
+| seed | balanced acc. | ECE |
+|---|---|---|
+| 0 | 0.884 | 0.042 |
+| 1 | 0.882 | 0.055 |
+| 2 | 0.839 | 0.078 |
+| **mean ± seed SD** | **0.868 ± 0.026** | |
+
+Per participant (seeds 0 / 1 / 2, range):
+
+| subject | seed 0 | seed 1 | seed 2 | range |
+|---|---|---|---|---|
+| sub-01 | 0.970 | 0.951 | 0.936 | 0.034 |
+| sub-02 | 0.843 | 0.851 | 0.823 | 0.028 |
+| sub-03 | 0.987 | 0.989 | 0.999 | 0.012 |
+| sub-04 | 0.912 | 0.943 | 0.823 | 0.120 |
+| sub-05 | 0.833 | 0.849 | 0.803 | 0.046 |
+| sub-06 | 0.837 | 0.902 | 0.896 | 0.065 |
+| sub-07 | 0.808 | 0.687 | 0.590 | **0.217** |
+
+**What this changes.** The single-seed 0.884 sits at the top of the seed range.
+The robust figure is 0.868 ± 0.026. The variation is concentrated: sub-07 moves
+by 0.217 and sub-04 by 0.120, while the other five move by at most 0.065.
+Sub-07 is the weakest participant in several other arms too.
+
+The seed SD, 0.026, is larger than the 0.010 noise floor the paper uses to
+interpret effects. That floor was measured as repeated runs at a fixed split;
+different split seeds vary more. The limitation claiming that the interpreted
+effects (+0.090 to +0.098, −0.060) are "six to ten times that floor" therefore
+overstates their margin. Against the seed SD they are about 2.3-3.8 times,
+still larger than seed noise, by much less. The paper must say so.
+
+The paired alignment effect on cohort A (align + gate against gate, seeds
+averaged per participant) needs the gate arm, which started at 06:07.
+
