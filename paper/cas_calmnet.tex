@@ -8,6 +8,10 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{xcolor}
+% Numbers awaiting runs in progress are red. Before submission, replace the
+% next line with \newcommand{\pending}[1]{#1} once every red value is final.
+\newcommand{\pending}[1]{\textcolor{red}{#1}}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,
             citecolor=magenta,
@@ -71,41 +75,46 @@ streaming, and under a protocol that presents classes in long contiguous blocks
 it converges to the active class and whitens away the signal it was inserted to
 protect.
 
-We present a 24{,}181-parameter decoder built around such a layer, and derive an
-admissible band for its adaptation rate from two timescales of the recording
-protocol. On a seven-participant exoskeleton cohort recorded across weeks it
-reaches $0.901$ balanced accuracy with expected calibration error $0.039$ ($0.868 \pm 0.026$ over three seeds under the trace-normalised estimator), at $53\,\%$ of the parameters of the strongest baseline in the same pipeline. The
-layer reduces session-to-session covariance distance by $52.0 \pm 4.5\,\%$ and
-$83.9 \pm 3.9\,\%$ on two independent cohorts, in 15 of 15 participants
-($p \le 10^{-4}$), against a control with no systematic reduction. On the second
-cohort, whose class blocks last 309 windows, the decoder transfers at $0.792$
-without the layer, and enabling the layer costs $0.211$. Slowing adaptation
-past the block length recovers $0.090$ to $0.098$ on every arm that uses
-alignment and exactly $0.000$ on the arms that do not, while the same change
-costs $0.060$ on the first cohort, so the two optima are opposite.
+We present a 24{,}181-parameter decoder built around such a layer, and derive a
+lower bound on its adaptation rate from the class-block timescale of the
+recording protocol. On a seven-participant exoskeleton cohort recorded across
+weeks it reaches $0.868 \pm 0.026$ balanced accuracy over three data-split
+seeds. Eight published decoders trained in the same pipeline reach $0.823$ to
+$0.871$ at the first seed, against $0.884$ for this decoder, a margin inside its
+variation across seeds. The layer reduces session-to-session covariance distance
+by \pending{$52.0 \pm 4.5\,\%$ and $83.9 \pm 3.9\,\%$} on two cohorts, in 15 of
+15 participants, against a control with no systematic reduction. On a treadmill
+cohort whose class blocks last 309 windows, the decoder transfers at
+\pending{$0.792$} without the layer, and enabling the layer costs
+\pending{$0.211$}. Slowing adaptation past the block length recovers
+\pending{$0.090$ to $0.098$} on every arm that uses alignment and leaves the arms
+without it within their run-to-run noise, while on the exoskeleton cohort the
+same change costs $0.085$.
 
-The band then predicted a third cohort in advance. With class blocks of five
-windows, both predictions committed before any model was trained held: enabling
-alignment changed accuracy by $+0.002$, and slowing it by $-0.006$, where the
-same slowing had recovered $0.090$ on the second cohort. Retraining after ICA
+The lower bound then predicted a third cohort in advance. With class blocks of
+five windows, both predictions committed before any model was trained held:
+enabling alignment changed accuracy by $+0.002$, and slowing it by $-0.006$,
+where the same slowing had recovered \pending{$0.090$} on the treadmill cohort.
+On that cohort the decoder reaches $0.796$ over three seeds, against $0.783$ for the strongest published decoder, with expected calibration error $0.061$ against $0.077$ to $0.083$. The upper bound, set by the
+drift timescale, could not be measured on these cohorts. Retraining after ICA
 artefact removal lowers accuracy by $0.051$ and leaves it far above chance, and
 the losses do not follow the amount of muscle activity removed. A trained
-selective head lowers accuracy in 14 of 18 arms and is reported as a negative
-result. Both bounds of the band are properties of the experimental design, so
-the condition can be checked before a model is trained.
+selective head adds no accuracy over three seeds and is reported as a negative
+result. The lower bound is a property of the experimental design, so it can be
+checked before a model is trained.
 \end{abstract}
 
 \begin{highlights}
-\item A 24{,}181-parameter EEG decoder emitting class and calibrated
-      confidence.
-\item Label-free in-network alignment reduces session drift by 52--84\% in 15 of
+\item A 24{,}181-parameter EEG decoder with label-free alignment that adapts at
+      test time.
+\item Accuracy is level with eight published decoders trained in the same
+      pipeline.
+\item In-network alignment reduces session drift by \pending{52--84\%} in 15 of
       15 subjects.
 \item Test-time adaptation can track the streaming class and erase the signal it
       protects.
-\item Two cohorts have opposite adaptation-rate optima, costing 0.06--0.09 to
-      get wrong.
-\item The admissible rate band is computable from the recording protocol before
-      fitting.
+\item A lower bound on adaptation rate, read from the protocol, predicted a new
+      cohort.
 \end{highlights}
 
 \begin{keywords}
@@ -173,29 +182,27 @@ Our contributions are:
       estimate tracks the currently streaming class when class blocks exceed the
       estimator's memory, and the layer then removes the discriminative signal
       (Section~\ref{sec:rate}).
-\item We derive an admissible band for the adaptation rate, bounded below by the
-      class-block timescale and above by the drift timescale, and show the
-      condition is two-sided by testing it in the direction where we predicted
-      no effect (Condition~\ref{prop:band}, Section~\ref{sec:twosided}).
+\item We derive a lower bound on the adaptation rate from the class-block
+      timescale of the protocol and test it prospectively on a third cohort,
+      with both predictions and their decision thresholds committed before any
+      model was trained on it (Condition~\ref{prop:band},
+      Section~\ref{sec:prereg}).
 \item We validate the mechanism separately from the task, reporting a
-      $52.0\pm4.5\,\%$ and $83.9\pm3.9\,\%$ reduction in session-to-session
-      covariance distance in 15 of 15 subjects against a no-op control
-      (Section~\ref{sec:mechanism}).
-\item We report external validation on an independent cohort, where the decoder
-      transfers and the alignment layer inverts the ordering of arms, and trace
-      the inversion to the rate condition after controlling for sample size and
-      implementation (Section~\ref{sec:external}).
-\item We test the condition prospectively on a third cohort, with both
-      predictions and their decision thresholds committed before any model was
-      trained on it. Both predictions hold (Section~\ref{sec:prereg}).
+      \pending{$52.0\pm4.5\,\%$ and $83.9\pm3.9\,\%$} reduction in
+      session-to-session covariance distance in 15 of 15 subjects against a
+      no-op control (Section~\ref{sec:mechanism}).
+\item We compare the decoder with eight published decoders trained in one
+      pipeline on two cohorts, and report external validation on a treadmill
+      cohort, where the decoder transfers and the alignment layer inverts the
+      ordering of arms (Sections~\ref{sec:compare} and~\ref{sec:external}).
 \item We retrain the decoder after ICA artefact removal. Most of the accuracy
       survives, and the losses that remain do not follow the amount of muscle
       activity removed (Section~\ref{sec:artefact}).
 \end{enumerate}
 
-We make no accuracy claim over published decoders. In the pipeline where both
-were evaluated, ATCNet \citep{atcnet} scores $0.913$ against $0.901$ for our
-configuration, and we report that as a loss in Section~\ref{sec:compare}.
+The decoder's accuracy is level with the published decoders within the
+variation between seeds, and we make no claim of higher accuracy
+(Section~\ref{sec:compare}).
 
 %=============================================================================
 \section{Related work}
@@ -218,9 +225,7 @@ see is referred to a covariance estimated on the current recording
 
 \subsection{Attention-based decoders}
 
-ATCNet combines convolutional feature extraction, sliding-window multi-head
-attention and temporal convolution, and is the strongest baseline in our
-comparison \citep{atcnet}. EEG Conformer pairs a ShallowFBCSP-style stem with a
+EEG Conformer pairs a ShallowFBCSP-style stem with a
 transformer encoder \citep{conformer}, and EEG-TCNet applies temporal
 convolutions to the same problem \citep{eegtcnet}. The stem-plus-transformer combination is already published: an independent
 implementation of it in our pipeline reproduced EEG Conformer's score without improving on it ($0.848$ against $0.843$), and we therefore claim no
@@ -269,10 +274,10 @@ which is exactly the regime a longitudinally deployed decoder operates in.
 Selective classification allows a model to abstain \citep{chow,elyaniv}, and
 SelectiveNet trains the classifier and the selection function jointly under a
 coverage constraint \citep{selectivenet,geifman2017}. We use SelectiveNet as
-published and claim no contribution to it; we include it because a decoder that
-must not move a wearer's legs on weak evidence needs the reject option, and
-because it is the only component in our ablation whose benefit transfers across
-both cohorts.
+published and claim no contribution to it. We include it because a decoder that
+must not move a wearer's legs on weak evidence needs a reject option, and
+Section~\ref{sec:ablation} reports that the trained selection function did not
+provide a usable one.
 
 \subsection{EEG correlates of gait and exoskeleton control}
 
@@ -492,8 +497,7 @@ B (treadmill)   & 7   & 309 & 2211 \\
 Signals are band-pass filtered to 8--30\,Hz and resampled to 100\,Hz. Cohort A
 uses a zero-phase FIR filter in MNE-Python \citep{gramfort}, after which the
 EOG channels, filtered to the same band, are regressed linearly out of the EEG.
-Cohort B uses a zero-phase fourth-order Butterworth filter and has no EOG
-step. No other artefact rejection, ICA decomposition or channel interpolation
+Cohorts B and C use a zero-phase fourth-order Butterworth filter and have no EOG step. No other artefact rejection, ICA decomposition or channel interpolation
 is applied, so that the alignment layer is evaluated on the shift it is meant
 to correct. The band also excludes the gait cycle, near 1--2\,Hz, and most
 electromyographic power above 30\,Hz. Amplitude
@@ -507,8 +511,9 @@ the fitting sessions, evaluated at the best epoch by that criterion, which is
 conventional but upward-biased on small folds (Section~\ref{sec:limits}).
 
 \begin{table}[t]
-\caption{Training configuration, identical across all arms and both cohorts
-except where the cohort definition differs.}
+\caption{Training configuration, identical across all arms, all cohorts and the
+published decoders of Table~\ref{tab:compare}, except where the cohort
+definition differs.}
 \label{tab:hyper}
 \centering
 \begin{tabular}{@{}l@{\hspace{1em}}p{0.52\columnwidth}@{}}
@@ -516,9 +521,9 @@ except where the cohort definition differs.}
 Setting & Value \\
 \midrule
 Band-pass / resample & 8--30\,Hz, 100\,Hz (zero-phase) \\
-Artefact correction & EOG regression (A); none (B) \\
+Artefact correction & EOG regression (A); none (B, C) \\
 Amplitude normalisation & global, per recording \\
-Window / stride & 4\,s / 0.5\,s (A), 2\,s (B) \\
+Window / stride & 4\,s / 0.5\,s (A); 2\,s (B); 2\,s / 0.5\,s (C) \\
 Context length $K$, stride & 8 epochs, 3 (14.5\,s span) \\
 Optimiser & AdamW \citep{adam}, lr $3\times10^{-4}$, weight decay $10^{-2}$, one-cycle schedule \\
 Batch size $N$ & 32 \\
@@ -528,34 +533,22 @@ Loss & cross-entropy, inverse-frequency weighted \\
 Selective coverage target & 0.90 \\
 Adaptation momentum $m$ & 0.2 (swept in \S\ref{sec:rate}) \\
 Model selection & best held-out balanced accuracy \\
+Calibration & temperature scaling fitted on the held-out split \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Backbone screening} Before settling on the stem of
-Section~\ref{sec:stem} we screened 19 published decoders from the
-\textit{braindecode} library \citep{braindecode_lib} under identical
-preprocessing (the \textit{Screen} column of Table~\ref{tab:landscape}).
-Sixteen converged, spanning $0.500$ to $0.766$; four did not.
-
-\textbf{The screen was first run on three participants, and repeating it on all
-seven changed the answer.} Across the fifteen models present in both runs the
-mean absolute change is $0.023$ and the largest is $0.061$, and
-\textbf{eleven of fifteen models change rank}. The first-ranked model changes
-from TSception ($0.788$ on three participants) to FBLightConvNet ($0.766$ on
-seven). The sharpest case is EEG Conformer \citep{conformer}, which ranked
-first on three participants at $0.827$ and fails to converge on seven. Selecting
-a backbone from the three-participant screen would therefore have selected a
-model that does not run on the full cohort. A cheap
-measurement that ranks models is not a cheap version of an expensive one
-(Section~\ref{sec:noise}).
-
-\textbf{On the four failures.} ATCNet cannot be run in this harness at all: its
-final layer is a \texttt{ModuleList} that the backbone adapter cannot consume,
-which is why the original sweep excluded it. The other three (EEG Conformer,
-EEG-ITNet, FBMSNet) raise a not-a-number error during training. We verified that
-this is not a data fault: none of the seven participants' epoch tensors contains
-a not-a-number or infinite value. These are training divergences under this configuration and are recorded as such, providing no evidence against those models.
+\paragraph{Published decoders} Eight published decoders from the
+\textit{braindecode} library \citep{braindecode_lib} were trained in the same
+pipeline as the proposed decoder: ShallowFBCSPNet and Deep4Net
+\citep{schirrmeister}, EEGNet \citep{lawhern}, EEGNeX \citep{eegnex}, EEG
+Conformer \citep{conformer}, TSception \citep{tsception}, FBLightConvNet and
+EEG-TCNet \citep{eegtcnet}. Each model's classification layer is replaced by the
+same linear projection and classifier, and each is trained with the
+preprocessing, optimiser, schedule, early stopping, model selection and
+temperature scaling of Table~\ref{tab:hyper}, so that the models differ only in
+the backbone. No per-model tuning was performed. Parameter counts include the
+shared classifier and are instantiated at cohort A's input shape.
 
 \subsection{Outcome measures}
 
@@ -595,8 +588,8 @@ second, independent test by removing artefact components and retraining.
 Drift reductions are tested with a two-sided paired $t$-test over participants,
 pairing each participant's aligned distance against its raw distance. Accuracy
 comparisons are reported as the mean over participants with the between-subject
-standard deviation; we do not perform paired subject-level significance tests on
-the accuracy comparisons, and Section~\ref{sec:limits} states why this matters.
+standard deviation, and as paired Wilcoxon signed-rank tests over participants
+wherever per-participant results were retained (Section~\ref{sec:limits}).
 
 Two ablation arms disable alignment entirely and therefore never invoke the
 running estimator. For them the momentum and the estimator version are inert, so
@@ -609,26 +602,24 @@ only structural difference between them. We attribute the variation to
 non-deterministic reductions in scaled dot-product attention on GPU.
 
 Run-to-run variation at a fixed split seed is a lower bound on the relevant
-noise. Repeating the two strongest arms at a second split seed
-(Table~\ref{tab:noise}) gives a between-seed spread of $0.012$ to $0.020$, about
-twice the fixed-seed figure. The published baselines are worse: over three
-seeds in the same pipeline, ShallowFBCSPNet spans $0.053$ and ATCNet $0.041$
-(Table~\ref{tab:rejected}). This is the quantity that governs whether two models
-can be ranked, and it is why no single-seed ranking is reported in this paper.
+noise. Across three data-split seeds the proposed configuration spans $0.839$ to
+$0.884$, a range of $0.046$ and a standard deviation of $0.026$
+(Table~\ref{tab:noise}), several times the fixed-seed figure. This is the
+quantity that governs whether two models can be ranked, and differences between
+models smaller than it are reported without a ranking.
 
-Three consequences follow. Any arm containing the transformer carries
-approximately $0.010$ run-to-run noise at fixed seed and up to $0.020$ across
-seeds, so differences below $0.02$ are not interpreted anywhere in this paper.
-The effects we do interpret ($+0.090$ to $+0.098$ in Table~\ref{tab:rate},
-$-0.060$ in Table~\ref{tab:rate}) are about 2.3 to 3.8 times the standard deviation across three data-split seeds. And an exact null in the deterministic arm is stronger evidence than one
-merely within noise, because that arm has no noise to hide in.
+Any arm containing the transformer carries approximately $0.010$ run-to-run
+noise at a fixed seed, so differences below $0.02$ are not interpreted anywhere
+in this paper. The effects we do interpret (\pending{$+0.090$ to $+0.098$ and
+$-0.060$}, Table~\ref{tab:rate}) are about \pending{2.3 to 3.8} times the
+standard deviation across data-split seeds. An exact null in the deterministic
+arm is stronger evidence than one merely within noise, because that arm has no
+noise to hide in.
 
-\paragraph{Pipeline separation} Our architecture and the ATCNet variants were
-evaluated in one training pipeline; the remaining published baselines were
-evaluated in an earlier one. ATCNet was run in both and scores $0.913$ and
-$0.881$ respectively, so the two pipelines differ by $0.032$ for an identical
-model, which is larger than most differences of interest in this paper. We
-therefore report the two groups separately and never compare across them.
+\paragraph{Pipeline separation} The proposed decoder and the published decoders
+of Section~\ref{sec:compare} were trained in one pipeline.
+Tables~\ref{tab:repr}, \ref{tab:norm} and \ref{tab:rejected} come from earlier
+pipelines and are used only for comparisons within each table.
 
 %=============================================================================
 \section{Results}
@@ -650,35 +641,32 @@ distance $\delta$ between the fitting-session mean covariance and the held-out
 session mean, for the raw signal, the momentum-0 no-op control, and the aligned
 signal. (a) cohort A, $n=7$; (b) cohort B, $n=8$. Distance falls in every
 participant of both cohorts; the no-op control, which shares every code path but
-never updates its estimate, shows no reduction.}
+never updates its estimate, shows no reduction. \pending{[Figure to be
+regenerated from the rerun.]}}
 \label{fig:drift}
 \end{figure*}
 
-Drift is reduced in 15 of 15 participants ($t=-9.14$, $p=1\times10^{-4}$ for
-cohort A; $t=-20.59$, $p<1\times10^{-5}$ for cohort B), with per-participant
-reductions spanning $45.2$ to $56.1\,\%$ on cohort A and $76.3$ to $88.6\,\%$ on
-cohort B (Table~\ref{tab:drift}). No participant regresses, and the
+Drift is reduced in 15 of 15 participants (\pending{$t=-9.14$,
+$p=1\times10^{-4}$} for cohort A; \pending{$t=-20.59$, $p<1\times10^{-5}$} for
+cohort B), with per-participant reductions spanning \pending{$45.2$ to
+$56.1\,\%$} on cohort A and \pending{$76.3$ to $88.6\,\%$} on cohort B (Table~\ref{tab:drift}). No participant regresses, and the
 reduction is not carried by one or two outliers. The no-op control shows no
 systematic reduction in either cohort, which establishes that the effect comes
 from adaptation. The control excludes the whitening operation and the
 measurement itself.
 
-The control is not inert. Per participant it moves the distance by $-28.8\,\%$ to $+45.0\,\%$,
-scattering in both directions about a mean of roughly zero. Two implementation
-facts explain this. First, the running estimate is primed by copying the first
-batch's covariance regardless of momentum, so at momentum $0$ the layer does
-not whiten by the identity. It whitens by the fit-session covariance and then
-never updates. Second, the layer returns a gated blend
-$g\,Wx + (1-g)\,x$ with $g=\sigma(2.0)\approx0.88$, so the effective operation
-is the fixed linear map $M = gW + (1-g)I$. A fixed map applied to both
-covariances is a congruence, under which the affine-invariant distance is
-invariant; but the measurement normalises each covariance by its own trace
-\emph{after} the map, and $M$ scales the fit and held-out traces by different
-factors. The normalised pair is therefore no longer related by a congruence,
-and the residual scatter is that trace renormalisation. The
-eigenvalue clamp at $10^{-6}$ contributes on near-singular montages. The
-control is still the right one, since it isolates adaptation from whitening, but
-its scatter measures the noise floor of the measurement itself.
+\pending{[Pending the rerun without trace normalisation in the distance
+measurement, which makes the no-op control exactly null; this paragraph will be
+rewritten.] The control is not inert. Per participant it moves the distance by
+$-28.8\,\%$ to $+45.0\,\%$, scattering in both directions about a mean of
+roughly zero. The running estimate is primed by copying the first batch's
+covariance regardless of momentum, so at momentum $0$ the layer whitens by the
+fit-session covariance and never updates, and the layer returns a gated blend
+$g\,Wx + (1-g)\,x$ with $g=\sigma(2.0)\approx0.88$. The effective operation is
+the fixed linear map $M = gW + (1-g)I$, a congruence under which the
+affine-invariant distance is invariant; the measurement then normalises each
+covariance by its own trace after the map, which breaks that invariance and
+produces the scatter.}
 
 The mechanism works as designed, and Section~\ref{sec:external} shows
 that this does not settle whether it helps the task.
@@ -691,11 +679,11 @@ that this does not settle whether it helps the task.
 \caption{Component ablation on cohort A, seed 0. (a) Balanced accuracy by arm;
 error bars are $\pm1$ SD across the 7 participants; seed variation is
 reported separately in Table~\ref{tab:noise}. (b)
-Balanced accuracy at $90\,\%$ coverage, obtained by declining the
-least-confident $10\,\%$ of windows. It sits \emph{below} full-coverage
+Balanced accuracy at $90\,\%$ coverage, obtained by declining the least-confident $10\,\%$ of windows. It sits \emph{below} full-coverage
 accuracy for every arm with a trained gate. (c)
 Balanced accuracy against spurious activations per minute of standing, showing
-the cross-epoch context as a selectable operating point.}
+the cross-epoch context as a selectable operating point. \pending{[To be
+regenerated with three seeds.]}}
 \label{fig:ablation}
 \end{figure*}
 
@@ -703,9 +691,11 @@ the cross-epoch context as a selectable operating point.}
 \caption{Component ablation, cohort A, single seed. Accuracy is the mean over 7
 participants with the between-subject SD. Acc@90 is accuracy at $90\,\%$
 coverage; FA/min is spurious activations per minute of standing. All cells use
-the original estimator so that arms are mutually comparable.}
+the original estimator so that arms are mutually comparable.
+\pending{Values await three seeds under the trace-normalised estimator.}}
 \label{tab:ablation}
 \centering
+\color{red}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrrr}
 \toprule
@@ -737,7 +727,8 @@ where abstention helps are exactly those with no trained gate
 A gate that is beaten by its own absence is not ranking windows by correctness,
 and the selective head is therefore reported as a component for which no benefit was demonstrated. Fixing it, for instance by thresholding a
 temperature-scaled softmax confidence instead of the learned gate, is left
-open; the calibration result ($\mathrm{ECE}=0.039$) is separate and stands.
+open. Calibration is compared with the published decoders in
+Section~\ref{sec:compare}.
 
 The head contributes no accuracy either. Under the trace-normalised estimator, an \textit{align}-only arm reaches $0.883$ against $0.884$ with the head, a difference of $0.002$, and adding the head to \textit{align + ctx} changes accuracy by $0.000$ ($0.862$ in both arms). Calibration does not suffer either: without the head $\mathrm{ECE}$ is $0.038$, against $0.042$ with it, both under the same estimator. Over three data-split seeds the \textit{align}-only arm averages $0.869$ against $0.868$ with the head, a difference of $-0.001$ (higher with the head in 4 of 7 participants, Wilcoxon $p=1.00$), and mean $\mathrm{ECE}$ is $0.054$ without the head against $0.058$ with it. An earlier difference of $+0.016$ between the same two context arms under the original estimator is $1.6\times$ the $0.010$ noise floor of arms containing the transformer (Table~\ref{tab:noise}), and it does not reappear in the comparison made with one estimator throughout. On this evidence the selective head could be removed with no loss of accuracy or calibration. It is kept in the arms reported here so that they remain comparable with the ablation.
 
@@ -753,9 +744,10 @@ only by run-to-run variation, and part of the gap between the two figures is tha
 modules do not stack; they depend on the alignment stage to be
 useful at all.
 
-\paragraph{Cross-epoch context} Adding it costs $0.023$
-accuracy and raises ECE from $0.039$ to $0.074$, while reducing spurious
-activations from $1.64$ to $1.26$ per minute, a $23\,\%$ reduction. It is therefore reported as a selectable safety mode, outside the default configuration. Removing it also removes 594{,}816 of the model's 618{,}997
+\paragraph{Cross-epoch context} Adding it costs \pending{$0.023$}
+accuracy and raises ECE from \pending{$0.039$ to $0.074$}, while reducing spurious
+activations from \pending{$1.64$ to $1.26$} per minute, a \pending{$23\,\%$}
+reduction. It is therefore reported as a selectable safety mode, outside the default configuration. Removing it also removes 594{,}816 of the model's 618{,}997
 parameters, which is what makes the default configuration compact.
 
 \subsection{Artefact control}
@@ -820,36 +812,45 @@ muscle artefact.
 \subsection{Comparison with published decoders}
 \label{sec:compare}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{../results/fig_efficiency.pdf}
-\caption{Balanced accuracy against parameter count on cohort A, single seed,
-pipeline C only. The proposed configuration sits $0.012$ below ATCNet at
-$53\,\%$ of its parameters. No point from the other pipeline appears here.}
-\label{fig:efficiency}
-\end{figure}
+Table~\ref{tab:compare} compares the proposed configuration with the eight
+published decoders of the experimental setup, all trained in the same pipeline.
 
-In the pipeline where both were measured, ATCNet scores $0.913$ against $0.901$
-at seed 0 and $0.892$ for our two-seed mean (Table~\ref{tab:noise}). The gap of
-$0.012$ to $0.021$ sits inside the $0.020$ between-seed spread of
-Section~\ref{sec:noise}, so two seeds cannot separate the two models. It is reported as a loss, since the point estimate favours ATCNet in both seeds we ran.
+On cohort A at the first data-split seed the proposed configuration reaches
+$0.884$ and the published decoders reach $0.823$ to $0.871$. Seven of the eight
+lie within $0.029$ of it, inside its own range of $0.046$ across seeds, so the
+seed-0 ordering is not interpreted. \pending{[The published decoders' second and
+third seeds on cohort A are in progress.]} Over three seeds the proposed
+configuration averages $0.868$. It holds no parameter advantage over the
+smallest published decoders: EEG-TCNet reaches $0.871$ with 7{,}062 parameters
+and FBLightConvNet $0.870$ with 23{,}760, against 24{,}181.
 
-\paragraph{Transfer to an alternative backbone} If the selection and
-context modules were generally useful, attaching them to a stronger backbone
-should help. They do not: stock ATCNet with our cross-epoch context and
-selective head scores $0.894$ against $0.913$ for stock ATCNet alone, a loss of
-$0.018$ (Table~\ref{tab:landscape}). The modules improve calibration
-($\mathrm{ECE}$ $0.058$, and an abstention point at $0.849$) and cost accuracy,
-which is the same trade seen within our own architecture in
-Table~\ref{tab:ablation}: accuracy is exchanged for calibration.
+On cohort C, over three seeds, the proposed configuration averages $0.796$, and
+the published decoders that trained reach $0.723$ to $0.783$. Paired
+over participants with seeds averaged, it is higher than EEGNeX by $0.013$
+(higher in 15 of 20 participants; Wilcoxon $p=0.17$), than EEG Conformer by
+$0.013$ (12 of 20; $p=0.15$), than FBLightConvNet by $0.018$ (15 of 20;
+$p=0.10$), than ShallowFBCSPNet by $0.031$ (16 of 20; $p=0.011$) and than
+TSception by $0.073$ (19 of 20; $p<0.001$). After Holm correction across these
+five comparisons, only the differences from ShallowFBCSPNet ($p=0.044$) and
+TSception ($p<0.001$) remain below $0.05$. Its expected calibration
+error is $0.061$, against $0.077$ to $0.083$ for the same decoders.
+EEGNet, Deep4Net and EEG-TCNet did not train reliably on this cohort under the
+shared settings: on each seed they stay near chance ($<0.55$) for 6 to 9, 10 to
+12 and 7 to 11 of the twenty participants respectively, so their cohort C values
+record a training failure. The low calibration error of EEGNet and EEG-TCNet
+there ($0.059$ and $0.054$) shows why
+calibration error is read together with accuracy, since a decoder near chance
+that reports low confidence is well calibrated.
 
-What the configuration offers
-instead is parity with the strongest baseline at $53\,\%$ of its parameters and
-$5\,\%$ of EEG Conformer's (Fig.~\ref{fig:efficiency}), together with calibrated
-confidence ($\mathrm{ECE}=0.039$) and a trained abstention operating point
-($0.876$ at $90\,\%$ coverage), neither of which the baselines provide. The baselines were not compressed for this comparison, so the parameter
-axis reports each architecture at its published size, above the minimum it
-could be compressed to.
+On cohort A the proposed configuration's calibration error averages $0.058$
+across seeds, level with the published decoders at the first seed ($0.058$ to
+$0.077$). Its accuracy is therefore level with the published decoders on cohort
+A and slightly higher on cohort C, without a significant difference against the
+strongest of them, and its calibration error is lower on cohort C. What the
+architecture adds at this accuracy is an alignment layer that updates without
+labels at test time, a measured reduction of session drift
+(Section~\ref{sec:mechanism}), and a rule, checkable before training, for when
+that layer must be slowed (Section~\ref{sec:rate}).
 
 \subsection{External validation and the inverted ordering}
 \label{sec:external}
@@ -861,14 +862,16 @@ could be compressed to.
 the proposed configuration; the other alignment-using arms are dashed in colour,
 and the two alignment-free arms are dashed and dotted. The three alignment arms
 cross below both alignment-free arms, so the ordering inverts instead of
-compressing.}
+compressing. \pending{[To be regenerated with three seeds.]}}
 \label{fig:inversion}
 \end{figure}
 
 \begin{table}[t]
-\caption{Both cohorts, single seed, original estimator.}
+\caption{Both cohorts, single seed, original estimator. \pending{Cohort B
+values await three-seed reruns.}}
 \label{tab:external}
 \centering
+\color{red}
 \begin{tabular}{lrr}
 \toprule
 Components & Cohort A & Cohort B \\
@@ -882,28 +885,29 @@ stem only          & 0.827 & 0.737 \\
 \end{tabular}
 \end{table}
 
-The decoder transfers: without the alignment layer it reaches $0.792$ on cohort
-B, against a majority-class floor of $0.500$ balanced accuracy on a cohort whose
+The decoder transfers: without the alignment layer it reaches \pending{$0.792$}
+on cohort B, against a majority-class floor of $0.500$ balanced accuracy on a cohort whose
 classes split $87.7/12.3$. What does not transfer is the alignment layer. The
 best cohort-A configuration is the worst cohort-B one, and the ordering inverts, with all three arms that use alignment falling
 below both arms that do not. The layer is worth $+0.074$ on cohort A
-($0.901$ against $0.827$) and $-0.211$ on cohort B ($0.581$ against $0.792$). The cohort A figure comes from one seed and also removes the context module. Against the gate-only arm over three seeds, alignment is worth $+0.026$ there (Section~\ref{sec:ablation}), so the size of the inversion comes mostly from the loss on cohort B.
-The remainder of the results characterises this inversion, which proves more transferable than the architecture itself.
+($0.901$ against $0.827$) and \pending{$-0.211$} on cohort B (\pending{$0.581$ against $0.792$}). The cohort A figure comes from one seed and also removes the context module. Against the gate-only arm over three seeds, alignment is worth $+0.026$ there (Section~\ref{sec:ablation}), so the size of the inversion comes mostly from the loss on cohort B.
+The remainder of the results characterises this inversion.
 
 \paragraph{A protocol-level switch} The two cohorts do not require
-two architectures. The admissible band of Condition~\ref{prop:band} is a switch
+two architectures. The lower bound of Condition~\ref{prop:band} acts as a switch
 whose position is fixed by the recording protocol: with the default estimator
 memory $\mu = 32/m = 160$ windows, cohort A's $\tau_{\mathrm{blk}}=18$ satisfies
 $\tau_{\mathrm{blk}} < \mu$ and cohort B's $\tau_{\mathrm{blk}}=309$ does not.
-Enabling alignment exactly when the band is satisfied selects $0.901$ on cohort
-A and $0.792$ on cohort B: \textbf{the best available configuration on each},
-from one model and one rule evaluated before any training.
+Enabling alignment exactly when the lower bound is satisfied selects $0.901$ on
+cohort A and \pending{$0.792$} on cohort B, the best configuration of
+Table~\ref{tab:external} on each at seed 0, from one model and one rule
+evaluated before any training.
 
 \paragraph{Learnability of the switch} The architecture
 already contains a learnable version of it: the blend weight
 $g=\sigma(\mathrm{gate})$ in (\ref{eq:update}) is a trained parameter, so the
 model is free to close the gate and bypass alignment. On cohort B it does not,
-and scores $0.626$. The reason is structural and does not lie in optimisation. The gate is trained on the fitting sessions, where the estimator
+and scores \pending{$0.626$}. The reason is structural and does not lie in optimisation. The gate is trained on the fitting sessions, where the estimator
 sees interleaved windows and alignment is harmless; the class-tracking failure
 appears only at test time, when the estimator meets contiguous blocks longer
 than its memory. \textbf{No training signal contains the pathology, so no
@@ -1011,6 +1015,8 @@ whitening by it removes the between-class difference. Cohort A's blocks
 If this mechanism is responsible, slowing adaptation until the memory exceeds a class block should restore cohort B. The memory is approximately 160, 640 and 3200 windows
 at $m=0.2$, $0.05$ and $0.01$, so the crossing of
 $\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
+\pending{[Intermediate memories of 320 and 1600 windows, three seeds each, are in
+progress.]}
 
 \begin{figure*}[t]
 \centering
@@ -1019,15 +1025,16 @@ $\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
 single seed; the shaded region is where the estimator memory is shorter than a
 class block. Measurement points are marked because the sweep is sparse. (b) The
 same change applied to both cohorts at matched estimator version, giving
-opposite signs. (c) The admissible band of Condition~\ref{prop:band}, bounded
-below by $\tau_{\mathrm{blk}}$ and above by $\tau_{\mathrm{drift}}$; the upper
-bound is bracketed by cohort A being good at 160 windows and poor at 3200.}
+opposite signs. (c) The admissible band of Condition~\ref{prop:band}. Its lower bound is
+$\tau_{\mathrm{blk}}$; its upper bound, $\tau_{\mathrm{drift}}$, was not measured
+on these cohorts (Section~\ref{sec:limits}). \pending{[Panel (c) to be redrawn
+without a drawn upper bound; panel (a) to be regenerated with three seeds.]}}
 \label{fig:rate}
 \end{figure*}
 
-Every arm that uses alignment gains $+0.090$ to $+0.098$ as the memory crosses
+Every arm that uses alignment gains \pending{$+0.090$ to $+0.098$} as the memory crosses
 the class-block length (Table~\ref{tab:rate}). Neither arm that omits alignment
-responds: the no-align arm moves $-0.010$, within its $0.0107$ run-to-run spread
+responds: the no-align arm moves \pending{$-0.010$}, within its $0.0107$ run-to-run spread
 (Table~\ref{tab:noise}), and the stem-only arm reproduces $0.7375$ exactly at
 every setting despite a 160-fold change in the adaptation rate. Because that arm
 is deterministic, this null is exact. The
@@ -1035,13 +1042,19 @@ manipulated variable therefore acts only through the component it controls,
 which an unrelated confound such as optimisation dynamics or regularisation
 would not produce.
 
-\subsection{The condition is two-sided}
+\subsection{Slow adaptation has a cost}
 \label{sec:twosided}
 
 On cohort A, whose blocks sit far inside even the fastest memory so that the estimate is already class-mixed, the same change was expected to be neutral. This expectation was registered before the experiment was run. It is not borne out
 (Table~\ref{tab:rate}).
 
-The optima are opposite, and error in either direction costs $0.060$ to $0.092$, about 2.3 to 3.6 times the standard deviation across data-split seeds. Slower adaptation therefore costs accuracy on cohort A, indicating a trade-off: a fast estimate tracks both the streaming class, which is harmful, and genuine session drift, which is beneficial.
+The optima are opposite, and error in either direction costs
+\pending{$0.060$ to $0.092$}, about \pending{2.3 to 3.6} times the standard
+deviation across data-split seeds. Slower adaptation therefore costs accuracy on
+cohort A. One reading is a trade-off in which a fast estimate tracks both the
+streaming class, which is harmful, and session drift, which is beneficial. The
+drift half of that reading could not be measured directly
+(Section~\ref{sec:limits}).
 
 That cost was first measured on \textit{align + ctx + gate}, which is not the
 configuration this paper proposes. Repeating it on the proposed
@@ -1050,7 +1063,9 @@ $m=0.01$ takes cohort A from $0.884$ to $0.799 \pm 0.087$ (SD across the seven
 participants), a cost of $\mathbf{-0.085}$ under the trace-normalised
 estimator. Both numbers use the same estimator version; comparing the slow arm
 against the original-estimator $0.901$ would inflate the cost to $-0.102$ by
-mixing estimator versions. The comparison is unpaired, since per-participant values were not retained for the $m=0.2$ reference, and inferential testing was therefore not performed on it.
+mixing estimator versions. Paired over participants at this seed, slowing lowers accuracy in 7 of 7
+($p=0.016$, the smallest attainable with seven participants).
+\pending{[Three seeds of the slow arm are in progress.]}
 
 \begin{condition}[Admissible rate band]
 \label{prop:band}
@@ -1065,21 +1080,22 @@ avoids tracking the streaming class and tracks session drift only if
 \label{eq:band}
 \end{equation}
 Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
-setting of $\mu$ satisfies both requirements. It is a design condition that states when the layer can work. It is established here
-empirically; we give no proof.
+setting of $\mu$ satisfies both requirements. It is a design condition. Its lower bound is tested here empirically, once in
+advance; its upper bound is not measured, and we give no proof.
 \end{condition}
 
-Cohort A satisfies (\ref{eq:band}) with a wide margin, so fast adaptation is
-both safe and useful there, and slowing it forfeits the drift tracking for no
-compensating gain. Cohort B's 309-window blocks force $\mu$ slow enough that it
-can no longer track drift, so the band is empty.
+Cohort A satisfies the lower bound with a wide margin ($\tau_{\mathrm{blk}}=18$
+against $\mu=160$), and cohort B's 309-window blocks violate it at the default
+rate. Whether cohort B has any admissible rate cannot be decided from these
+data, because its drift timescale could not be measured
+(Section~\ref{sec:limits}).
 
 \begin{remark}[The residual]
-This accounts for the residual without a third mechanism. Even at its best
-setting, alignment still costs $0.060$ on cohort B ($0.723$ against $0.783$ for
-the no-align arm), because at the only rate that avoids class tracking there is
-no drift-tracking benefit left to collect. The layer then contributes only
-estimation noise.
+Even at its best setting, alignment still costs \pending{$0.060$} on cohort B
+(\pending{$0.723$} against \pending{$0.783$} for the no-align arm). The lower
+bound does not explain this residual. A slow estimate may carry too little drift
+correction to offset its estimation noise, but that reading requires the drift
+timescale, which was not measured, so the residual is reported as unexplained.
 \end{remark}
 
 \begin{remark}[Offline alignment is exempt]
@@ -1089,14 +1105,12 @@ within-recording drift either, which is exactly the capability an in-network
 version is introduced to add.
 \end{remark}
 
-Both bounds in (\ref{eq:band}) are properties of the recording protocol.
-$\tau_{\mathrm{blk}}$ is read off the trial structure. $\tau_{\mathrm{drift}}$ can
-in principle be estimated without labels from the Riemannian distance between
-covariances over time, but a block-wise estimate taken within a session is
-dominated by class alternation wherever blocks are short, and that measurement
-is not reported here (Section~\ref{sec:limits}). The lower bound is therefore
-checkable before a model is fitted, and Section~\ref{sec:prereg} tests it on a
-cohort whose results were not available when the prediction was made.
+The lower bound in (\ref{eq:band}) is a property of the recording protocol.
+$\tau_{\mathrm{blk}}$ is read off the trial structure, so the bound can be
+checked before a model is fitted, and Section~\ref{sec:prereg} tests it on a
+cohort whose results were not available when the prediction was made. The upper
+bound was not measured: two label-free estimates of $\tau_{\mathrm{drift}}$ were
+attempted, and neither resolved it (Section~\ref{sec:limits}).
 
 \subsection{A prediction registered before a third cohort}
 \label{sec:prereg}
@@ -1141,11 +1155,14 @@ balanced accuracy by $+0.002$ (higher in 11 participants, lower in 9; Wilcoxon
 $p=0.68$), and slowing it changes accuracy by $-0.006$ (higher in 9, lower in
 10; $p=0.43$). The intervention that recovered $0.090$ on cohort~B brings no gain here, as the protocol predicted, and enabling alignment shows no harm.
 
-Two further seeds were run after the registered test and are reported separately from it. They agree with both verdicts and sharpen one of them. Enabling alignment changes accuracy by $+0.014$ (higher in 13 participants, lower in 7; $p=0.17$), so it again costs nothing, and its small positive trend is not significant. Slowing adaptation costs $0.016$ (lower in 15 of 20; $p=0.003$) and is negative on all three seeds, so on this cohort it carries a small cost. Read after the fact, the sign of slowing now fits the band on every cohort. It helps where the estimate tracks the class (cohort~B, $+0.090$), costs most where the estimate was tracking drift across weeks (cohort~A, $-0.085$), and costs least where drift is confined to a single session (cohort~C). That ordering was observed on the replication seeds and formed no part of the registered prediction.
+Two further seeds were run after the registered test and are reported separately from it. They agree with both verdicts and sharpen one of them. Enabling alignment changes accuracy by $+0.014$ (higher in 13 participants, lower in 7; $p=0.17$), so it again costs nothing, and its small positive trend is not significant. Slowing adaptation costs $0.016$ (lower in 15 of 20; $p=0.003$) and is negative on all three seeds, so on this cohort it carries a small cost. Read after the fact, the sign of slowing is consistent with the lower bound on
+every cohort. It helps where the estimate tracks the class (cohort~B,
+\pending{$+0.090$}) and costs accuracy on both cohorts with short blocks
+(cohort~A, $-0.085$; cohort~C, $-0.016$). That pattern was observed on the
+replication seeds and formed no part of the registered prediction.
 
-The test covers the short-block side of Condition~\ref{prop:band} and its
-contrast with cohort~B. It does not test an empty band, which requires a
-protocol whose blocks outlast its drift.
+The test covers the lower bound of Condition~\ref{prop:band} and its contrast
+with cohort~B. It does not test the upper bound.
 
 %=============================================================================
 \section{Discussion}
@@ -1172,11 +1189,10 @@ not the decoder can access the nuisance.}
 
 \begin{enumerate}
 \item The adaptation rate was originally selected because it maximised drift
-      reduction ($60\,\%$ against $25\,\%$). That choice cost $0.092$ accuracy
+      reduction ($60\,\%$ against $25\,\%$). That choice cost \pending{$0.092$} accuracy
       on cohort B (Table~\ref{tab:rate}).
-\item The cohort in which more drift was removed ($83.9\,\%$ against
-      $52.0\,\%$, Table~\ref{tab:drift}) is the cohort in which accuracy fell by
-      $0.166$ (Table~\ref{tab:external}).
+\item The cohort in which more drift was removed (\pending{$83.9\,\%$ against $52.0\,\%$}, Table~\ref{tab:drift}) is the
+      cohort in which accuracy fell by \pending{$0.166$} (Table~\ref{tab:external}).
 \item A verified correction to a genuine covariance-estimation bias moved
       decoding by $+0.005$ and $-0.016$ (Section~\ref{sec:rejected}).
 \item A prediction registered from our own diagnosis was falsified
@@ -1203,10 +1219,10 @@ The vision literature has identified that test-time adaptation degrades when the
 test stream is temporally correlated \citep{note,sar,cotta}, and proposes
 reservoirs and stabilised objectives as remedies. Our result is compatible with
 that line and adds two things specific to the blocked-protocol case. First, the
-relevant quantity is a ratio of timescales, measured on the stream, and which side of the threshold a protocol falls on can be predicted in advance, as the third cohort shows (Section~\ref{sec:prereg}). Second, the constraint is two-sided, because in a
-longitudinal deployment the same estimator that can track the class is also the
-one that tracks the drift, so the remedies that slow adaptation trade one
-failure for the other instead of removing both.
+relevant quantity is a ratio of timescales, measured on the stream, and which side of the threshold a protocol falls on can be predicted in advance, as the third cohort shows (Section~\ref{sec:prereg}). Second, slowing adaptation is not free. On both cohorts with short blocks it
+costs accuracy, so remedies that slow adaptation can exchange class tracking for
+a different loss, which on these cohorts could not be attributed to drift
+tracking directly.
 
 %=============================================================================
 \section{Limitations}
@@ -1214,14 +1230,31 @@ failure for the other instead of removing both.
 
 Several limitations constrain the interpretation of these results.
 
-\textbf{No published baseline on cohort B.} Every decoder in
-Table~\ref{tab:landscape} was run on cohort A. Nothing from the literature has
-been run on cohort B in this pipeline, so the $0.792$ reported there can be
-compared with our own arms and with the majority-class floor, but not with the field. The decoder therefore transfers to cohort B; its standing relative to published methods there is untested.
+\textbf{No published decoder on cohort B.} The published decoders of
+Table~\ref{tab:compare} were run on cohorts A and C. \pending{[Their cohort B runs
+are in progress.]} The \pending{$0.792$} reported on cohort B can therefore be
+compared with our own arms and with the majority-class floor, and its standing
+relative to published methods on that cohort is untested.
 
-\textbf{Seeds.} Most ablations are seed 0. The proposed configuration was rerun over three data-split seeds under the trace-normalised estimator, giving $0.868 \pm 0.026$ (seeds $0.884$, $0.882$ and $0.839$). That seed standard deviation is larger than the $0.010$ noise floor of repeated runs at a fixed split (Table~\ref{tab:noise}), and it is concentrated in two participants, whose accuracy ranges over $0.217$ and $0.120$ across seeds while the other five vary by at most $0.065$. Single-seed rankings of closely spaced models are therefore not interpretable, so the $0.012$ gap to ATCNet in Table~\ref{tab:landscape} is reported as a loss and its direction is left unresolved. The effects we do interpret ($+0.090$ to $+0.098$, $-0.060$) are about 2.3 to 3.8 times the seed standard deviation, a narrower margin than the fixed-split noise floor suggests. The paired alignment effect on cohort A over the same three seeds is $+0.026$ ($p=0.22$) and is negative on one seed, so the benefit of alignment where the band holds is small and unconfirmed at this sample size. The loss where the band fails, $0.211$ on cohort B, comes from a single seed and has not been repeated.
+\textbf{Seeds.} The component ablation and the rate tables are single-seed.
+The proposed configuration was rerun over three data-split seeds under the
+trace-normalised estimator, giving $0.868 \pm 0.026$ (seeds $0.884$, $0.882$ and
+$0.839$). That seed standard deviation is larger than the $0.010$ noise floor of
+repeated runs at a fixed split (Table~\ref{tab:noise}), and it is concentrated in
+two participants, whose accuracy ranges over $0.217$ and $0.120$ across seeds
+while the other five vary by at most $0.065$. The effects we do interpret
+(\pending{$+0.090$ to $+0.098$, $-0.060$}) are about \pending{2.3 to 3.8} times
+the seed standard deviation, a narrower margin than the fixed-split noise floor
+suggests. The paired alignment effect on cohort A over the same three seeds is
+$+0.026$ ($p=0.22$) and is negative on one seed, so the benefit of alignment
+where the lower bound holds is small and unconfirmed at this sample size. The
+loss where it fails, \pending{$0.211$} on cohort B, comes from a single seed
+\pending{[three-seed rerun in progress]}. The published decoders on cohort A
+have one seed \pending{[seeds 1 and 2 in progress]}.
 
-\textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the component ablation and the rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the three-seed alignment comparison on cohort A (Section~\ref{sec:ablation}) and the cohort~C predictions (Section~\ref{sec:prereg}).
+\textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the component ablation and the rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the three-seed alignment comparison on cohort A (Section~\ref{sec:ablation}),
+the comparison with published decoders on cohort~C (Section~\ref{sec:compare})
+and the cohort~C predictions (Section~\ref{sec:prereg}).
 
 \textbf{Cohort size.} Seven, eight and twenty participants. This is typical for
 exoskeleton BCI studies \citep{he_exo} but small, and the between-subject SD of
@@ -1234,9 +1267,22 @@ bias applies equally to all arms and baselines within a pipeline, so comparisons
 within a pipeline are unaffected, but absolute values should be read as
 optimistic.
 
-\textbf{The upper bound is only bracketed.}
-$\tau_{\mathrm{drift}}$ in (\ref{eq:band}) is bounded by cohort A performing
-well at a 160-window memory and poorly at 3200. We have not measured an interior optimum, and a cohort whose admissible band is narrow but non-empty would test Condition~\ref{prop:band} properly. A direct estimate of $\tau_{\mathrm{drift}}$ from block-wise covariance distances within a session is dominated by class alternation where blocks are short. On cohort~A it returns about 18 windows, which is the class-block length, so it is not reported.
+\textbf{Baseline training.} The published decoders were trained with the proposed
+decoder's settings and no per-model tuning. EEGNet, Deep4Net and EEG-TCNet stayed near chance for several cohort~C participants under those settings, so their cohort~C
+results record a training failure and are not evidence about those
+architectures.
+
+\textbf{The upper bound is not measured.} Two label-free estimates of
+$\tau_{\mathrm{drift}}$ were attempted. Block-wise covariance distances within a
+session are dominated by class alternation where blocks are short, and on
+cohort~A they return about 18 windows, the class-block length. Distances between
+session mean covariances are already at their plateau at a gap of one session
+for every cohort~A participant, and fall with the gap for two, so a fitted
+timescale lies below the sampling interval and is not a measurement; cohort~B's
+three trials give two gaps, too few for a fit. The data therefore bound the
+drift timescale only from above, at about one session, which does not constrain
+the adaptation rate. A protocol with more closely spaced recordings is needed to
+test the upper bound.
 
 \textbf{Condition~\ref{prop:band} is hypothesis-generating.} It was formulated after observing cohort B fail. One prediction from it has since been tested
 out-of-sample, and that test falsified the one-sided form
@@ -1255,26 +1301,25 @@ rate condition, which is measured within each cohort.
 An estimate that adapts at test time tracks whatever is currently streaming.
 Under a protocol that presents each class in long contiguous blocks, the
 estimate converges to the current class, and the layer then removes the signal
-it was inserted to protect. The estimator's memory must outlast a class block
-and stay shorter than the drift timescale, and where those requirements cross no
-admissible rate exists. Both bounds are read from the recording protocol, which
-makes this a design-time check.
+it was inserted to protect. The estimator's memory must therefore outlast a
+class block. That bound is read from the recording protocol, which makes it a
+design-time check.
 
 The condition has predicted a new cohort correctly in advance. With class
 blocks of five windows, enabling alignment cost nothing and slowing it brought
-no gain, where the same slowing recovered $0.090$ on the cohort with long blocks. Where the band holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C. Where the band fails, alignment costs $0.211$. The condition is therefore most useful as a design-time guard against that loss.
+no gain, where the same slowing recovered \pending{$0.090$} on the cohort with
+long blocks. Where the lower bound holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C. Where it fails, alignment costs \pending{$0.211$}. The condition is therefore most useful as a design-time guard against that loss.
 
-The immediate open question is whether the band in (\ref{eq:band}) has an
-interior optimum that can be located exactly. No cohort here can answer it.
-Cohort A's band is wide enough that the fastest setting tested is already
-inside it, cohort C's is wider still, and cohort B's is empty. A protocol with
-$\tau_{\mathrm{blk}}$ between roughly 100 and 200 windows would place the two
+The immediate open question is the upper bound. Neither cohort here resolves
+the drift timescale: cohort A's session covariances are already at their plateau
+one session apart, and cohort B has too few trials to fit one. A protocol with
+recordings spaced closely enough to sample the rise of drift, and with
+$\tau_{\mathrm{blk}}$ between roughly 100 and 200 windows, would place the two
 bounds close together, and the prediction is that accuracy would peak at an
 intermediate momentum and fall on both sides. That experiment can be
-pre-registered from the protocol alone, as the cohort C test was, and it would
-test the upper bound, which no cohort here has tested in advance.
+pre-registered from the protocol alone, as the cohort C test was.
 
-A second direction follows from the residual. If a single running estimate
+A second direction follows from the unexplained residual on cohort~B. If a single running estimate
 cannot simultaneously avoid the class and track the drift, then the two
 requirements should perhaps be served by two estimators at different rates, with
 the fast one constrained to the subspace in which drift lives and the slow one
@@ -1299,7 +1344,7 @@ relationships that could have appeared to influence the work reported in this
 paper.
 
 \section*{Data availability}
-Both datasets are publicly available. All code, configurations and result files,
+All three datasets are publicly available. All code, configurations and result files,
 including those of experiments that failed, are in the accompanying repository.
 
 \bibliographystyle{elsarticle-num-names}

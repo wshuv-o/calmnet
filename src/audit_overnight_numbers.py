@@ -163,6 +163,55 @@ claim("head 3seed", hd3.mean(), "averages $%.3f$ against $%.3f$ with the head, a
 claim("head 3seed ECE", 0, "is $%.3f$ without the head against $%.3f$ with it"
       % (np.mean([r["ece"] for r in al3]), np.mean([r["ece"] for r in ag3])))
 
+# ---- pipeline C comparison with published decoders ------------------------
+bdA, bdC = J("bd_pipeline_c.json"), J("bd_cohort_c.json")
+a0 = [v["acc"] for k, v in bdA.items() if k.endswith("|s0")]
+claim("pub A range", 0, "the published decoders reach $%.3f$ to $%.3f$" % (min(a0), max(a0)))
+oursA0 = A3["dn_noctx|s0"]
+gaps = sorted(oursA0["acc"] - x for x in a0)
+claim("pub A within", 0, "Seven of the eight lie within $%.3f$ of it" % (round(gaps[6] + 0.0005, 3)))
+claim("A seed range", 0, "inside its own range of $%.3f$ across seeds" % (max(sa3) - min(sa3)))
+cC = [J("cohort3_m0.2.json")["dn_noctx|s0"], J("cohort3_rep_m0.2.json")["dn_noctx|s1"], J("cohort3_rep_m0.2.json")["dn_noctx|s2"]]
+claim("ours C mean", 0, "the proposed configuration averages $%.3f$, and" % np.mean([r["acc"] for r in cC]))
+oc = {x: np.mean([r["per_subject"][x]["acc"] for r in cC]) for x in cC[0]["per_subject"]}
+for m, lab in (("EEGNeX", "than EEGNeX by"), ("EEGConformer", "than EEG Conformer by"),
+               ("FBLightConvNet", "than FBLightConvNet by"), ("ShallowFBCSPNet", "than ShallowFBCSPNet by")):
+    runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
+    bs = {x: np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
+    dd_ = np.array([oc[x] - bs[x] for x in sorted(bs)])
+    claim("C vs " + m, dd_.mean(), "%s $%.3f$" % (lab, dd_.mean()))
+    claim("C vs " + m + " p", 0, "$p=%.2f$" % wilcoxon(dd_).pvalue if m != "ShallowFBCSPNet" else "$p=%.3f$" % wilcoxon(dd_).pvalue)
+    claim("C vs " + m + " n", 0, "%d of 20" % (dd_ > 0).sum())
+claim("ours C ECE", 0, "Its expected calibration error is $%.3f$" % np.mean([r["ece"] for r in cC]))
+claim("ours A ECE", 0, "calibration error averages $%.3f$" % np.mean([A3["dn_noctx|s%d" % i]["ece"] for i in range(3)]))
+e0 = [v["ece"] for k, v in bdA.items() if k.endswith("|s0")]
+claim("pub A ECE range", 0, "at the first seed ($%.3f$ to $%.3f$)" % (min(e0), max(e0)))
+for m in ("EEGNet", "Deep4Net", "EEGTCNet"):
+    runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
+    n = [sum(1 for v in r["per_subject"].values() if v["acc"] < 0.55) for r in runs]
+    claim("C chance " + m, 0, "%d to %d" % (min(n), max(n)))
+trained = ("EEGNeX", "EEGConformer", "FBLightConvNet", "ShallowFBCSPNet", "TSception")
+pc, accs, eces = {}, [], []
+for m in trained:
+    runs = [v for k, v in bdC.items() if k.split("|")[0] == m]
+    accs.append(np.mean([r["acc"] for r in runs])); eces.append(np.mean([r["ece"] for r in runs]))
+    bs = {x: np.mean([r["per_subject"][x]["acc"] for r in runs]) for x in runs[0]["per_subject"]}
+    pc[m] = wilcoxon([oc[x] - bs[x] for x in sorted(bs)]).pvalue
+claim("C trained range", 0, "decoders that trained reach $%.3f$ to $%.3f$" % (min(accs), max(accs)))
+claim("C trained ECE", 0, "against $%.3f$ to $%.3f$ for the same decoders" % (min(eces), max(eces)))
+order_, run_, holm = sorted(pc, key=pc.get), 0, {}
+for i, m in enumerate(order_):
+    run_ = max(run_, min(1, (len(order_) - i) * pc[m])); holm[m] = run_
+claim("C Holm Shallow", holm["ShallowFBCSPNet"], "ShallowFBCSPNet ($p=%.3f$)" % holm["ShallowFBCSPNet"])
+claim("C Holm others", 0, "only the differences from" if all(holm[m] > 0.05 for m in ("EEGNeX", "EEGConformer", "FBLightConvNet")) and holm["TSception"] < 0.001 else "HOLM PATTERN CHANGED")
+tc = [v for k, v in bdC.items() if k.split("|")[0] in ("EEGNet", "EEGTCNet")]
+claim("C fail ECE", 0, "($%.3f$ and $%.3f$)" % (np.mean([v["ece"] for k, v in bdC.items() if k.startswith("EEGNet|")]),
+                                               np.mean([v["ece"] for k, v in bdC.items() if k.startswith("EEGTCNet|")])))
+slow = J("driftmom_ds_0.01_noctx.json")["dn_noctx|s0"]["per_subject"]
+ds_ = np.array([slow[x]["acc"] - oursA0["per_subject"][x]["acc"] for x in sorted(slow)])
+claim("A slow paired", ds_.mean(), "slowing lowers accuracy in %d of 7 ($p=%.3f$" % ((ds_ < 0).sum(), wilcoxon(ds_).pvalue))
+claim("A slow cost", ds_.mean(), "a cost of $" + chr(92) + "mathbf{-%.3f}$" % -ds_.mean())
+
 bad = [c for c in checks if not c[2]]
 print("checked %d printed values against their sources" % len(checks))
 for label, printed, ok in checks:

@@ -255,6 +255,83 @@ def t_landscape():
         rows, wide=True, fill=True)
 
 
+
+# ===================================================================== compare
+# Pipeline C comparison: the proposed decoder and eight braindecode decoders
+# trained with identical preprocessing, optimiser, schedule, early stopping,
+# model selection and classifier head (src/exp_calmnetx.py, CX_MODEL=bd:...).
+# Parameter counts include the shared head, from build_bd_plus at cohort A's
+# input shape (60 channels x 400 samples).
+PARAMS_C = {"EEGNeX": 71010, "ShallowFBCSPNet": 206962, "EEGNet": 27666,
+            "EEGConformer": 445442, "Deep4Net": 717417, "TSception": 182098,
+            "FBLightConvNet": 23760, "EEGTCNet": 7062}
+FAIL_ACC, FAIL_N = 0.55, 5      # near chance for >= 5 participants on a seed
+
+
+def pend(x):
+    return BS + "pending{" + x + "}"
+
+
+def seeds_of(d, arm):
+    return [d[k] for k in sorted(d) if k.split("|")[0] == arm]
+
+
+def t_compare():
+    import numpy as _np
+    A3, bdA, bdC = L("a_aligngate_3seed.json"), L("bd_pipeline_c.json"), L("bd_cohort_c.json")
+    C0, CR = L("cohort3_m0.2.json"), L("cohort3_rep_m0.2.json")
+    ours_A = [A3.get("dn_noctx|s%d" % i) for i in range(3)]
+    ours_C = [C0.get("dn_noctx|s0"), CR.get("dn_noctx|s1"), CR.get("dn_noctx|s2")]
+
+    def ms(runs):
+        a = [r["acc"] for r in runs]
+        return "%.3f $" % _np.mean(a) + BS + "pm$ %.3f" % _np.std(a, ddof=1)
+
+    def failed(runs):
+        return any(sum(1 for v in r["per_subject"].values() if v["acc"] < FAIL_ACC) >= FAIL_N
+                   for r in runs)
+
+    rows = [group("This work", 7)]
+    rows.append("Ours, align + gate & 24" + BS + ",181 & %.3f & %.3f & %s & %.3f & %.3f %s" % (
+        ours_A[0]["acc"], ours_A[0]["ece"], ms(ours_A),
+        _np.mean([r["acc"] for r in ours_C]), _np.mean([r["ece"] for r in ours_C]), EOL))
+    rows.append(BS + "midrule")
+    rows.append(group("Published decoders, same pipeline", 7))
+    order = sorted(PARAMS_C, key=lambda m: -(g(bdA, m + "|s0") or 0))
+    for m in order:
+        a0 = bdA.get(m + "|s0")
+        ra, rc = seeds_of(bdA, m), seeds_of(bdC, m)
+        a_acc = f3(a0) if a0 else pend("---")
+        a_ece = "%.3f" % a0["ece"] if a0 else pend("---")
+        a3 = ms(ra) if len(ra) >= 3 else pend("pending")
+        if len(rc) >= 3:
+            dag = "$^" + BS + "dagger$" if failed(rc) else ""
+            c_acc = "%.3f%s" % (_np.mean([r["acc"] for r in rc]), dag)
+            c_ece = "%.3f" % _np.mean([r["ece"] for r in rc])
+        else:
+            c_acc, c_ece = pend("pending"), pend("pending")
+        rows.append("%s%s & %s & %s & %s & %s & %s & %s %s" % (
+            m, cref(m), "{:,}".format(PARAMS_C[m]).replace(",", BS + ","),
+            a_acc, a_ece, a3, c_acc, c_ece, EOL))
+    return table(
+        "tab:compare",
+        "The proposed decoder and eight published decoders trained in one "
+        "pipeline, with identical preprocessing, optimiser, schedule, early "
+        "stopping, model selection and classifier head. Balanced accuracy "
+        "(Acc) and expected calibration error (ECE). Cohort A has seven "
+        "participants and cohort C twenty; cohort C values are means over "
+        "three data-split seeds. Parameter counts include the shared "
+        "classifier and are instantiated at cohort A's input shape. Seed-0 "
+        "differences on cohort A lie within the proposed decoder's range "
+        "across seeds and are not ranked. $" + BS + "dagger$ near chance "
+        "($<0.55$) for at least five participants on a seed, a training "
+        "failure under the shared settings. " + pend("Red cells await runs "
+        "in progress."),
+        "lrrrrrr",
+        "Model & Params & A Acc (seed 0) & A ECE (seed 0) & A Acc (3 seeds) "
+        "& C Acc & C ECE",
+        rows, wide=True)
+
 # ===================================================================== mega 2
 def t_rate():
     m020 = L("driftfix_mobi.json")
@@ -297,11 +374,13 @@ def t_rate():
         "The adaptation-rate condition, single seed. Momentum $m$ sets the "
         "estimator's memory to roughly $32/m$ windows: 160, 640 and 3200. "
         "\\textbf{Every arm that uses alignment gains as the memory crosses "
-        "the class-block length, and neither arm that omits it responds} --- "
+        "the class-block length, and neither arm that omits it responds}; "
         "the stem-only arm reproduces 0.737 exactly at all three settings "
         "despite a 160-fold change. The lower block applies the identical "
-        "change to the cohort whose blocks are short, where it costs 0.060: "
-        "the optima are opposite and no single rate serves both protocols.",
+        "change to the cohort whose blocks are short, where it costs 0.060, "
+        "so the two cohorts have opposite optima. " + BS + "pending{Cohort B "
+        "values await three-seed reruns and intermediate memories of 320 and "
+        "1600 windows; cohort A values await three seeds.}",
         "lrrrrcr",
         "Arm & $m{=}0.20$ & $m{=}0.05$ & $m{=}0.01$ & $" + BS +
         "Delta$ at crossing & Aligns & $" + BS + "Delta$ cohort A",
@@ -357,7 +436,7 @@ def t_repr():
         "marginal power, and \\textbf{exactly $+0.000$ where it is scale-free by "
         "construction} and therefore cannot respond. An effect that scales "
         "with power content and vanishes without it identifies the mechanism "
-        "rather than merely demonstrating it. The second block retired an "
+        "instead of merely demonstrating it. The second block retired an "
         "amplitude side-channel: supplying a per-window amplitude feature and "
         "supplying the same feature with its window assignment shuffled differ "
         "by under 0.02 for four of five models.",
@@ -377,26 +456,31 @@ def t_norm():
         if a is None:
             continue
         p = k.split("|")
+        if p[1] == "ATCNet":
+            continue
         tab.setdefault(p[1], {})[p[2]] = a
         if p[1] not in order:
             order.append(p[1])
-    rows = []
+    rows, n_best, n_worst = [], 0, 0
     for m in order:
         vals = tab[m]
         best = max([v for v in vals.values() if v is not None], default=None)
+        worst = min([v for v in vals.values() if v is not None], default=None)
+        n_best += vals.get("perwindow") == best
+        n_worst += vals.get("perwindow") == worst
         cells = [f3(vals.get(x), vals.get(x) == best)
                  for x in ("perwindow", "global", "none")]
         rows.append("%s%s & %s & %s & %s %s" %
                     (m, cref(m), cells[0], cells[1], cells[2], EOL))
     return table(
         "tab:norm",
-        "Where amplitude normalisation is applied, across seven published "
-        "decoders on cohort A, single seed. All three columns are balanced "
-        "accuracies, not changes; best per row in bold. \\textbf{Per-window "
-        "normalisation is best for none of the seven and worst for four}, "
-        "which is the architecture-level counterpart of the "
-        "representation-level result in Table~\\ref{tab:repr} and the "
-        "reason the stem normalises globally before squaring.",
+        "Where amplitude normalisation is applied, across %d published "
+        "decoders on cohort A, single seed, in an earlier training pipeline. "
+        "All three columns are balanced accuracies; best per row in bold. "
+        "Per-window normalisation is best for %d and worst for %d, and most "
+        "differences are below the 0.02 noise threshold, so this comparison "
+        "neither supports nor contradicts the representation-level result in "
+        "Table~\\ref{tab:repr}." % (len(order), n_best, n_worst),
         "lrrr",
         "Model & Per-window & Global & None",
         rows, wide=False)
@@ -471,9 +555,9 @@ def t_rejected():
         "Every architectural intervention tested, with the control that "
         "decided it. The motion-canceller row is the clearest rejection: the "
         "module scored 0.905 with the inertial channel present and chance "
-        "with it zeroed, so it was an inertial classifier rather than an EEG "
-        "one. The temporal-smoothing rows are the clearest retention: "
-        "shuffling window order does not merely remove the gain, it drops "
+        "with it zeroed, so the module was classifying the inertial "
+        "signal. The temporal-smoothing rows are the clearest retention: "
+        "shuffling window order removes the gain and drops accuracy "
         "\\textbf{0.113 below the unsmoothed baseline}, which no operation "
         "helping for an unrelated reason would do. $n$ is seeds.",
         "lrllrl",
@@ -504,7 +588,9 @@ def t_drift():
         "covariance and the held-out mean. The no-op control shares every code "
         "path but never updates its estimate. \\textbf{Every participant "
         "improves}: 15 of 15, $t=-9.14$, $p=10^{-4}$ (A) and $t=-20.59$, "
-        "$p<10^{-5}$ (B); the control shows no reduction in either cohort.",
+        "$p<10^{-5}$ (B); the control shows no reduction in either cohort. "
+        + BS + "pending{Values await the rerun without trace normalisation in "
+        "the distance measurement.}",
         "lrrrr",
         "Participant & Raw $" + BS + "delta$ & No-op & Aligned & Reduction",
         rows)
@@ -529,34 +615,46 @@ def t_noise():
                          BS + "textbf{%.4f}" % sp if sp == 0 else "%.4f" % sp,
                          EOL))
     rows.append(BS + "midrule")
-    rows.append(group("Across split seeds, our arms", 4))
-    for k, lab in (("dn_noctx", "align + gate"), ("dn_full", "align + ctx + gate")):
-        v0, v1 = g(s0, k + "|s0"), g(s1, k + "|s1")
-        if v0 is not None and v1 is not None:
-            rows.append("%s & yes & 2 & %.4f %s" % (lab, abs(v1 - v0), EOL))
-    rows.append(BS + "midrule")
-    rows.append(group("Across split seeds, published baselines", 4))
-    for m in ("ShallowFBCSPNet", "ATCNet"):
-        if m in mrg:
-            vs = mrg[m]
-            rows.append("%s & --- & %d & %s %s" %
-                        (m, len(vs), BS + "textbf{%.4f}" % (max(vs) - min(vs)),
-                         EOL))
+    rows.append(group("Across three data-split seeds, trace-normalised estimator", 4))
+    spreads = []
+    for files, arm, lab in ((("a_aligngate_3seed.json",), "dn_noctx", "align + gate"),
+                            (("a_gate_3seed.json",), "dn_gate", "gate only"),
+                            (("align_only.json", "a_align_s12.json"), "dn_align", "align only")):
+        d = {}
+        for ff in files:
+            d.update(L(ff))
+        vs = [v["acc"] for k, v in d.items() if k.split("|")[0] == arm]
+        if len(vs) >= 3:
+            spreads.append(max(vs) - min(vs))
+            rows.append("%s & no & %d & %.4f %s" % (lab, len(vs), max(vs) - min(vs), EOL))
+    bd = L("bd_pipeline_c.json")
+    multi = {}
+    for k, v in bd.items():
+        multi.setdefault(k.split("|")[0], []).append(v["acc"])
+    multi = {m: vs for m, vs in multi.items() if len(vs) >= 2}
+    if multi:
+        rows.append(BS + "midrule")
+        rows.append(group("Across data-split seeds, published decoders, same pipeline", 4))
+        for m in sorted(multi):
+            vs = multi[m]
+            rows.append("%s & --- & %d & %.4f %s" % (m, len(vs), max(vs) - min(vs), EOL))
+    lo, hi = (min(spreads), max(spreads)) if spreads else (0, 0)
     return table(
         "tab:noise",
-        "Measurement noise, and why no single-seed ranking appears in this "
-        "paper. The first block repeats arms for which momentum and estimator "
-        "version are inert, so all variation is run-to-run: the arm without "
-        "the cross-epoch transformer is bit-identical across three runs, and "
-        "the arms with it are not. Across split seeds the spread doubles, and "
-        "for the published baselines it reaches 0.053. \\textbf{Differences "
-        "below 0.02 are not interpreted anywhere in this work.}",
+        "Measurement noise. The first block repeats arms for which momentum "
+        "and estimator version are inert, so all variation is run-to-run: the "
+        "arm without the cross-epoch transformer is bit-identical across three "
+        "runs, and the arms with it are not. Across data-split seeds the "
+        "spread is larger again, \\textbf{%.3f to %.3f} for our arms without "
+        "the transformer. \\textbf{Differences below 0.02 are not interpreted "
+        "anywhere in this work}, and differences below the seed spread are "
+        "reported without a ranking." % (lo, hi),
         "llrr", "Arm & Transformer & $n$ & Spread", rows)
 
 
 def main():
     parts = ["%% Generated by src/make_tables.py -- do not edit by hand." + NL + NL,
-             t_landscape(), t_rate(), t_repr(), t_norm(), t_rejected(),
+             t_compare(), t_rate(), t_repr(), t_norm(), t_rejected(),
              t_drift(),
              t_noise()]
     OUT.write_text("".join(parts), encoding="utf-8")

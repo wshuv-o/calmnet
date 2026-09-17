@@ -1,0 +1,5 @@
+[12:44:56] bd follow-on 2: waiting for running cohort C job (pid 27868)
+[13:00:21] END   bd_cohortC  (pid 27868 exited)
+[13:00:21] START bd_cohortC_resume
+[13:00:45] END   bd_cohortC_resume  rc=0  0 min
+[13:00:45] START bd_pipeC_s12
