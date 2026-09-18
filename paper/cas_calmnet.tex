@@ -47,11 +47,10 @@
 \def\floatpagepagefraction{1}
 \def\textpagefraction{.001}
 
-\shorttitle{Label-free covariance alignment for EEG decoding}
+\shorttitle{Tangent-space features for EEG movement-intent decoding}
 \shortauthors{E. M. C. Abha et al.}
 
-\title[mode = title]{Label-free covariance alignment for longitudinal EEG
-decoding}
+\title[mode = title]{Tangent-space features for longitudinal EEG movement-intent decoding, and the protocol condition that bounds them}
 
 \author[1]{Esm E Moula Chowdhury Abha}
 \ead{26-94089-2@student.aiub.edu}
@@ -76,19 +75,19 @@ Data curation, Writing -- original draft, Visualization}
 \cortext[1]{Corresponding author}
 
 \begin{abstract}
-An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting that shift by whitening at inference reintroduces a hazard: under a protocol presenting classes in long blocks, a running covariance estimate converges on the active class and whitens away the signal it should protect.
+Compact EEG decoders summarise each window as log power per channel, which is the diagonal of its spatial covariance. How channels covary is discarded, and on movement-intent tasks that structure carries information the diagonal does not.
 
-We add a second-order branch mapping each window's covariance into the tangent space at a running reference the network already maintains without labels, concatenated with the log-power stem. Across five cohorts and 51 participants, three seeds each, it raises balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort held out from all development ($p=8.8\times10^{-5}$, higher in 20 of 20), $+0.040$ on BCI Competition IV-2a ($p=0.020$), $+0.021$ on a second exoskeleton cohort ($p=0.047$), and $+0.045$ on the exoskeleton cohort used for development. On the fifth, a treadmill cohort, it costs $0.175$ and falls close to chance.
+We add a tangent-space branch beside the log-power stem. Each window's covariance is shrunk, mapped to the tangent space at a reference the network maintains from the input alone, and projected into the classifier. No labels are used at inference and the reference keeps updating on the test stream. Across five cohorts and 51 participants, three seeds each, the branch raises balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort held out from all development ($p=8.8\times10^{-5}$, higher in 20 of 20), $+0.021$ on a lower-limb exoskeleton cohort ($p=0.047$), $+0.040$ on BCI Competition IV-2a ($p=0.020$), and $+0.045$ on a second exoskeleton cohort. It beats all eight published decoders trained in the same pipeline on each cohort where the comparison was run.
 
-That failure is not unexplained. A single-class block there lasts 214 windows while one covariance update averages 32, so the update sits inside a block and the reference converges on the streaming class. On the four cohorts where the branch helps a block is 1 to 18 windows and each update is class-mixed by construction. Comparing block length against update size, both read from the protocol before training and neither fitted, separates all five cohorts. A stronger prescription setting the adaptation rate from the block length was pre-registered, falsified, and is reported as such.
+On the fifth cohort it costs $0.175$ and falls near chance, and that failure is predictable before training. The branch's reference is a running mean over the incoming windows, so it is safe only while a single covariance update spans more than one class block. A block lasts 214 windows there against an update of 32; on the four cohorts where the branch helps a block is 1 to 18 windows and every update is class-mixed by construction. Both quantities are read from the recording protocol, neither is fitted, and the comparison separates all five cohorts. Enlarging the update to span a block recovers 74\,% of the loss, which is causal support for the account without restoring parity. A stronger prescription, setting the adaptation rate from the block length, was pre-registered and falsified.
 \end{abstract}
 
 \begin{highlights}
 \item A tangent-space branch supplies the channel covariance a log-power stem discards.
-\item It raises accuracy on four of five cohorts, 51 participants, three seeds each.
-\item It fails on the one cohort whose class blocks outlast a covariance update.
+\item Accuracy rises on four of five cohorts, 51 participants, three seeds each.
+\item It beats eight published decoders trained in the same pipeline on each cohort.
+\item Its label-free reference fails where a class block outlasts one covariance update.
 \item Block length against update size, read from the protocol, separates all five.
-\item A pre-registered rate prescription on the same quantity was falsified.
 \end{highlights}
 
 \begin{keywords}
