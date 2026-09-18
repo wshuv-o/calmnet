@@ -1341,6 +1341,38 @@ Stem + branch & $\mathbf{0.741}$ & $\mathbf{0.949}$ \\
 \end{tabular}
 \end{table}
 
+\subsection{The reported model against the field}
+\label{sec:master}
+
+Table~\ref{tab:master} is the comparison the rest of the results build toward: the reported model, the stem it is built on, and eight published decoders, on every cohort, three seeds each. Every cell was trained in the same pipeline with the same splits, seeds, preprocessing and metric code, so the columns are internally comparable. They are not comparable with numbers from these decoders' original papers, which used different splits and different preprocessing, and we make no claim about those.
+
+\begin{table*}[t]
+\centering
+\caption{Balanced accuracy, mean over three seeds, all in one pipeline. Bold is the best in a column. The reported model leads on 4 of the five cohorts. Cohort~B is the exception and is the cohort the block-length condition rules the branch out of (Section~\ref{sec:fivecohort}); there the stem alone is the configuration to use, and the condition says so before training. Cohort~D leaves most of these decoders near chance under shared hyperparameters, for which see Table~\ref{tab:newbase}.}
+\label{tab:master}
+\begin{tabular}{lccccc}
+\toprule
+Decoder & A & B & C & D & E \\
+\midrule
+EEGNeX & $0.862$ & $0.707$ & $\mathbf{0.783}$ & $0.656$ & $0.887$ \\
+FBLightConvNet & $0.866$ & $0.687$ & $0.778$ & $0.674$ & $0.891$ \\
+ShallowFBCSPNet & $0.849$ & $0.692$ & $0.765$ & $\mathbf{0.682}$ & $0.886$ \\
+EEGConformer & $0.847$ & $0.685$ & $0.783$ & $0.599$ & $\mathbf{0.896}$ \\
+TSception & $0.852$ & $\mathbf{0.734}$ & $0.723$ & $0.579$ & $0.833$ \\
+EEGNet & $0.856$ & $0.716$ & $0.630$ & $0.526$ & $0.700$ \\
+EEGTCNet & $\mathbf{0.878}$ & $0.672$ & $0.585$ & $0.505$ & $0.695$ \\
+Deep4Net & $0.817$ & $0.617$ & $0.549$ & $0.525$ & $0.722$ \\
+\midrule
+stem alone & $0.864$ & $0.744$ & $0.779$ & $0.701$ & $0.928$ \\
+\textbf{stem $+$ branch} & $\mathbf{0.909}$ & $\mathbf{0.568}$ & $\mathbf{0.843}$ & $\mathbf{0.741}$ & $\mathbf{0.949}$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The reported model is highest on 4 of the five cohorts. On the fifth, cohort~B, it is the worst entry in the column, and that is exactly the cohort where a class block outlasts one covariance update. What makes this a usable result rather than an unreliable one is that the stem alone leads that column: $0.744$ against $0.734$ for the strongest published decoder there. One of the two configurations is therefore the best entry in every column of the table, and the block-length condition selects between them from the recording protocol, before any data is collected and without consulting accuracy.
+
+Parameter counts belong beside this. The reported model is 290{,}943 parameters against 19{,}505 for the stem, so the gains in this table cost roughly fifteen times the parameters. Of the published decoders, ShallowFBCSPNet and EEGNet are an order of magnitude smaller again, and EEG Conformer is larger than ours. Nothing here is a claim about efficiency.
+
 %=============================================================================
 \section{Discussion}
 \label{sec:discussion}
