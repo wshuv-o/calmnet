@@ -10,7 +10,11 @@
 \usepackage{multirow}
 \usepackage{xcolor}
 % Every value is final; \pending is kept as a no-op so that older drafts compile.
-\newcommand{\pending}[1]{#1}
+% Cells still waiting on a run. Red and labelled, so nothing outstanding
+% can be mistaken for a measured value. A bare \pending reads
+% "run pending"; the optional argument overrides that text.
+\definecolor{pendingred}{RGB}{200,30,30}
+\newcommand{\pending}[1][run pending]{\textcolor{pendingred}{\textbf{#1}}}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,
             citecolor=magenta,
@@ -72,19 +76,19 @@ Data curation, Writing -- original draft, Visualization}
 \cortext[1]{Corresponding author}
 
 \begin{abstract}
-An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting the shift by whitening at inference reintroduces a hazard: under a protocol that presents classes in long blocks, a running covariance estimate converges to the active class and whitens away the signal it should protect.
+An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting that shift by whitening at inference reintroduces a hazard: under a protocol presenting classes in long blocks, a running covariance estimate converges on the active class and whitens away the signal it should protect.
 
-We add a second-order branch that maps each window's covariance into the tangent space at a running reference the network already maintains without labels, and concatenates it with the log-power stem. On a 20-participant motor-execution cohort held out from all development, the branch raises balanced accuracy from $0.779$ to $0.843 \pm 0.006$, higher in 20 of 20 participants ($p = 8.8 \times 10^{-5}$), against $0.783$ for the strongest of eight published decoders trained in the same pipeline. On a 7-participant exoskeleton cohort it gives $0.909 \pm 0.004$ against $0.864$, higher in 6 of 7. On a treadmill cohort whose class blocks last 214 windows it collapses to $0.568$, below the $0.744$ of the stem alone and close to the $0.500$ chance line, which is what the class-block condition governing the alignment layer predicts: the reference converges on the streaming class. Lengthening the estimator memory from 160 to 3200 windows, as that condition prescribes, returns the cohort to $0.718$ ($p = 0.31$ against the stem). Removing the reference instead repairs that cohort and is null or negative on the other two, so the adapting reference is the source of the gain and not the liability.
+We add a second-order branch mapping each window's covariance into the tangent space at a running reference the network already maintains without labels, concatenated with the log-power stem. Across five cohorts and 51 participants, three seeds each, it raises balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort held out from all development ($p=8.8\times10^{-5}$, higher in 20 of 20), $+0.040$ on BCI Competition IV-2a ($p=0.020$), $+0.021$ on a second exoskeleton cohort ($p=0.047$), and $+0.045$ on the exoskeleton cohort used for development. On the fifth, a treadmill cohort, it costs $0.175$ and falls close to chance.
 
-One condition, read from the recording protocol before training, therefore governs two independent mechanisms and says in advance where each will fail. Its upper bound, set by the drift timescale, remains unmeasurable on both cohorts.
+That failure is not unexplained. A single-class block there lasts 214 windows while one covariance update averages 32, so the update sits inside a block and the reference converges on the streaming class. On the four cohorts where the branch helps a block is 1 to 18 windows and each update is class-mixed by construction. Comparing block length against update size, both read from the protocol before training and neither fitted, separates all five cohorts. A stronger prescription setting the adaptation rate from the block length was pre-registered, falsified, and is reported as such.
 \end{abstract}
 
 \begin{highlights}
 \item A tangent-space branch supplies the channel covariance a log-power stem discards.
-\item It raises accuracy by $0.064$ in 20 of 20 held-out participants, $p<10^{-4}$.
-\item The branch collapses where class blocks outlast the estimator memory.
-\item One protocol-derived condition predicts where both adaptive mechanisms fail.
-\item The slow adaptation it prescribes recovers the cohort it rules out.
+\item It raises accuracy on four of five cohorts, 51 participants, three seeds each.
+\item It fails on the one cohort whose class blocks outlast a covariance update.
+\item Block length against update size, read from the protocol, separates all five.
+\item A pre-registered rate prescription on the same quantity was falsified.
 \end{highlights}
 
 \begin{keywords}
@@ -1263,6 +1267,78 @@ None (no whitening) & $-0.021$ & $+0.011$ & $+0.003$ \\
 \end{table}
 
 One boundary on the claim. The branch helps the stem, and it does not help the configuration that already contains the alignment layer: on cohort~C the same branch added to the aligned arm changes accuracy by $+0.002$ ($p=0.52$, higher in 14 of 20). Both read the same second-order structure, so they are substitutes rather than complements, and the configuration we report is the stem with the branch and no alignment layer.
+
+\subsection{Five cohorts, and one boundary that separates them}
+\label{sec:fivecohort}
+
+Table~\ref{tab:five} collects the branch against the convolutional stem on every cohort, three seeds throughout, paired across participants. Cohorts~D and~E were added after the method was fixed, and nothing was tuned on either.
+
+\begin{table*}[t]
+\centering
+\caption{The tangent-space branch against the stem alone, three seeds, paired Wilcoxon across participants. $\tau_{\mathrm{blk}}$ is the median single-class block in windows, read from the fitting labels before training. One covariance update averages $N=32$ windows, so a cohort is at risk when a block outlasts an update. The regime column follows from that comparison alone and uses no accuracy.}
+\label{tab:five}
+\begin{tabular}{lrrlccccc}
+\hline
+Cohort & $n$ & $\tau_{\mathrm{blk}}$ & Regime & Stem & Stem + branch & $\Delta$ & Higher & $p$ \\
+\hline
+C, motor execution & 20 & 5 & safe & $0.779$ & $0.843$ & $+0.064$ & 20/20 & $8.8\times10^{-5}$ \\
+D, BCI IV-2a & 9 & 1 & safe & $0.701$ & $0.741$ & $+0.040$ & 8/9 & $0.020$ \\
+E, exoskeleton (DECODED) & 7 & 13 & safe & $0.928$ & $0.949$ & $+0.021$ & 6/7 & $0.047$ \\
+A, exoskeleton & 7 & 18 & safe & $0.864$ & $0.909$ & $+0.045$ & 6/7 & $0.219$ \\
+B, treadmill & 8 & 214 & at risk & $0.744$ & $0.568$ & $-0.175$ & 0/8 & $0.008$ \\
+\hline
+\end{tabular}
+\end{table*}
+
+The branch helps on four cohorts and fails on one. The cohort it fails on is the only one whose class blocks outlast a covariance update, and that comparison is available before any model is trained: $\tau_{\mathrm{blk}}$ comes from the label sequence and $N$ is the batch size. On cohorts~D, C, E and~A a block is 1, 5, 13 and 18 windows against an update of 32, so every update already spans several blocks and no momentum can make the reference follow one class. On cohort~B a block is 214 windows, an update sits inside it, and the reference converges on the Walk covariance; whitening a Walk window by the Walk covariance removes the variance separating the classes, and accuracy falls to $0.568$ against a $0.500$ chance line.
+
+Lengthening the estimator memory on cohort~B moves it back monotonically: $0.568$ at a memory of 160 windows, $0.650$ at 428 and $0.718$ at 3200, against $0.744$ for the stem alone. The direction the comparison predicts is visible at every point measured.
+
+Two limits belong with this claim. The boundary was identified after cohorts~A, B and~C were run, so only its applications to cohorts~D and~E were prospective. And the boundary itself is untested: every cohort where the branch helps has $\tau_{\mathrm{blk}}$ between 1 and 18, the one where it fails has 214, and nothing is measured near $N=32$ where behaviour is claimed to change. Table~\ref{tab:batchsweep} is reserved for the experiment that would test it directly.
+
+\begin{table}[t]
+\centering
+\caption{Reserved. Varying the covariance update size $N$ at fixed $\tau_{\mathrm{blk}}$ manipulates the proposed cause directly: reducing $N$ below cohort~A's block length should remove a gain, and raising it above cohort~B's should restore one. Not yet run.}
+\label{tab:batchsweep}
+\begin{tabular}{lrrcc}
+\hline
+Cohort & $\tau_{\mathrm{blk}}$ & $N$ & Predicted & Measured $\Delta$ \\
+\hline
+A & 18 & 8 & break & \pending \\
+A & 18 & 32 & hold & $+0.045$ \\
+B & 214 & 32 & break & $-0.175$ \\
+B & 214 & 256 & hold & \pending \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Published decoders on the two new cohorts}
+\label{sec:newbaselines}
+
+Cohorts~D and~E were added last and their baseline sweeps are outstanding. Table~\ref{tab:newbase} is laid out for them and marked where numbers are not yet measured. The eight decoders are the same set trained in the same pipeline, with the same splits, seeds and metric code as on cohorts~A, B and~C, so the comparison will be within-harness.
+
+\begin{table}[t]
+\centering
+\caption{Published decoders on the two cohorts added last, three seeds each, same pipeline as Table~\ref{tab:external}. Red entries are not yet measured.}
+\label{tab:newbase}
+\begin{tabular}{lcc}
+\hline
+Decoder & Cohort D & Cohort E \\
+\hline
+EEGNet & \pending & \pending \\
+EEGNeX & \pending & \pending \\
+EEGTCNet & \pending & \pending \\
+EEGConformer & \pending & \pending \\
+ShallowFBCSPNet & \pending & \pending \\
+Deep4Net & \pending & \pending \\
+FBLightConvNet & \pending & \pending \\
+TSception & \pending & \pending \\
+\hline
+Stem alone & $0.701$ & $0.928$ \\
+Stem + branch & $\mathbf{0.741}$ & $\mathbf{0.949}$ \\
+\hline
+\end{tabular}
+\end{table}
 
 %=============================================================================
 \section{Discussion}
