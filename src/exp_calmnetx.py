@@ -101,6 +101,11 @@ DRIFT_ARMS = {
                         use_tangent=True),
     "dn_stem_tan": dict(use_align=False, use_ctx=False, use_gate=False,
                         use_tangent=True),
+    # Cohort B's reference arm is dn_gate (alignment off, which is what the
+    # rate condition requires there), so the module ablation on that cohort
+    # needs its own control pair rather than borrowing cohort A's.
+    "dn_gate_tan": dict(use_align=False, use_ctx=False, use_gate=True,
+                        use_tangent=True),
     # Selection head without alignment or context. Paired with dn_noctx it
     # isolates alignment as the single differing factor, which the pre-registered
     # third-cohort test (paper/PREREGISTRATION_cohort3.md) requires.
