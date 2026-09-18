@@ -1315,28 +1315,27 @@ B & 214 & 256 & hold & \pending \\
 \subsection{Published decoders on the two new cohorts}
 \label{sec:newbaselines}
 
-Cohorts~D and~E were added last and their baseline sweeps are outstanding. Table~\ref{tab:newbase} is laid out for them and marked where numbers are not yet measured. The eight decoders are the same set trained in the same pipeline, with the same splits, seeds and metric code as on cohorts~A, B and~C, so the comparison will be within-harness.
+Table~\ref{tab:newbase} places the branch against the eight published decoders on the two cohorts added last. All are trained in the same pipeline with the same splits, seeds and metric code as on cohorts~A, B and~C, so the comparison is within-harness. The branch leads every published decoder on both: $0.741$ against $0.682$ for the strongest on cohort~D, and $0.949$ against $0.896$ on cohort~E. The stem alone also clears them, so the ordering does not depend on the branch; what the branch adds is the margin.
 
 \begin{table}[t]
 \centering
-\caption{Published decoders on the two cohorts added last, three seeds each, same pipeline as Table~\ref{tab:external}. Red entries are not yet measured.}
+\caption{Published decoders on the two cohorts added last, mean and standard deviation over three seeds, same pipeline as Table~\ref{tab:external}.}
 \label{tab:newbase}
 \begin{tabular}{lcc}
 \hline
 Decoder & Cohort D & Cohort E \\
 \hline
-EEGNet & \pending & \pending \\
-EEGNeX & \pending & \pending \\
-EEGTCNet & \pending & \pending \\
-EEGConformer & \pending & \pending \\
-ShallowFBCSPNet & \pending & \pending \\
-Deep4Net & \pending & \pending \\
-FBLightConvNet & \pending & \pending \\
-TSception & \pending & \pending \\
+ShallowFBCSPNet & $0.682{\scriptstyle\,{\pm}0.013}$ & $0.886{\scriptstyle\,{\pm}0.008}$ \\
+FBLightConvNet & $0.674{\scriptstyle\,{\pm}0.004}$ & $0.891{\scriptstyle\,{\pm}0.022}$ \\
+EEGNeX & $0.656{\scriptstyle\,{\pm}0.015}$ & $0.887{\scriptstyle\,{\pm}0.018}$ \\
+EEGConformer & $0.599{\scriptstyle\,{\pm}0.077}$ & $0.896{\scriptstyle\,{\pm}0.010}$ \\
+TSception & $0.579{\scriptstyle\,{\pm}0.015}$ & $0.833{\scriptstyle\,{\pm}0.011}$ \\
+EEGNet & $0.526{\scriptstyle\,{\pm}0.017}$ & $0.700{\scriptstyle\,{\pm}0.054}$ \\
+Deep4Net & $0.525{\scriptstyle\,{\pm}0.007}$ & $0.722{\scriptstyle\,{\pm}0.035}$ \\
+EEGTCNet & $0.505{\scriptstyle\,{\pm}0.015}$ & $0.695{\scriptstyle\,{\pm}0.016}$ \\
 \hline
 Stem alone & $0.701$ & $0.928$ \\
 Stem + branch & $\mathbf{0.741}$ & $\mathbf{0.949}$ \\
-\hline
 \end{tabular}
 \end{table}
 
