@@ -198,6 +198,13 @@ decoding starts, and within-recording drift is not tracked. We respond by moving
 the estimator inside the network as a layer that updates online, and we then
 show what that move costs (Section~\ref{sec:rate}).
 
+\subsection{Riemannian and tangent-space representations}
+\label{sec:rw_riem}
+
+Spatial covariances are symmetric positive-definite matrices and do not form a vector space, so the methods built on them operate on the SPD manifold. The standard recipe computes a covariance per window, maps it to the tangent space at a reference point, and classifies the resulting vector with a linear model \citep{barachant,barachant2013,congedo}. The reference is usually the Riemannian or arithmetic mean of the training covariances, and the choice matters because the map is only a faithful local approximation near that point. These representations remain competitive with convolutional decoders on movement-intent tasks and are the strongest general-purpose transfer tools reported in reviews \citep{lotte2018,wu_transfer}. SPD networks learn the manifold operations instead of fixing them \citep{spdnet}.
+
+Two differences separate the branch used here from that line. The tangent map is a second input to a convolutional decoder rather than the representation the decoder is built on, so first-order band power and second-order structure are read together instead of one replacing the other; Section~\ref{sec:fivecohort} reports that the two are complementary and that the branch alone is weaker than the stem alone. And the reference point is estimated from the incoming windows at inference rather than fixed after fitting, which is what makes the representation track a changing session and is also, as Section~\ref{sec:rate} shows, what makes it fail under a blocked protocol.
+
 \subsection{Test-time adaptation}
 
 Updating normalisation statistics on the test distribution improves accuracy
@@ -219,16 +226,7 @@ is not measured here (Section~\ref{sec:limits}).
 
 \subsection{Calibration and selective prediction}
 
-Modern networks are overconfident, and expected calibration error
-\citep{naeini,guo} degrades further under distribution shift \citep{ovadia},
-which is exactly the regime a longitudinally deployed decoder operates in.
-Selective classification allows a model to abstain \citep{chow,elyaniv}, and
-SelectiveNet trains the classifier and the selection function jointly under a
-coverage constraint \citep{selectivenet,geifman2017}. We use SelectiveNet as
-published and claim no contribution to it. We include it because a decoder that
-must not move a wearer's legs on weak evidence needs a reject option, and
-Section~\ref{sec:ablation} reports that the trained selection function did not
-provide a usable one.
+Modern networks are overconfident and expected calibration error \citep{naeini,guo} degrades further under distribution shift \citep{ovadia}, which is the regime a longitudinally deployed decoder operates in. Selective classification allows a model to abstain \citep{chow,elyaniv}, and SelectiveNet trains the classifier and the selection function jointly under a coverage constraint \citep{selectivenet,geifman2017}. A device that must not move a wearer's legs on weak evidence is an obvious candidate for a reject option, so we built one in and tested it. It did not work: the trained selection function ranked windows no better than the classifier's own confidence, and the head is not part of the reported model. Section~\ref{sec:ablation} gives the measurement. We claim no contribution to selective prediction and report calibration error throughout because it is what a controller would threshold on.
 
 \subsection{EEG correlates of gait and exoskeleton control}
 
