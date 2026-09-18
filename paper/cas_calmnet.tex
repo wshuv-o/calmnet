@@ -1447,26 +1447,13 @@ tracking directly.
 
 Several limitations constrain the interpretation of these results.
 
-\textbf{Seeds.} The component ablation of Table~\ref{tab:ablation} and the rate tables are single-seed; Table~\ref{tab:ablation3} repeats the ablation over three seeds, two for the stem-only arm.
-The proposed configuration was rerun over three data-split seeds under the
-trace-normalised estimator, giving $0.868 \pm 0.026$ (seeds $0.884$, $0.882$ and
-$0.839$). That seed standard deviation is larger than the $0.010$ noise floor of
-repeated runs at a fixed split (Table~\ref{tab:noise}), and it is concentrated in
-two participants, whose accuracy ranges over $0.217$ and $0.120$ across seeds
-while the other five vary by at most $0.065$. The rate effects are therefore reported over three seeds with paired tests
-(Table~\ref{tab:ratecurve}, Section~\ref{sec:twosided}). The paired alignment effect on cohort A over the same three seeds is
-$+0.026$ ($p=0.22$) and is negative on one seed, so the benefit of alignment
-where the lower bound holds is small and unconfirmed at this sample size, and
-over seeds 1 and 2 the stem-only arm leads every arm on the mean without a
-significant paired difference (Table~\ref{tab:ablation3}). The
-loss where it fails is $0.149$ on cohort B over three seeds (lower in 8 of 8
-participants; $p=0.008$). The published decoders were run over the same three seeds on cohorts A and C.
+\textbf{Seeds and effect size.} Every cohort in Table~\ref{tab:master} is three data-split seeds. The effect of the branch is nevertheless modest in absolute terms, $+0.021$ to $+0.064$ where it helps, and on cohort~A the paired bootstrap interval spans zero ($[-0.020, +0.109]$, $p=0.22$ at seven participants). The cohorts that carry the claim are C, with twenty participants and all twenty improving, and D and E, where the intervals exclude zero. A reader who wants a single number should take cohort~C's $+0.064$ and treat cohort~A as consistent with it rather than as independent support.
 
 \textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the single-seed component ablation and the single-seed rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the drift results (Table~\ref{tab:drift}), the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the three-seed alignment comparison and the two-seed contrasts against the stem on cohort A (Section~\ref{sec:ablation}, Table~\ref{tab:ablation3}),
 the comparison with published decoders on cohort~C (Section~\ref{sec:compare})
 and the cohort~C predictions (Section~\ref{sec:prereg}).
 
-\textbf{Cohort size.} Seven, eight and twenty participants. This is typical for
+\textbf{Cohort size.} Seven, eight, twenty, nine and seven participants, 51 in total. This is typical for
 exoskeleton BCI studies \citep{he_exo} but small, and the between-subject SD of
 $0.06$ to $0.13$ (Table~\ref{tab:ablation}) is large relative to the differences
 between arms.
@@ -1505,39 +1492,27 @@ against cohort A's 4\,s, so the context pathway spans a shorter duration there.
 This is a confound for the context ablation specifically, though not for the
 rate condition, which is measured within each cohort.
 
+\textbf{Parameter cost.} The branch is 238{,}028 parameters and the fusion it requires a further 32{,}896, against 19{,}505 in the stem path. The reported model is therefore about fifteen times the size of the stem it improves on, for $0.02$ to $0.06$ of balanced accuracy. Two of the published decoders it beats are an order of magnitude smaller again. Whether the tangent vector can be projected more cheaply, for instance by reducing its dimension before the linear layer, is not tested here and is the obvious first place to look.
+
+\textbf{The block-length boundary was found after the fact.} The comparison between $\tau_{\mathrm{blk}}$ and the update size separates all five cohorts with nothing fitted, but it was identified after cohorts~A, B and~C had been run. Only its applications to cohorts~D and~E were prospective, and of those only cohort~C's original rate prediction was registered in the repository before the run. The boundary is supported, not established, and the test that would establish it is a cohort chosen in advance because its protocol sits near the boundary.
+
+\textbf{The boundary is untested at the boundary.} Every cohort where the branch helps has a block of 1 to 18 windows and the one where it fails has 214, against an update of 32. Nothing is measured between 18 and 214, so the location of the change in behaviour is inferred from five points that straddle it, not measured.
+
+\textbf{No calibrated threshold.} Two manipulations move the effect in the predicted direction and neither restores parity. Setting the adaptation rate from the block length with a fixed margin of two was pre-registered and falsified. Enlarging the update to 256 windows against a 214-window block recovers 74\,\% of the loss and still costs $0.046$. The condition therefore gives an ordering and a direction, not a rate a practitioner could set, and the upper side of the two-sided condition remains unmeasured on both cohorts where it was attempted.
+
+\textbf{Cohort E tests task, not drift.} Only one participant recorded on two dates, so its split is temporal across runs within a session. It is the closest match in the paper to the target application and the weakest test of longitudinal shift, and those two facts are in tension.
+
+\textbf{Reproducibility across machines.} The cohort~D baseline sweep was run independently on two machines. Sixteen of 24 cells differ, by up to $0.022$ on a single cell, while the three-seed arm means agree to $0.003$ and the strongest published decoder is identical on both. Single-cell numbers anywhere in this paper therefore carry cross-machine variation wider than several of the gaps between neighbouring rows, and only seed-averaged quantities should be compared.
+
 %=============================================================================
 \section{Conclusion}
 
-An estimate that adapts at test time tracks whatever is currently streaming.
-Under a protocol that presents each class in long contiguous blocks, the
-estimate converges to the current class, and the layer then removes the signal
-it was inserted to protect. The estimator's memory must therefore outlast a
-class block. That bound is read from the recording protocol, which makes it a
-design-time check.
+A log-power stem reads the diagonal of a window's spatial covariance and discards the rest of it. Supplying that structure through a tangent-space branch raises balanced accuracy on four of five cohorts and 51 participants, and beats eight published decoders trained in the same pipeline. It fails on the fifth, and the protocol says in advance which case a cohort is: the branch's reference is an average over whatever is currently streaming, so it survives only while one covariance update spans more than one class block.
 
-The condition has predicted a new cohort correctly in advance. With class
-blocks of five windows, enabling alignment cost nothing and slowing it brought
-no gain, where slowing recovered $0.118$ over three seeds on the cohort with long
-blocks. Where the lower bound holds, the gain from alignment is small and not significant on either cohort that satisfies it: $+0.026$ over three seeds on cohort A and $+0.014$ over two replication seeds on cohort C, and on cohort A the stem alone leads every arm on the mean over seeds 1 and 2, again without a significant difference. Where it fails, alignment costs $0.149$ over three seeds. The condition is therefore most useful as a design-time guard against that loss.
+That condition is the part worth building on, and it is also the part least finished. It separates five cohorts with nothing fitted, it predicted the sign on two cohorts prospectively, and enlarging the update recovers most of the loss where it is violated. It still yields no rate a practitioner could set, its upper side has never been measured, and no cohort has been run near the boundary itself. The experiment that would settle it is small and specific: choose a protocol whose class blocks fall between 18 and 214 windows, register the prediction, and run it once.
 
-The immediate open question is the upper bound. Neither cohort here resolves
-the drift timescale: cohort A's session covariances are already at their plateau
-one session apart, and cohort B has too few trials to fit one. A protocol with
-recordings spaced closely enough to sample the rise of drift, and with
-$\tau_{\mathrm{blk}}$ between roughly 100 and 200 windows, would place the two
-bounds close together, and the prediction is that accuracy would peak at an
-intermediate momentum and fall on both sides. That experiment can be
-pre-registered from the protocol alone, as the cohort C test was.
+The wider point is that a label-free adaptive statistic inherits the structure of the protocol it adapts on. Test-time adaptation methods are usually evaluated on streams that are shuffled or assumed i.i.d.; EEG protocols are blocked by design, and the block length is known before a single recording is made. Reporting it alongside accuracy would let a reader see, without running anything, whether an adaptive component is operating inside its domain of validity.
 
-A second direction follows from the unexplained residual on cohort~B. If a single running estimate
-cannot simultaneously avoid the class and track the drift, then the two
-requirements should perhaps be served by two estimators at different rates, with
-the fast one constrained to the subspace in which drift lives and the slow one
-supplying the class-neutral reference. Whether such a decomposition is identifiable without labels remains open.
-
-These observations may extend to other online adaptation settings. In five cases here a distribution-level quantity improved without a corresponding task improvement, and in three of those the assumption that it would had already been acted upon. Such measures are one-sided by construction, which suggests that methods justified by a reduced divergence should also report the accuracy cost of that reduction.
-
-%=============================================================================
 \section*{CRediT authorship contribution statement}
 \textbf{Esm E Moula Chowdhury Abha}: Software, Methodology, Validation,
 Formal analysis, Investigation, Data curation, Writing -- original draft,
@@ -1554,10 +1529,11 @@ relationships that could have appeared to influence the work reported in this
 paper.
 
 \section*{Data availability}
-All three datasets are publicly available. All code, configurations and result files,
+All five datasets are publicly available. All code, configurations and result files,
 including those of experiments that failed, are in the accompanying repository.
 
 \bibliographystyle{elsarticle-num-names}
 \bibliography{refs}
+
 
 \end{document}
