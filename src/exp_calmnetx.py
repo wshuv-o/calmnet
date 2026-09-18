@@ -293,6 +293,13 @@ def run(d, arm, seed):
         model = build_bd_plus(cfg["bd"], Xf.shape[1], Xf.shape[2], 2).to(DEVICE)
     else:
         model = build_atcnet_plus(Xf.shape[1], Xf.shape[2], 2, **cfg).to(DEVICE)
+    # A frozen tangent reference is estimated from the fitting split before any
+    # training, so the base point never sees a held-out session and never moves
+    # with the test stream.
+    tan = getattr(model, "tangent", None)
+    if tan is not None and getattr(tan, "ref_mode", "running") == "frozen":
+        tan.freeze_reference(tXf.to(DEVICE) if tXf.numel() < 4e8 else tXf)
+
     opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-2)
     sched = torch.optim.lr_scheduler.OneCycleLR(
         opt, max_lr=3e-4, total_steps=EPOCHS * max(1, len(ixf) // 32 + 1))

@@ -199,13 +199,36 @@ class TangentBranch(nn.Module):
     number the logarithm sees.
     """
 
-    def __init__(self, n_chan, d_out, shrink=None, momentum=None, dropout=0.3):
+    def __init__(self, n_chan, d_out, shrink=None, momentum=None, dropout=0.3,
+                 ref_mode=None):
         import os as _os
         super().__init__()
         if momentum is None:
             momentum = float(_os.environ.get("DN_MOMENTUM", "0.2"))
         if shrink is None:
             shrink = float(_os.environ.get("DN_TAN_SHRINK", "0.1"))
+        # Where the base point of the tangent map comes from. The running
+        # reference collapsed on cohort B (0.744 -> 0.565, barely above the
+        # 0.500 chance line) and the cause looks structural rather than
+        # incidental: that cohort is 88 % Walk in blocks of 309 windows, so an
+        # EMA over the test stream becomes the Walk covariance, and whitening a
+        # Walk window by the Walk covariance removes the very variance that
+        # separates the classes. That is the failure this project already
+        # documents for the alignment layer, reappearing because the branch was
+        # built on the same statistic.
+        #
+        #   running  EMA over the test stream. Adapts, and tracks the class.
+        #   frozen   mean covariance of the FITTING split, fixed thereafter.
+        #            The fitting split is a pool rather than a stream, so it
+        #            cannot chase a class block. Gives up test-time adaptation,
+        #            which on cohort B was already costing accuracy.
+        #   none     no whitening: log of the trace-normalised covariance.
+        #            No reference exists to be corrupted.
+        if ref_mode is None:
+            ref_mode = _os.environ.get("DN_TAN_REF", "running")
+        if ref_mode not in ("running", "frozen", "none"):
+            raise ValueError("DN_TAN_REF must be running, frozen or none")
+        self.ref_mode = ref_mode
         self.n_chan, self.shrink, self.momentum = n_chan, shrink, momentum
         self.register_buffer("run_cov", torch.eye(n_chan))
         self.register_buffer("primed", torch.zeros(1))
@@ -232,10 +255,41 @@ class TangentBranch(nn.Module):
         eye = torch.eye(self.n_chan, device=c.device, dtype=c.dtype)
         return (1.0 - self.shrink) * c + self.shrink * eye
 
+    @torch.no_grad()
+    def freeze_reference(self, x, chunk=256):
+        """Set the base point from the fitting split, once, before training.
+
+        Called with fitting data only, so nothing from the held-out sessions
+        enters the reference. Averaged over the whole split in chunks: a
+        subsample would make the base point depend on which windows were drawn,
+        and the point of this mode is that it does not move.
+        """
+        tot, n = None, 0
+        for i in range(0, len(x), chunk):
+            c = self._shrunk_cov(x[i:i + chunk].detach().double()).sum(0)
+            tot = c if tot is None else tot + c
+            n += len(x[i:i + chunk])
+        self.run_cov.copy_((tot / max(n, 1)).to(self.run_cov.dtype))
+        self.primed.fill_(1)
+
     def forward(self, x, ref=None):                      # (N, C, T)
         with torch.no_grad():
             c = self._shrunk_cov(x.detach().double())
-            if ref is None:
+            if self.ref_mode == "none":
+                # log of the covariance itself. It is already trace-normalised
+                # per window, so the logarithm is well scaled without a base
+                # point and there is no reference to track the streaming class.
+                w, v = torch.linalg.eigh(c)
+                logm = v @ torch.diag_embed(torch.clamp(w, min=1e-6).log())                     @ v.transpose(-1, -2)
+                t = logm[:, self.iu[0], self.iu[1]] * self.vec_w
+                return self.proj(t.to(x.dtype))
+            if self.ref_mode == "frozen":
+                # Whatever the caller passes, a frozen branch uses its own
+                # fixed estimate: taking the alignment layer's running
+                # covariance here would reintroduce the tracking this mode
+                # exists to remove.
+                ref = self.run_cov
+            elif ref is None:
                 m = c.mean(0)
                 if self.primed.item() == 0:
                     self.run_cov.copy_(m.to(self.run_cov.dtype))
