@@ -125,10 +125,7 @@ sustained false activation from fifty scattered false windows. The quantity a
 wearer experiences is spurious activations per minute of standing, which we
 report alongside accuracy throughout.
 
-\paragraph{Abstention} A classifier trained only for accuracy must
-emit a decision for every window. A device that acts on a confidence value needs
-that value to be calibrated \citep{guo}, and needs a principled way to do
-nothing when the evidence is weak \citep{chow,elyaniv}.
+\paragraph{What a log-power stem cannot see} Compact EEG decoders reduce each window to log power per channel after spatial filtering \citep{schirrmeister,eegnet}. That summary is the diagonal of the window's spatial covariance. The off-diagonal entries, how channels covary, are discarded, and covariance structure is the basis of the Riemannian methods that remain competitive on movement-intent tasks \citep{barachant,congedo}. Whether a convolutional decoder is losing usable information at that step is an empirical question, and it is the one this paper answers.
 
 Existing responses to drift are mostly applied offline in preprocessing.
 Euclidean Alignment whitens each recording by the inverse square root of its
@@ -147,36 +144,15 @@ makes precise.
 Our contributions are:
 
 \begin{enumerate}
-\item We introduce an adaptive alignment layer that estimates and applies a
-      whitening transform without labels and continues to update at inference,
-      and we verify that its output reaches the classifier instead of being
-      undone by the following normalisation (Section~\ref{sec:align}).
-\item We identify a failure mode specific to in-network alignment: the running
-      estimate tracks the currently streaming class when class blocks exceed the
-      estimator's memory, and the layer then removes the discriminative signal
-      (Section~\ref{sec:rate}).
-\item We derive a lower bound on the adaptation rate from the class-block
-      timescale of the protocol and test it prospectively on a third cohort,
-      with both predictions and their decision thresholds committed before any
-      model was trained on it (Condition~\ref{prop:band},
-      Section~\ref{sec:prereg}).
-\item We validate the mechanism separately from the task, reporting a
-      $45.9\pm4.9\,\%$ and $62.5\pm12.2\,\%$ reduction in
-      session-to-session covariance distance in 15 of 15 subjects against a
-      no-op control (Section~\ref{sec:mechanism}).
-\item We compare the decoder with eight published decoders trained in one
-      pipeline on three cohorts, and report external validation on a treadmill
-      cohort, where the decoder transfers without the alignment layer and
-      enabling the layer costs accuracy in every participant
-      (Sections~\ref{sec:compare} and~\ref{sec:external}).
-\item We retrain the decoder after ICA artefact removal. Most of the accuracy
-      survives, and the losses that remain do not follow the amount of muscle
-      activity removed (Section~\ref{sec:artefact}).
+\item Add a tangent-space branch beside the log-power stem: each window's covariance is shrunk, mapped to the tangent space at a reference estimated from the input alone, and projected into the classifier, with no labels used at inference (Section~\ref{sec:tangent}).
+\item Measure it on five cohorts and 51 participants with three seeds each. Accuracy rises on four, including $+0.064$ in 20 of 20 participants of a cohort held out from every design decision (Section~\ref{sec:fivecohort}).
+\item Compare against eight published decoders trained in one pipeline with shared splits, seeds and metric code, and report the cohort where most of them fail to train rather than letting the resulting margins stand (Section~\ref{sec:newbaselines}).
+\item Identify the branch's failure mode and predict it from the protocol. The reference is a running mean over incoming windows, so it is safe only while one covariance update spans more than one class block; on the cohort where a block outlasts an update the branch costs $0.175$ and falls near chance (Condition~\ref{prop:band}, Section~\ref{sec:rate}).
+\item Test that account causally by enlarging the covariance update at fixed block length, which recovers 74\,% of the loss without restoring parity (Section~\ref{sec:fivecohort}).
+\item Pre-register a stronger version of the same condition, one that sets the adaptation rate from the block length, and report it as falsified (Section~\ref{sec:prereg}).
 \end{enumerate}
 
-The decoder's accuracy is level with the published decoders within the
-variation between seeds, and we make no claim of higher accuracy
-(Section~\ref{sec:compare}).
+The branch costs parameters. It adds roughly 271{,}000 to a 20{,}000-parameter stem, so the reported model is no longer compact and we do not claim parameter efficiency; Section~\ref{sec:compare} reports the counts beside the accuracies so the trade is visible.
 
 %=============================================================================
 \section{Related work}
