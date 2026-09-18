@@ -1,0 +1,125 @@
+{
+ "model": "labram",
+ "repo": "braindecode/labram-pretrained",
+ "cohort": "A",
+ "sfreq_in": 100.0,
+ "sfreq_fm": 200.0,
+ "per_subject": {
+  "sub-01": {
+   "n_fit": 4881,
+   "n_test": 1881,
+   "feat_dim": 200,
+   "probe_fm": 0.8137875611460517,
+   "probe_bandpower": 0.967393431167016,
+   "probe_fm_erased": 0.8038225017470301,
+   "session_probe_fm": 0.5930097158212417,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.9647187410725045
+  },
+  "sub-02": {
+   "n_fit": 5023,
+   "n_test": 1882,
+   "feat_dim": 200,
+   "probe_fm": 0.7676102745187025,
+   "probe_bandpower": 0.8066596002281569,
+   "probe_fm_erased": 0.8276700802123662,
+   "session_probe_fm": 0.7593609570781196,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.9777692629649439
+  },
+  "sub-03": {
+   "n_fit": 4918,
+   "n_test": 1879,
+   "feat_dim": 200,
+   "probe_fm": 0.9470966487831428,
+   "probe_bandpower": 0.9967895186999456,
+   "probe_fm_erased": 0.9033652126584246,
+   "session_probe_fm": 0.5440335543299274,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.9669835863627401
+  },
+  "sub-04": {
+   "n_fit": 4240,
+   "n_test": 1880,
+   "feat_dim": 200,
+   "probe_fm": 0.7626806526806527,
+   "probe_bandpower": 0.915951825951826,
+   "probe_fm_erased": 0.7538616938616939,
+   "session_probe_fm": 0.8266490090933184,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.9945261259873407
+  },
+  "sub-05": {
+   "n_fit": 4350,
+   "n_test": 1879,
+   "feat_dim": 200,
+   "probe_fm": 0.7072373843402535,
+   "probe_bandpower": 0.8367249825052484,
+   "probe_fm_erased": 0.6955679962677863,
+   "session_probe_fm": 0.5710742396717486,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.9743611046144042
+  },
+  "sub-06": {
+   "n_fit": 6201,
+   "n_test": 1732,
+   "feat_dim": 200,
+   "probe_fm": 0.814568756829199,
+   "probe_bandpower": 0.9060121099433138,
+   "probe_fm_erased": 0.7173974286996401,
+   "session_probe_fm": 0.7557585181461368,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.8977009594605746
+  },
+  "sub-07": {
+   "n_fit": 5608,
+   "n_test": 1825,
+   "feat_dim": 200,
+   "probe_fm": 0.7096277523435797,
+   "probe_bandpower": 0.5921345310115544,
+   "probe_fm_erased": 0.7018237682581208,
+   "session_probe_fm": 0.7053004064910038,
+   "session_chance": 0.3333333333333333,
+   "session_probe_bandpower": 0.9897581056819087
+  }
+ },
+ "_reference": {
+  "dn_noctx_3seed": 0.8682,
+  "dn_stem_2seed": 0.8824,
+  "_note": "same harness, same splits, pipeline C"
+ },
+ "_caveats": [
+  "Input is upsampled 100 -> 200 Hz to meet the model's 1 s patch convention. No information is added by that step.",
+  "A linear probe is a lower bound on what a trained branch could extract, and an upper bound on what a frozen branch adds for free.",
+  "LEAKAGE IS NOT AUDITED. ds007788 is public on OpenNeuro and this model's pretraining corpus has not been enumerated here. If our test sessions are in it, every number below is void."
+ ],
+ "encoder_params_restored": 0.9999309057296337,
+ "feature_tap": "final_layer",
+ "summary": {
+  "probe_fm": {
+   "mean": 0.7889441472345117,
+   "sd": 0.08205488046640667,
+   "n": 7
+  },
+  "probe_fm_erased": {
+   "mean": 0.7719298116721518,
+   "sd": 0.07686092169026625,
+   "n": 7
+  },
+  "probe_bandpower": {
+   "mean": 0.86023799992958,
+   "sd": 0.1357883648848469,
+   "n": 7
+  },
+  "session_probe_fm": {
+   "mean": 0.6793123429473565,
+   "sd": 0.10961998910167123,
+   "n": 7
+  },
+  "session_probe_bandpower": {
+   "mean": 0.9665454123063453,
+   "sd": 0.032279758243725865,
+   "n": 7
+  }
+ }
+}
