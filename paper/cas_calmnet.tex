@@ -745,11 +745,14 @@ trace-normalised one ($0.862$ against $0.834$) from the estimator-fix run of
 Section~\ref{sec:rejected}. The lower figure should be read with care: the
 no-align arm is inert to the estimator, so its $0.834$ differs from $0.827$
 only by run-to-run variation, and part of the gap between the two figures is that noise. The comparison that isolates alignment most directly, \textit{align + gate} against \textit{gate} with nothing else changed, was repeated over three data-split seeds under the trace-normalised estimator. With each participant's accuracy averaged over seeds, alignment raises accuracy by $+0.026$ ($0.868$ against $0.842$), higher in 6 of 7 participants (Wilcoxon $p=0.22$). The effect is $+0.067$, $+0.029$ and $-0.019$ on the three seeds, and it is uneven across participants: sub-04 gains $0.179$ and sub-05 loses $0.127$, each with the same sign on every seed. The gain from alignment on cohort A is therefore close to the trace-normalised single-seed figure of $+0.028$, and with seven participants it is not significant.
-Seeds 1 and 2 of Table~\ref{tab:ablation3} remove the single-seed ordering as
-well. There the stem-only arm leads on the grand mean ($0.882$), every other arm
-lies $0.019$ to $0.027$ below it paired over the same seeds and is higher in at
-most 3 of 7 participants, and no difference is distinguishable from zero
-(Holm-corrected $p \geq 0.94$). Against the full configuration the stem's lead
+Table~\ref{tab:ablation3} removes the single-seed ordering as well. Over the two
+seeds every arm shares, the stem-only arm leads: every other arm lies $0.019$ to
+$0.027$ below it paired over those seeds and is higher in at most 3 of 7
+participants, and no difference is distinguishable from zero (Holm-corrected
+$p \geq 0.94$). Over three seeds the stem-only arm averages $0.864 \pm 0.032$,
+level with the $0.868$ of \textit{align + gate}, because its seed 0 sits at
+$0.827$ against $0.881$ and $0.884$ on the other two. The ranking between these
+arms is therefore set by the seed, not by the components. Against the full configuration the stem's lead
 is carried by two participants (sub-05 $+0.137$, sub-01 $+0.075$) and reversed
 by a third (sub-04 $-0.130$). The alignment arms also average more spurious
 activations per minute than the corresponding arms without alignment ($1.60$

@@ -260,8 +260,8 @@ claim("B 160", 0, "costs $%.3f$ at a memory of 160 windows (lower in %d of 8 par
 claim("B 320", 0, "$%.3f$ at 320 (%d of 8; $p=%.3f$)" % (cur[320][1], cur[320][2], cur[320][3]))
 claim("B 1600", 0, "$%.3f$ at 1600 (%d of 8; $p=%.2f$)" % (cur[1600][1], cur[1600][2], cur[1600][3]))
 claim("B 3200", 0, "$%.3f$ at 3200 (%d of 8; $p=%.2f$)" % (cur[3200][1], cur[3200][2], cur[3200][3]))
-claim("B abstract", 0, "at $%.3f$ without the layer over three seeds" % gateB)
-claim("B abstract cost", 0, "and enabling the layer costs $%.3f$," % cur[160][1])
+claim("B gate body", 0, "it reaches $%.3f$ on cohort B" % gateB)
+claim("B cost body", 0, "costs $%.3f$ at a memory of 160 windows" % cur[160][1])
 claim("B external", 0, "against the gate-only arm ($%.3f$ against $%.3f$; lower in %d of 8 participants, Wilcoxon $p=%.3f$)" % (cur[160][0], gateB, cur[160][2], cur[160][3]))
 claim("B residual", 0, "still costs $%.3f$ and $%.3f$ on cohort B against the gate-only arm" % (cur[1600][1], cur[3200][1]))
 claim("B recovery", recB, "gives up $%.3f$ against a memory of 3200 windows" % recB)
@@ -306,7 +306,12 @@ assert abs(PA["align + ctx + gate"][0] + PJ["contrasts"]["dn_stem_vs_dn_full"]["
 assert abs(PA["align + ctx"][0] + PJ["contrasts"]["dn_stem_vs_dn_nogate"]["delta_mean"]) < 1e-9
 stem12 = PJ["per_arm"]["dn_stem"]["grand_mean"]
 gaps = [-v[0] for v in PA.values()]
-claim("stem leads", stem12, "the stem-only arm leads on the grand mean ($%s$)" % f3(stem12))
+_st3 = [J("a_ablation_s12.json")["dn_stem|s%d" % i]["acc"] for i in range(3)]
+_ag3 = [J("a_aligngate_3seed.json")["dn_noctx|s%d" % i]["acc"] for i in range(3)]
+claim("stem 3seed", np.mean(_st3), "averages $%.3f \\pm %.3f$" % (np.mean(_st3), np.std(_st3, ddof=1)))
+claim("stem vs aligngate 3seed", 0, "level with the $%.3f$" % np.mean(_ag3))
+claim("stem seed0", _st3[0], "its seed 0 sits at $%.3f$ against $%.3f$ and $%.3f$"
+      % (_st3[0], _st3[1], _st3[2]))
 claim("stem gap range", 0, "lies $%s$ to $%s$ below it" % (f3(min(gaps)), f3(max(gaps))))
 claim("stem higher max", 0, "higher in at most %d of 7 participants" % max(v[1] for v in PA.values()))
 claim("stem holm min", 0, "Holm-corrected $p \\geq %.2f$" % min(v[4] for v in PA.values()))

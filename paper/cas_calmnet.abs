@@ -1,22 +1,5 @@
-An EEG decoder for a lower-limb exoskeleton is fitted once but must work
-for weeks, while changes in electrode impedance and montage shift
-the covariance its spatial filters depend on. Re-estimating the input covariance
-at inference and whitening by it, without labels, corrects this shift inside the
-network. Under a protocol that presents classes in long blocks, however, the
-running estimate converges to the active class and whitens away the signal it
-should protect.
+An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting the shift by whitening at inference reintroduces a hazard: under a protocol that presents classes in long blocks, a running covariance estimate converges to the active class and whitens away the signal it should protect.
 
-We present a 24{,}181-parameter decoder built around such a layer, and derive a
-lower bound on its adaptation rate from the class-block timescale of the
-recording protocol. The layer reduces session-to-session covariance distance by
-$45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of 15
-participants. On a seven-participant exoskeleton cohort the decoder reaches
-$0.868 \pm 0.026$ balanced accuracy over three seeds, level with eight published
-decoders, and no component, alignment included, is shown to change accuracy
-relative to the convolutional stem alone. On a treadmill cohort whose class
-blocks last 309 windows, the decoder transfers at $0.729$ without the layer over three seeds, and enabling the layer costs $0.149$,
-lower in 8 of 8 participants. The lower bound then predicted a third cohort in
-advance: both registered predictions held, and the decoder reached $0.796$
-against $0.783$ for the strongest published decoder, with calibration error
-$0.061$. The upper bound, set by the drift timescale, was not measurable; the lower
-bound can be checked from the recording protocol before training.
+We add a second-order branch that maps each window's covariance into the tangent space at a running reference the network already maintains without labels, and concatenates it with the log-power stem. On a 20-participant motor-execution cohort held out from all development, the branch raises balanced accuracy from $0.779$ to $0.843 \pm 0.006$, higher in 20 of 20 participants ($p = 8.8 \times 10^{-5}$), against $0.783$ for the strongest of eight published decoders trained in the same pipeline. On a 7-participant exoskeleton cohort it gives $0.909 \pm 0.004$ against $0.864$, higher in 6 of 7. On a treadmill cohort whose class blocks last 309 windows it collapses to $0.568$, below the $0.744$ of the stem alone and close to the $0.500$ chance line, which is what the class-block condition governing the alignment layer predicts: the reference converges on the streaming class. Lengthening the estimator memory from 160 to 3200 windows, as that condition prescribes, returns the cohort to $0.718$ ($p = 0.31$ against the stem). Removing the reference instead repairs that cohort and is null or negative on the other two, so the adapting reference is the source of the gain and not the liability.
+
+One condition, read from the recording protocol before training, therefore governs two independent mechanisms and says in advance where each will fail. Its upper bound, set by the drift timescale, remains unmeasurable on both cohorts.
