@@ -69,9 +69,24 @@ def f3(x, b=False):
     return BS + "textbf{" + s + "}" if b else s
 
 
+# Tables whose arms are the components of Section~\ref{sec:dropped} rather than
+# the reported model. Marking them here rather than inside each caption avoids
+# splicing into caption expressions, which twice landed inside math mode and
+# once inside the label argument.
+DROPPED_ARM_TABLES = {"tab:ablation3", "tab:rate", "tab:ratecurve",
+                      "tab:noise"}
+DROPPED_NOTE = (" None of the arms in this table is the reported model, which "
+                "is the stem plus the tangent branch; these are the components "
+                "of Section~" + BS + "ref{sec:dropped}, and the reported "
+                "model is compared with the same decoders in Table~"
+                + BS + "ref{tab:compare}.")
+
+
 def table(label, caption, colspec, header, rows, wide=False, small=True,
           note=None, fill=False, fit=False):
     env = "table*" if wide else "table"
+    if label in DROPPED_ARM_TABLES:
+        caption = caption + DROPPED_NOTE
     out = [BS + "begin{" + env + "}[t]",
            BS + "caption{" + caption + "}",
            BS + "label{" + label + "}",
@@ -280,77 +295,107 @@ def seeds_of(d, arm):
 
 
 def t_compare():
-    import numpy as _np
-    bdA, bdC, bdB = L("bd_pipeline_c.json"), L("bd_cohort_c.json"), L("bd_cohort_b.json")
-    for _k, _v in L("bd_eegnex_s12.json").items():   # EEGNeX seeds 1-2 run on the RTX 5080
-        bdA.setdefault(_k, _v)
-    A3, G3 = L("a_aligngate_3seed.json"), L("a_gate_3seed.json")
-    C0, CR = L("cohort3_m0.2.json"), L("cohort3_rep_m0.2.json")
-    BG = L("b_gate_aligngate_3seed.json")
+    """Both of our configurations and eight published decoders, five cohorts.
 
-    def mean_of(runs, field):
+    One pipeline throughout: identical preprocessing, optimiser, schedule, early
+    stopping, model selection and classifier head, three data-split seeds per
+    cell. Columns are therefore internally comparable and are NOT comparable
+    with these decoders' published numbers, which used different splits.
+    """
+    import numpy as _np
+    BD = {"A": L("bd_pipeline_c.json"), "B": L("bd_cohort_b.json"),
+          "C": L("bd_cohort_c.json"), "D": L("bd_cohort_d.json"),
+          "E": L("bd_cohort_e.json")}
+    for _k, _v in L("bd_eegnex_s12.json").items():
+        BD["A"].setdefault(_k, _v)
+
+    OURS = {
+        "stem $+$ branch": ("290" + BS + ",943", "dn_stem_tan", {
+            "A": "a_tangent_3seed.json", "B": "b_tangent_3seed.json",
+            "C": "c_stem_tangent_3seed.json", "D": "d_bnci_3seed.json",
+            "E": "e_decoded_3seed.json"}),
+        "stem alone": ("19" + BS + ",505", "dn_stem", {
+            "A": "a_ablation_s12.json", "B": "b_tangent_3seed.json",
+            "C": "c_stem_tangent_3seed.json", "D": "d_bnci_3seed.json",
+            "E": "e_decoded_3seed.json"}),
+    }
+    COH = ["A", "B", "C", "D", "E"]
+
+    def cells(d, arm):
+        return [d[k] for k in sorted(d) if k.startswith(arm + "|s")
+                and isinstance(d[k], dict) and d[k].get("acc") is not None]
+
+    def fmt(runs):
         if len(runs) < 3:
             return pend("pending")
-        v = [r[field] for r in runs]
-        if field != "acc":
-            return "%.3f" % _np.mean(v)
+        v = [r["acc"] for r in runs]
         return "%.3f $" % _np.mean(v) + BS + "pm$ %.3f" % _np.std(v, ddof=1)
 
     def failed(runs):
-        return any(sum(1 for v in r["per_subject"].values() if v["acc"] < FAIL_ACC) >= FAIL_N
-                   for r in runs)
+        return any(sum(1 for x in r["per_subject"].values()
+                       if x["acc"] < FAIL_ACC) >= FAIL_N for r in runs)
 
-    ours = {
-        "Ours, align + gate": ("24" + BS + ",181",
-                               [A3.get("dn_noctx|s%d" % i) for i in range(3)],
-                               [C0.get("dn_noctx|s0"), CR.get("dn_noctx|s1"), CR.get("dn_noctx|s2")],
-                               seeds_of(BG, "dn_noctx")),
-        "Ours, gate only (alignment off)": ("24" + BS + ",180",
-                                            [G3.get("dn_gate|s%d" % i) for i in range(3)],
-                                            [C0.get("dn_gate|s0"), CR.get("dn_gate|s1"), CR.get("dn_gate|s2")],
-                                            seeds_of(BG, "dn_gate")),
-    }
-    rows = [group("This work", 8)]
-    for name, (par, a, c, b) in ours.items():
-        a, c, b = [x for x in a if x], [x for x in c if x], [x for x in b if x]
-        rows.append("%s & %s & %s & %s & %s & %s & %s & %s %s" % (
-            name, par, mean_of(a, "acc"), mean_of(a, "ece"), mean_of(c, "acc"), mean_of(c, "ece"),
-            mean_of(b, "acc"), mean_of(b, "ece"), EOL))
+    # best published per cohort, for bolding
+    best = {}
+    for c in COH:
+        vals = {}
+        for m in PARAMS_C:
+            r = cells(BD[c], m)
+            if len(r) >= 3:
+                vals[m] = _np.mean([x["acc"] for x in r])
+        best[c] = max(vals.values()) if vals else None
+
+    rows = [group("This work", 7)]
+    for name, (par, arm, files) in OURS.items():
+        vals = []
+        for c in COH:
+            r = cells(L(files[c]), arm)
+            s = fmt(r)
+            if len(r) >= 3 and best[c] is not None:
+                if _np.mean([x["acc"] for x in r]) > best[c]:
+                    s = BS + "textbf{" + s + "}"
+            vals.append(s)
+        rows.append("%s & %s & %s %s" % (name, par, " & ".join(vals), EOL))
     rows.append(BS + "midrule")
-    rows.append(group("Published decoders, same pipeline", 8))
+    rows.append(group("Published decoders, same pipeline", 7))
 
-    def a3(m):
-        ra = seeds_of(bdA, m)
-        return _np.mean([r["acc"] for r in ra]) if ra else 0
+    def rank(m):
+        r = cells(BD["C"], m)
+        return _np.mean([x["acc"] for x in r]) if r else 0
 
-    for m in sorted(PARAMS_C, key=lambda m: -a3(m)):
-        ra, rc, rb = seeds_of(bdA, m), seeds_of(bdC, m), seeds_of(bdB, m)
-        c_acc = mean_of(rc, "acc")
-        if len(rc) >= 3 and failed(rc):
-            c_acc += "$^" + BS + "dagger$"
-        rows.append("%s%s & %s & %s & %s & %s & %s & %s & %s %s" % (
+    for m in sorted(PARAMS_C, key=lambda m: -rank(m)):
+        vals = []
+        for c in COH:
+            r = cells(BD[c], m)
+            s = fmt(r)
+            if len(r) >= 3 and failed(r):
+                s += "$^" + BS + "dagger$"
+            vals.append(s)
+        rows.append("%s%s & %s & %s %s" % (
             m, cref(m), "{:,}".format(PARAMS_C[m]).replace(",", BS + ","),
-            mean_of(ra, "acc"), mean_of(ra, "ece"), c_acc, mean_of(rc, "ece"),
-            mean_of(rb, "acc"), mean_of(rb, "ece"), EOL))
+            " & ".join(vals), EOL))
+
     return table(
         "tab:compare",
-        "The proposed decoder and eight published decoders trained in one "
-        "pipeline, with identical preprocessing, optimiser, schedule, early "
-        "stopping, model selection and classifier head. Balanced accuracy "
-        "(Acc, mean $" + BS + "pm$ SD across three data-split seeds) and "
-        "expected calibration error (ECE, mean over the same seeds); cohorts A, "
-        "C and B have seven, twenty and eight "
-        "participants. The lower bound of Condition~" + BS + "ref{prop:band} "
-        "enables alignment on cohorts A and C and disables it on cohort B, so "
-        "the proposed configuration is the first row on A and C and the "
-        "second on B. Parameter counts include the shared classifier and are "
-        "instantiated at cohort A's input shape. $" + BS + "dagger$ near chance "
-        "($<0.55$) for at least five of the twenty participants on a seed, a "
-        "training failure under the shared settings.",
-        "lrrrrrrr",
-        "Model & Params & A Acc & A ECE & C Acc & C ECE & B Acc & B ECE",
+        "The reported model, the stem it is built on, and eight published "
+        "decoders trained in one pipeline with identical preprocessing, "
+        "optimiser, schedule, early stopping, model selection and classifier "
+        "head. Balanced accuracy, mean $" + BS + "pm$ SD across three "
+        "data-split seeds. Cohorts A, B, C, D and E have 7, 8, 20, 9 and 7 "
+        "participants. Bold marks a configuration of ours that exceeds every "
+        "published decoder in that column. The branch leads four columns; on "
+        "cohort B, where a class block outlasts one covariance update and "
+        "Condition~" + BS + "ref{prop:band} rules the branch out, the stem "
+        "alone leads instead, so one of the two is the best entry in every "
+        "column and the protocol selects between them before training. "
+        "Parameter counts include the shared classifier at cohort A's input "
+        "shape. $" + BS + "dagger$ near chance ($<0.55$) for at least five "
+        "participants on a seed, a training failure under the shared "
+        "settings. These columns are not comparable with numbers from the "
+        "decoders' original papers.",
+        "lrrrrrr",
+        "Model & Params & A & B & C & D & E",
         rows, wide=True, fit=True)
-
 
 # ===================================================================== mega 2
 def t_rate():

@@ -1,167 +1,190 @@
-"""Figure 1: the architecture.
+"""Figure 1: the architecture actually reported.
 
-A block diagram of the proposed decoder, drawn to carry three things a reader
-needs and a box-and-arrow sketch usually omits:
+A window enters two paths. The stem reads the diagonal of its spatial
+covariance as log band power; the branch reads the off-diagonal structure by
+mapping the covariance into the tangent space at a running reference. Their
+outputs concatenate into one linear classifier.
 
-  * exact parameter counts per block, so the 24,181 total is auditable and the
-    cost of the optional context pathway (594,816) is visible rather than stated;
-  * the test-time update path of the alignment layer, which is what makes it an
-    adaptation layer rather than a normalisation layer -- it is the only arrow
-    that is live at inference on unlabelled data;
-  * the three outputs, since the claim is that the model emits calibrated
-    confidence and an abstention decision, not only a class.
+The diagram carries three things a box-and-arrow sketch usually omits:
 
-Written at 200 dpi to results/fig_arch.png.
+  * exact parameter counts per block, so the 290,943 total is auditable and the
+    fact that the branch and its fusion layer are 93 % of it is visible
+    rather than buried;
+  * the reference update path, drawn dashed, which is the only arrow live at
+    inference on unlabelled data, and the component that fails when a class
+    block outlasts one covariance update;
+  * the three components that were built, measured and NOT retained, shown
+    greyed below the model, because the ablation is reported against them and a
+    reader should be able to see what was removed.
+
+Written to results/fig_arch.pdf and .png.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
+# Type 42 needs fontTools to subset TrueType, and this machine's Application
+# Control policy blocks that DLL, so the PDF write fails silently-late. Type 3
+# keeps the output vector and needs no subsetter. Both are acceptable to
+# Elsevier; 42 is preferred, so try it and fall back rather than assume.
+try:
+    import fontTools.varLib  # noqa: F401
+    matplotlib.rcParams["pdf.fonttype"] = 42
+except Exception:
+    matplotlib.rcParams["pdf.fonttype"] = 3
+matplotlib.rcParams["ps.fonttype"] = matplotlib.rcParams["pdf.fonttype"]
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-INK = "#161D24"
-ALIGN = "#2E6F5E"     # the novel component
-STEM = "#A8763E"      # feature extraction
-CTX = "#4A6FA5"       # optional context pathway
-HEAD = "#6B4E71"      # outputs
-GREY = "#9AA3AB"
+INK = "#000000"
+STEM = "#A8763E"      # first-order path: log band power
+BRANCH = "#2E6F5E"    # second-order path: the contribution
+HEAD = "#6B4E71"      # fusion and classifier
+GREY = "#9AA3AB"      # components not retained
 
-plt.rcParams.update({
-    "font.size": 9, "text.color": INK,
-    "axes.edgecolor": INK, "figure.dpi": 200,
-})
+# (label, sub-label, parameters). None means no count is meaningful.
+# Counts read from the built model with torch, not estimated. They sum to the
+# 290,943 printed at the foot of the figure, and a reviewer adding up the boxes
+# is exactly who catches it when they do not.
+STEM_BLOCKS = [
+    ("Multi-scale conv $+$ spatial", "64 / 128 / 256 ms", 6768),
+    ("square $\\rightarrow$ pool $\\rightarrow$ log", "log band power", None),
+    ("Frame attention $+$ project", "to $d=128$", 12737),
+]
+BRANCH_BLOCKS = [
+    ("Covariance $C = XX^{\\top}/T$", "trace-normalised", None),
+    ("Shrinkage toward $I$", "$\\lambda = 0.1$", None),
+    ("Tangent map at $M$", "$\\log(M^{-1/2} C M^{-1/2})$", None),
+    ("Linear projection", "1830 $\\rightarrow$ 128", 238028),
+]
+DROPPED = [
+    ("Adaptive alignment", "whitens by $M^{-1/2}$", "substitute for the branch"),
+    ("Cross-epoch transformer", "594,816 parameters", "costs accuracy"),
+    ("Selective head", "coverage-constrained", "no usable reject option"),
+]
 
-NL = chr(10)
 
-
-def box(ax, x, y, w, h, label, sub, params, color, dashed=False, fs=9.5):
-    """One architecture block: title band, body band, parameter band."""
-    for fill, edge in ((color, "none"), ("none", color)):
-        ax.add_patch(FancyBboxPatch(
-            (x, y), w, h, boxstyle="round,pad=0.012,rounding_size=0.02",
-            linewidth=1.6, edgecolor=edge if edge != "none" else color,
-            facecolor=fill if fill != "none" else "none",
-            alpha=0.11 if fill != "none" else 1.0,
-            linestyle="--" if dashed else "-",
-            zorder=2 if fill != "none" else 3))
-    ax.text(x + w / 2, y + h - 0.042, label, ha="center", va="top",
-            fontsize=fs, fontweight="bold", color=color, zorder=4)
-    ax.text(x + w / 2, y + h / 2 - 0.018, sub, ha="center", va="center",
-            fontsize=7.5, color=INK, zorder=4, linespacing=1.5)
+def box(ax, x, y, w, h, label, sub, params, colour, alpha=0.10, fs=8.0):
+    ax.add_patch(FancyBboxPatch(
+        (x, y), w, h, boxstyle="round,pad=0.006,rounding_size=0.012",
+        linewidth=1.1, edgecolor=colour, facecolor=colour, alpha=alpha,
+        zorder=2))
+    ax.add_patch(FancyBboxPatch(
+        (x, y), w, h, boxstyle="round,pad=0.006,rounding_size=0.012",
+        linewidth=1.1, edgecolor=colour, facecolor="none", zorder=3))
+    ty = y + h / 2 + (0.016 if sub else 0.0) + (0.014 if params else 0.0)
+    ax.text(x + w / 2, ty, label, ha="center", va="center", fontsize=fs,
+            color=INK, zorder=4)
+    if sub:
+        ax.text(x + w / 2, ty - 0.030, sub, ha="center", va="center",
+                fontsize=fs - 1.3, color=GREY, zorder=4)
     if params:
-        ax.text(x + w / 2, y + 0.030, params, ha="center", va="bottom",
-                fontsize=7.7, color=color, style="italic", zorder=4)
+        ax.text(x + w / 2, ty - 0.056, "{:,}".format(params), ha="center",
+                va="center", fontsize=fs - 1.3, color=colour, zorder=4,
+                fontweight="bold")
 
 
-def arrow(ax, x1, y1, x2, y2, color=INK, style="-|>", dashed=False, lw=1.5,
-          rad=0.0):
+def arrow(ax, x0, y0, x1, y1, colour=INK, lw=1.1, dashed=False):
     ax.add_patch(FancyArrowPatch(
-        (x1, y1), (x2, y2), arrowstyle=style, mutation_scale=13,
-        linewidth=lw, color=color, zorder=5,
-        linestyle="--" if dashed else "-",
-        connectionstyle="arc3,rad=%s" % rad))
+        (x0, y0), (x1, y1), arrowstyle="-|>", mutation_scale=9,
+        linewidth=lw, color=colour, zorder=5,
+        linestyle=(0, (3, 2)) if dashed else "solid",
+        shrinkA=0, shrinkB=0))
 
 
 def main():
-    fig, ax = plt.subplots(figsize=(13.2, 5.9))
+    fig, ax = plt.subplots(figsize=(6.84, 5.2))
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-    Y, H = 0.30, 0.34
-    MID = Y + H / 2
+    # ---------------------------------------------------------------- input
+    box(ax, 0.40, 0.905, 0.20, 0.062,
+        "EEG window $X$", "$C \\times T$", None, INK, alpha=0.06)
+    arrow(ax, 0.47, 0.905, 0.27, 0.862)
+    arrow(ax, 0.53, 0.905, 0.73, 0.862)
 
-    # ---- input --------------------------------------------------------------
-    ax.text(0.034, MID + 0.020, "EEG" + NL + "window", ha="center",
-            va="center", fontsize=9.5, fontweight="bold", color=INK)
-    ax.text(0.034, MID - 0.072, "60 ch x 4 s" + NL + "@ 100 Hz", ha="center",
-            va="center", fontsize=7.6, color=GREY)
-    arrow(ax, 0.070, MID, 0.096, MID)
+    ax.text(0.27, 0.878, "first order", ha="center", fontsize=7.6,
+            color=STEM, style="italic")
+    ax.text(0.73, 0.878, "second order", ha="center", fontsize=7.6,
+            color=BRANCH, style="italic")
 
-    # ---- 1. adaptive alignment (the contribution) ---------------------------
-    box(ax, 0.098, Y, 0.176, H, "Adaptive Alignment",
-        "running spatial covariance M" + NL
-        + "whiten by $M^{-1/2}$" + NL
-        + "learned raw / aligned blend",
-        "1 parameter", ALIGN)
-    arrow(ax, 0.274, MID, 0.302, MID)
+    # ------------------------------------------------------- the two paths
+    h, gap = 0.098, 0.036
+    top = 0.800
+    for i, (lab, sub, par) in enumerate(STEM_BLOCKS):
+        y = top - i * (h + gap)
+        box(ax, 0.10, y, 0.34, h, lab, sub, par, STEM)
+        if i < len(STEM_BLOCKS) - 1:
+            arrow(ax, 0.27, y, 0.27, y - gap)
+    for i, (lab, sub, par) in enumerate(BRANCH_BLOCKS):
+        y = top - i * (h + gap)
+        box(ax, 0.56, y, 0.34, h, lab, sub, par, BRANCH)
+        if i < len(BRANCH_BLOCKS) - 1:
+            arrow(ax, 0.73, y, 0.73, y - gap)
 
-    # the update loop -- what makes this adaptation, not normalisation
-    arrow(ax, 0.256, Y, 0.130, Y, color=ALIGN, dashed=True, rad=-0.70, lw=1.4)
-    ax.text(0.186, Y - 0.150, "unsupervised update, active at inference",
-            ha="center", fontsize=7.6, color=ALIGN, style="italic")
-    ax.text(0.186, Y - 0.196, "(eval mode, no labels, no target data needed)",
-            ha="center", fontsize=7.0, color=GREY)
+    # ------------------------------------- the reference update, label-free
+    y_tan = top - 2 * (h + gap)
+    ax.add_patch(FancyBboxPatch(
+        (0.905, y_tan + 0.012), 0.078, h - 0.024,
+        boxstyle="round,pad=0.005,rounding_size=0.010", linewidth=1.0,
+        edgecolor=BRANCH, facecolor="white", linestyle=(0, (3, 2)), zorder=3))
+    ax.text(0.944, y_tan + h / 2 + 0.010, "running", ha="center",
+            va="center", fontsize=7.2, color=BRANCH)
+    ax.text(0.944, y_tan + h / 2 - 0.014, "reference $M$", ha="center",
+            va="center", fontsize=7.2, color=BRANCH)
+    arrow(ax, 0.905, y_tan + h / 2, 0.900, y_tan + h / 2,
+          colour=BRANCH, dashed=True)
+    arrow(ax, 0.944, y_tan + h, 0.944, top + h - 0.004,
+          colour=BRANCH, lw=0.9, dashed=True)
+    arrow(ax, 0.944, top + h - 0.004, 0.900, top + h / 2,
+          colour=BRANCH, lw=0.9, dashed=True)
+    ax.text(0.952, (y_tan + top) / 2 + 0.02,
+            "no labels,\nlive at inference", ha="left", va="center",
+            fontsize=6.8, color=BRANCH, rotation=0)
 
-    # ---- 2. multi-scale power stem ------------------------------------------
-    box(ax, 0.304, Y, 0.176, H, "Multi-Scale Power",
-        "64 / 128 / 256 ms branches" + NL
-        + "depthwise spatial filters" + NL
-        + r"square $\rightarrow$ pool $\rightarrow$ log",
-        "6,768 parameters", STEM)
-    ax.text(0.392, Y + H + 0.036,
-            "normalisation precedes squaring," + NL
-            + "so log-power ratios survive",
-            ha="center", fontsize=7.2, color=STEM, style="italic",
-            linespacing=1.4)
-    arrow(ax, 0.480, MID, 0.506, MID)
+    # ------------------------------------------------------ fuse, classify
+    y_f = top - 4 * (h + gap) + 0.006
+    arrow(ax, 0.27, top - 3 * (h + gap), 0.44, y_f + 0.052)
+    arrow(ax, 0.73, top - 3 * (h + gap), 0.56, y_f + 0.052)
+    box(ax, 0.34, y_f - 0.020, 0.32, 0.070,
+        "concatenate $\\rightarrow$ fuse", "$256 \\rightarrow 128$", 32896,
+        HEAD)
+    arrow(ax, 0.50, y_f - 0.020, 0.50, y_f - 0.074)
+    box(ax, 0.38, y_f - 0.144, 0.24, 0.070,
+        "linear classifier", "Stop / Walk", 258, HEAD)
 
-    # ---- 3. frame embedding -------------------------------------------------
-    box(ax, 0.508, Y, 0.126, H, "Frame Embed",
-        "norm + projection" + NL + "+ within-window" + NL + "attention pooling",
-        "12,737 parameters", STEM)
-    arrow(ax, 0.634, MID, 0.646, MID)
+    ax.plot([0.06, 0.94], [y_f - 0.186, y_f - 0.186], lw=0.8, color=GREY)
+    ax.text(0.50, y_f - 0.216,
+            "Reported model: 290,943 parameters. The branch is 238,028 of "
+            "them, and the fusion it requires a further 32,896: 93 % together.",
+            ha="center", fontsize=8.2, color=INK)
 
-    # ---- 4. optional context pathway ----------------------------------------
-    box(ax, 0.648, 0.745, 0.208, 0.180, "Cross-Epoch Context  (optional)",
-        "causal transformer over" + NL + "K = 8 epochs (14.5 s)",
-        "594,816 parameters", CTX, dashed=True, fs=8.6)
-    ax.text(0.752, 0.958,
-            "safety mode: $-$0.023 accuracy, $-$23 % false activations",
-            ha="center", fontsize=7.4, color=CTX, style="italic")
-    arrow(ax, 0.662, Y + H, 0.692, 0.745, color=CTX, dashed=True, rad=0.28)
-    arrow(ax, 0.818, 0.745, 0.848, Y + H, color=CTX, dashed=True, rad=0.28)
-
-    # ---- 5. selective head --------------------------------------------------
-    box(ax, 0.648, Y, 0.208, H, "Selective Head",
-        "classifier + abstention gate" + NL + "under a coverage constraint",
-        "4,419 parameters", HEAD, fs=9.0)
-    arrow(ax, 0.856, MID, 0.880, MID)
-
-    # ---- outputs ------------------------------------------------------------
-    outs = [("Walk / Stop", "balanced acc. 0.901", MID + 0.118),
-            ("calibrated confidence", "ECE 0.039", MID),
-            ("abstain / act", "0.876 @ 90 % coverage", MID - 0.118)]
-    for name, val, yy in outs:
+    # ------------------------------------------- built, measured, not kept
+    ax.text(0.06, y_f - 0.262, "Built and measured, not retained:",
+            ha="left", fontsize=7.8, color=GREY, style="italic")
+    for i, (lab, sub, why) in enumerate(DROPPED):
+        x = 0.06 + i * 0.305
         ax.add_patch(FancyBboxPatch(
-            (0.886, yy - 0.036), 0.108, 0.072,
-            boxstyle="round,pad=0.008,rounding_size=0.015",
-            linewidth=1.3, edgecolor=HEAD, facecolor=HEAD, alpha=0.10,
-            zorder=2))
-        ax.text(0.940, yy + 0.012, name, ha="center", fontsize=7.8,
-                fontweight="bold", color=HEAD, zorder=4)
-        ax.text(0.940, yy - 0.020, val, ha="center", fontsize=7.0, color=INK,
-                zorder=4)
-    ax.plot([0.880, 0.880], [MID - 0.118, MID + 0.118], lw=1.2, color=HEAD,
-            zorder=4)
-    for _, _, yy in outs:
-        arrow(ax, 0.880, yy, 0.886, yy, color=HEAD, lw=1.2)
-
-    # ---- parameter budget ---------------------------------------------------
-    ax.plot([0.10, 0.90], [0.078, 0.078], lw=0.8, color=GREY)
-    ax.text(0.50, 0.034,
-            "Default configuration: 24,181 parameters   "
-            "(53 % of ATCNet, 5 % of EEG Conformer).   "
-            "Enabling the optional context pathway raises this to 618,997.",
-            ha="center", fontsize=8.4, color=INK)
+            (x, y_f - 0.352), 0.285, 0.070,
+            boxstyle="round,pad=0.005,rounding_size=0.010", linewidth=0.9,
+            edgecolor=GREY, facecolor=GREY, alpha=0.07, zorder=2))
+        ax.text(x + 0.142, y_f - 0.300, lab, ha="center", fontsize=7.4,
+                color=GREY)
+        ax.text(x + 0.142, y_f - 0.322, sub, ha="center", fontsize=6.6,
+                color=GREY)
+        ax.text(x + 0.142, y_f - 0.343, why, ha="center", fontsize=6.6,
+                color=GREY, style="italic")
 
     fig.tight_layout()
-    out = RESULTS / "fig_arch.png"
-    fig.savefig(out, bbox_inches="tight", facecolor="white")
-    print("wrote %s" % out)
+    for ext in ("pdf", "png"):
+        out = RESULTS / ("fig_arch.%s" % ext)
+        fig.savefig(out, bbox_inches="tight", facecolor="white", dpi=200)
+        print("wrote %s" % out)
 
 
 if __name__ == "__main__":
