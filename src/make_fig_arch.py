@@ -47,17 +47,19 @@ HEAD = "#6B4E71"      # fusion and classifier
 GREY = "#9AA3AB"      # components not retained
 
 # (label, sub-label, parameters). None means no count is meaningful.
+# Counts read from the built model with torch, not estimated. They sum to the
+# 290,943 printed at the foot of the figure, and a reviewer adding up the boxes
+# is exactly who catches it when they do not.
 STEM_BLOCKS = [
-    ("Multi-scale temporal conv", "64 / 128 / 256 ms", 1008),
-    ("Depthwise spatial filters", "per scale", 11520),
+    ("Multi-scale conv $+$ spatial", "64 / 128 / 256 ms", 6768),
     ("square $\\rightarrow$ pool $\\rightarrow$ log", "log band power", None),
-    ("Frame attention + project", "to $d=128$", 7491),
+    ("Frame attention $+$ project", "to $d=128$", 12737),
 ]
 BRANCH_BLOCKS = [
     ("Covariance $C = XX^{\\top}/T$", "trace-normalised", None),
     ("Shrinkage toward $I$", "$\\lambda = 0.1$", None),
     ("Tangent map at $M$", "$\\log(M^{-1/2} C M^{-1/2})$", None),
-    ("Linear projection", "1830 $\\rightarrow$ 128", 270924),
+    ("Linear projection", "1830 $\\rightarrow$ 128", 238028),
 ]
 DROPPED = [
     ("Adaptive alignment", "whitens by $M^{-1/2}$", "substitute for the branch"),
