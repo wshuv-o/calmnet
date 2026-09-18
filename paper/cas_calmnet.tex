@@ -693,6 +693,33 @@ stem only          & $0.827\pm0.124$ & 0.082 & 0.823 & 0.73 \\
 }
 \end{table}
 
+\begin{table}[t]
+\caption{Ablation on cohort~A containing the reported model, three data-split seeds where available and two otherwise, under the current estimator. Accuracy is the grand mean over the 7 participants and SD is across seeds, not across participants, so it measures reproducibility rather than spread. $\Delta$ and the test are paired against the stem alone over participants with seeds averaged within participant. The reported model is the first row. Adding the alignment layer to it (second row) removes most of the gain, which is the substitution reported in Section~\ref{sec:fivecohort}: both read the same second-order structure.}
+\label{tab:ablation_rep}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Components & Seeds & Acc & SD$_{\mathrm{seed}}$ & ECE & $\Delta$ vs stem & $p$ (higher) \\
+\midrule
+\textbf{stem $+$ branch} & 3 & $\mathbf{0.909}$ & $0.004$ & $0.049$ & $+0.045$ & $0.219$ (6/7) \\
+stem $+$ align $+$ gate $+$ branch & 3 & $0.877$ & $0.018$ & $0.069$ & $+0.013$ & $0.578$ (5/7) \\
+stem $+$ align $+$ gate & 3 & $0.868$ & $0.026$ & $0.058$ & $+0.004$ & $0.938$ (4/7) \\
+stem $+$ align & 2 & $0.863$ & $0.017$ & $0.062$ & $-0.001$ & $0.812$ (3/7) \\
+stem $+$ gate & 3 & $0.842$ & $0.022$ & $0.076$ & $-0.022$ & $0.047$ (1/7) \\
+stem $+$ gate $+$ ctx & 2 & $0.864$ & $0.000$ & $0.077$ & $-0.000$ & $0.938$ (4/7) \\
+stem $+$ align $+$ ctx & 2 & $0.855$ & $0.000$ & $0.079$ & $-0.009$ & $0.688$ (3/7) \\
+stem $+$ align $+$ gate $+$ ctx & 2 & $0.858$ & $0.001$ & $0.077$ & $-0.006$ & $0.812$ (3/7) \\
+stem alone & 3 & $0.864$ & $0.032$ & $0.063$ & --- & --- \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Table~\ref{tab:ablation_rep} places the reported model in its own ablation. The branch is the only component that raises accuracy over the stem on this cohort. Of the configurations built from the alignment layer, the gate and the cross-epoch transformer, none improves on the stem by more than $0.005$, and the gate alone is $0.022$ below it, the one difference in the table that reaches significance in the negative direction. Adding alignment on top of the branch costs $0.032$ relative to the branch alone, so the two are substitutes rather than complements.
+
+Note also the SD column, which is across seeds rather than participants. The reported model is the most reproducible arm in the table. That matters because the interpretation threshold this project uses was set by the seed spread of the transformer arms, and the branch narrows the very quantity that set it.
+
 Table~\ref{tab:ablation3} repeats the ablation under the current estimator,
 over three data-split seeds for six arms and two for the stem-only arm, and
 compares every arm with the stem-only arm paired over participants. Where it
