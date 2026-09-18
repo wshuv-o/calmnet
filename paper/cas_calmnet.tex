@@ -356,7 +356,7 @@ The tangent map carries no gradient; only the projection is learned. Backward th
 
 Three components were built, measured, and left out of the reported model. Each is an arm of the ablation in Section~\ref{sec:ablation}, and they are described here because a reader cannot judge an ablation against arms that are never defined.
 
-\paragraph{Adaptive alignment} The layer maintains a running mean spatial covariance $\mathbf{M}$, applies
+\paragraph{Adaptive alignment}\label{sec:align}abel{sec:align} The layer maintains a running mean spatial covariance $\mathbf{M}$, applies
 $\mathbf{M}^{-1/2}$, and interpolates between the aligned and the raw signal
 through a learned scalar gate $g \in [0,1]$:
 \begin{equation}
@@ -519,7 +519,7 @@ Calibration & temperature scaling fitted on the held-out split \\
 
 \paragraph{Published decoders} Eight published decoders from the
 \textit{braindecode} library \citep{braindecode_lib} were trained in the same
-pipeline as the proposed decoder: ShallowFBCSPNet and Deep4Net
+pipeline as the decoder: ShallowFBCSPNet and Deep4Net
 \citep{schirrmeister}, EEGNet \citep{lawhern}, EEGNeX \citep{eegnex}, EEG
 Conformer \citep{conformer}, TSception \citep{tsception}, FBLightConvNet and
 EEG-TCNet \citep{eegtcnet}. Each model's classification layer is replaced by the
@@ -584,7 +584,7 @@ only structural difference between them. We attribute the variation to
 non-deterministic reductions in scaled dot-product attention on GPU.
 
 Run-to-run variation at a fixed split seed is a lower bound on the relevant
-noise. Across three data-split seeds the proposed configuration spans $0.839$ to
+noise. Across three data-split seeds the align $+$ gate configuration spans $0.839$ to
 $0.884$, a range of $0.046$ and a standard deviation of $0.026$
 (Table~\ref{tab:noise}), several times the fixed-seed figure. This is the
 quantity that governs whether two models can be ranked, and differences between
@@ -869,11 +869,13 @@ during walking would both appear.}
 \subsection{Comparison with published decoders}
 \label{sec:compare}
 
-Table~\ref{tab:compare} compares the proposed configuration with the eight
+This section reports the align $+$ gate configuration, which is one of the components of Section~\ref{sec:dropped} and is not the reported model. It is retained because it carries per-participant comparisons and calibration numbers that exist nowhere else in the paper. The comparison for the reported model, against the same eight decoders on all five cohorts, is Table~\ref{tab:master}.
+
+Table~\ref{tab:compare} compares the align $+$ gate configuration with the eight
 published decoders of the experimental setup, all trained in the same pipeline,
 on the three cohorts.
 
-On cohort A, over the same three data-split seeds, the proposed configuration
+On cohort A, over the same three data-split seeds, the align $+$ gate configuration
 averages $0.868$ and the published decoders average $0.817$ to $0.878$. Paired over
 participants with seeds averaged, no difference is significant in either
 direction. EEG-TCNet and EEGNeX lie $0.010$ and $0.008$ above it (higher in 4 and 3
@@ -882,9 +884,9 @@ $0.003$ to $0.051$ below it (smallest $p=0.22$). At the first seed alone the pro
 configuration is the highest of the nine ($0.884$ against $0.823$ to $0.871$),
 so single-seed orderings on this cohort are not stable. It holds no parameter
 advantage over the smallest published decoders: EEG-TCNet averages $0.878$ with
-7{,}062 parameters and FBLightConvNet $0.866$ with 23{,}760, against 24{,}181.
+7{,}062 parameters and FBLightConvNet $0.866$ with 23{,}760, against 24{,}181 for that configuration. The reported model is 290{,}943 and is compared with the same decoders across all five cohorts in Table~\ref{tab:master}.
 
-On cohort C, over three seeds, the proposed configuration averages $0.796$, and
+On cohort C, over three seeds, the align $+$ gate configuration averages $0.796$, and
 the published decoders that trained reach $0.723$ to $0.783$. Paired
 over participants with seeds averaged, it is higher than EEGNeX by $0.013$
 (higher in 15 of 20 participants; Wilcoxon $p=0.17$), than EEG Conformer by
@@ -913,7 +915,7 @@ below every published decoder, which is the loss the lower bound exists to
 prevent. Without alignment its calibration error is $0.066$, against $0.066$ to $0.211$
 for the published decoders.
 
-On cohort A the proposed configuration's calibration error averages $0.058$
+On cohort A the align $+$ gate configuration's calibration error averages $0.058$
 across seeds, against $0.058$ to $0.076$ for the published decoders over the same
 seeds. Its accuracy is therefore level with the published decoders on cohort
 A, slightly higher on cohort C and level on cohort B once alignment is disabled
