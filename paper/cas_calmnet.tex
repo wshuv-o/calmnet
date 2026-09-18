@@ -659,7 +659,7 @@ that this does not settle whether it helps the task.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_ablation.pdf}
-\caption{Component ablation on cohort A, seed 0. (a) Balanced accuracy by arm;
+\caption{Component ablation on cohort~A, seed 0, over the components of Section~\ref{sec:dropped} that were tested and are not in the reported model. It is retained because the ablation is reported against these arms; the reported model appears in Table~\ref{tab:ablation_rep} and Fig.~\ref{fig:cohorts}. (a) Balanced accuracy by arm;
 error bars are $\pm1$ SD across the 7 participants; seed variation is
 reported separately in Table~\ref{tab:noise}. (b)
 Balanced accuracy at $90\,\%$ coverage, obtained by declining the least-confident $10\,\%$ of windows. It sits \emph{below} full-coverage
@@ -930,8 +930,7 @@ that layer must be slowed (Section~\ref{sec:rate}).
 \begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\columnwidth]{../results/fig_inversion.pdf}
-\caption{The same five arms on both cohorts, single seed. Solid heavy black is
-the proposed configuration; the other alignment-using arms are dashed in colour,
+\caption{The same five arms on both cohorts, single seed. None of these arms is the reported model; they are the components of Section~\ref{sec:dropped}. Solid heavy black is the best of them on cohort~A; the other alignment-using arms are dashed in colour,
 and the two alignment-free arms are dashed and dotted. The three alignment arms
 cross below both alignment-free arms, so the ordering inverts instead of
 compressing.}
@@ -1272,6 +1271,13 @@ One boundary on the claim. The branch helps the stem, and it does not help the c
 
 \subsection{Five cohorts, and one boundary that separates them}
 \label{sec:fivecohort}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../results/fig_cohorts.pdf}
+\caption{The branch on every cohort. (a) Change in balanced accuracy against the stem alone, paired across participants with seeds averaged within participant; bars are 95\,\% intervals from a paired bootstrap over participants, and the annotation gives how many participants improved. Cohorts are ordered by the class-block length of their protocol. (b) The same five effects against that block length, with the number of windows averaged into one covariance update drawn as a dashed line. The branch helps on every cohort whose blocks are shorter than one update and fails on the only one whose blocks are longer. Both axes of (b) are fixed before training: the block length is read from the labels and the update size is the batch size, so the separation uses no accuracy.}
+\label{fig:cohorts}
+\end{figure*}
 
 Table~\ref{tab:five} collects the branch against the convolutional stem on every cohort, three seeds throughout, paired across participants. Cohorts~D and~E were added after the method was fixed, and nothing was tuned on either.
 
