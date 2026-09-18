@@ -278,64 +278,16 @@ model.
 %=============================================================================
 \section{Method}
 
-The decoder maps a window to a class posterior and a selection score. Its four
-components are shown in Fig.~\ref{fig:arch} with exact parameter counts.
+The reported decoder has two components. A multi-scale log-power stem reads the diagonal of each window's spatial covariance, and a tangent-space branch reads the rest of it. Their outputs are concatenated and passed to one linear classifier. The stem carries 20{,}019 parameters and the branch 270{,}924, so the branch is the larger part of the model by an order of magnitude and Section~\ref{sec:compare} reports what that buys.
+
+Three further components were built and tested, and none is retained: an adaptive alignment layer, a causal cross-epoch transformer and a selective head. Section~\ref{sec:dropped} describes them and points at the measurements that removed them, because each defines an arm of the ablation and one of them, the alignment layer, supplies the mechanism that explains where the branch fails.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_arch.pdf}
-\caption{The decoder. The adaptive alignment layer maintains a running spatial
-covariance and whitens by it; its update path (dashed, left) uses no labels and
-remains active at inference, which is what separates it from a normalisation
-layer. The cross-epoch context pathway is optional and accounts for 594{,}816 of
-the 618{,}997 parameters of the full configuration, so the default configuration
-omits it and uses 24{,}181. Parameter counts are exact and sum to the total.}
+\caption{The reported decoder. A window enters both paths. The stem applies three temporal resolutions with depthwise spatial filters, squares, pools and takes the logarithm, giving log band power per channel. The branch forms the window's covariance, shrinks it, maps it to the tangent space at a running reference and projects the result. The reference update (dashed) uses no labels and stays active at inference, which is what lets the representation follow a changing session and also what makes it fail where a class block outlasts one update (Section~\ref{sec:rate}). Parameter counts are exact and sum to the total.}
 \label{fig:arch}
 \end{figure*}
-
-\subsection{Adaptive alignment}
-\label{sec:align}
-
-The layer maintains a running mean spatial covariance $\mathbf{M}$, applies
-$\mathbf{M}^{-1/2}$, and interpolates between the aligned and the raw signal
-through a learned scalar gate $g \in [0,1]$:
-\begin{equation}
-\mathbf{X}' = g \, \mathbf{M}^{-1/2} \mathbf{X} + (1-g)\, \mathbf{X} .
-\label{eq:gate}
-\end{equation}
-
-Each window's covariance is normalised by its own trace before being
-accumulated, so that the estimate is an average of shapes instead of an
-average weighted by power:
-\begin{equation}
-\mathbf{M} \leftarrow (1-m)\,\mathbf{M} + \frac{m}{N} \sum_{n=1}^{N}
-\frac{\mathbf{C}_n}{\operatorname{tr}(\mathbf{C}_n)/C},
-\qquad
-\mathbf{C}_n = \frac{\tilde{\mathbf{X}}_n \tilde{\mathbf{X}}_n^{\top}}{T},
-\label{eq:update}
-\end{equation}
-where $\tilde{\mathbf{X}}_n$ is the mean-centred window, $N$ the batch size and
-$m$ the momentum. Without the trace normalisation the estimate is
-power-weighted. On a cohort whose majority class carries $1.52\times$ the power
-of the minority class, the un-normalised estimate sits at Riemannian distance
-$0.306$ from the majority-class covariance, that is, it is the majority class;
-the normalised estimate sits at $3.899$ and $3.194$ from the two class
-covariances, between them. Section~\ref{sec:rejected} reports what correcting
-this did and did not achieve.
-
-Two properties separate this layer from batch normalisation \citep{batchnorm}.
-The update in (\ref{eq:update}) uses only the covariance of incoming windows and
-therefore runs on unlabelled test data. And the estimate continues to update in
-evaluation mode, whereas BatchNorm freezes its running statistics at test time.
-Freezing is correct when train and test share a distribution; here they are
-weeks apart, and freezing discards the adaptation the layer exists to provide.
-
-\paragraph{Propagation of the aligned signal} A whitening stage placed
-before a normalisation layer invites the objection that the normalisation simply
-undoes it. With identical initialisation on held-out windows, stem outputs
-computed with and without alignment differ by $36\,\%$ in relative magnitude and
-their correlation structure differs by $0.108$, so the transform is not absorbed
-downstream.
 
 \subsection{Multi-scale power stem}
 \label{sec:stem}
@@ -395,26 +347,70 @@ The stem of Section~\ref{sec:stem} reduces each window to log power per channel,
 \end{equation}
 with off-diagonal entries scaled by $\sqrt{2}$ so that the vector's Euclidean norm equals the matrix Frobenius norm. A linear projection maps $\phi(X)$ to the embedding width and concatenates it with the stem before the classifier, which leaves the classifier and the selective head unchanged in shape so the branch ablates as one module.
 
-The reference is the running covariance the alignment layer of Section~\ref{sec:align} already maintains, updated without labels and still updating at test time. Where alignment is disabled the branch keeps its own running mean under the same momentum, so removing the branch does not silently remove adaptation as well. Tying the two mechanisms to one statistic is what places the branch under Condition~\ref{prop:band}: the rate that makes the alignment layer safe is the rate that makes the reference safe, and Section~\ref{sec:tanres} tests that consequence.
+The reference $M$ is a running mean over the covariances of incoming windows, updated by (\ref{eq:update}) with momentum $m$ and no labels, and it keeps updating at inference. This is what lets the representation follow a session as it changes, and it is also the component that fails: because $M$ is an average over whatever is currently streaming, a protocol that presents one class for longer than a single update spans will drive $M$ onto that class. Condition~\ref{prop:band} states when that cannot happen and Section~\ref{sec:fivecohort} measures it on five cohorts. The condition was derived on the alignment layer of Section~\ref{sec:dropped}, which shares this estimator, and it transfers to the branch unchanged.
 
 The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch adds 270{,}924 parameters to the 20{,}019 of the stem.
 
-\subsection{Causal cross-epoch context}
+\subsection{Components tested and not retained}
+\label{sec:dropped}
 
-A causal transformer encoder \citep{attention} over a sequence of $K=8$ epochs
+Three components were built, measured, and left out of the reported model. Each is an arm of the ablation in Section~\ref{sec:ablation}, and they are described here because a reader cannot judge an ablation against arms that are never defined.
+
+\paragraph{Adaptive alignment} The layer maintains a running mean spatial covariance $\mathbf{M}$, applies
+$\mathbf{M}^{-1/2}$, and interpolates between the aligned and the raw signal
+through a learned scalar gate $g \in [0,1]$:
+\begin{equation}
+\mathbf{X}' = g \, \mathbf{M}^{-1/2} \mathbf{X} + (1-g)\, \mathbf{X} .
+\label{eq:gate}
+\end{equation}
+
+Each window's covariance is normalised by its own trace before being
+accumulated, so that the estimate is an average of shapes instead of an
+average weighted by power:
+\begin{equation}
+\mathbf{M} \leftarrow (1-m)\,\mathbf{M} + \frac{m}{N} \sum_{n=1}^{N}
+\frac{\mathbf{C}_n}{\operatorname{tr}(\mathbf{C}_n)/C},
+\qquad
+\mathbf{C}_n = \frac{\tilde{\mathbf{X}}_n \tilde{\mathbf{X}}_n^{\top}}{T},
+\label{eq:update}
+\end{equation}
+where $\tilde{\mathbf{X}}_n$ is the mean-centred window, $N$ the batch size and
+$m$ the momentum. Without the trace normalisation the estimate is
+power-weighted. On a cohort whose majority class carries $1.52\times$ the power
+of the minority class, the un-normalised estimate sits at Riemannian distance
+$0.306$ from the majority-class covariance, that is, it is the majority class;
+the normalised estimate sits at $3.899$ and $3.194$ from the two class
+covariances, between them. Section~\ref{sec:rejected} reports what correcting
+this did and did not achieve.
+
+Two properties separate this layer from batch normalisation \citep{batchnorm}.
+The update in (\ref{eq:update}) uses only the covariance of incoming windows and
+therefore runs on unlabelled test data. And the estimate continues to update in
+evaluation mode, whereas BatchNorm freezes its running statistics at test time.
+Freezing is correct when train and test share a distribution; here they are
+weeks apart, and freezing discards the adaptation the layer exists to provide.
+
+\paragraph{Propagation of the aligned signal} A whitening stage placed
+before a normalisation layer invites the objection that the normalisation simply
+undoes it. With identical initialisation on held-out windows, stem outputs
+computed with and without alignment differ by $36\,\%$ in relative magnitude and
+their correlation structure differs by $0.108$, so the transform is not absorbed
+downstream.
+
+This layer is not in the reported model. On the cohort where the branch works best it changes accuracy by less than the spread between seeds, and on the cohort used for development the branch and the layer are substitutes rather than complements, since both read the same second-order structure; Section~\ref{sec:fivecohort} gives the measurement. Its estimator is retained, as the branch's reference, and the rate condition derived on it is what predicts where the branch fails.
+
+\paragraph{Causal cross-epoch context} A causal transformer encoder \citep{attention} over a sequence of $K=8$ epochs
 at stride 3 (a 14.5\,s span), following the epoch-sequence formulation standard
 in sleep staging \citep{seqsleepnet,xsleepnet,deepsleepnet}. All masks are
 causal, so only present and past information is used, which is the only variant
 a worn device can run. Measured state persistence in cohort A supports a
 sequence model: the self-transition probability is $0.984$ for Stop and $0.955$
-for Walk at a $0.5$\,s step, corresponding to dwell times of 12 to 32\,s.
+for Walk at a $0.5$\,s step, corresponding to dwell times of 12 to 32\,s. This pathway is not in the reported model: it accounts for 594{,}816 parameters and costs accuracy on the development cohort.
 
-\subsection{Selective head}
-
-A classifier paired with a selection function trained under a coverage
+\paragraph{Selective head} A classifier paired with a selection function trained under a coverage
 constraint \citep{selectivenet}, with a full-coverage auxiliary term so that the
 backbone continues to learn from every sample, including the declined
-region. We use the formulation as published.
+region. We use the formulation as published. This head is not in the reported model. The trained selection function did not rank windows better than the classifier's own confidence, so it provided no usable reject option (Section~\ref{sec:ablation}).
 
 %=============================================================================
 \section{Experimental setup}
