@@ -155,6 +155,103 @@ class AdaptiveAlignment(nn.Module):
         return torch.sigmoid(self.gate).detach()
 
 
+class TangentBranch(nn.Module):
+    """Second-order branch: per-window covariance -> tangent space -> linear.
+
+    Why this module and not another convolutional block
+    ---------------------------------------------------
+    The stem reads log band power, which is a diagonal summary: it sees how
+    much each channel carries in each band and nothing about how channels
+    covary. A probe settled that this is a real omission rather than a
+    theoretical one. Logistic regression on log-Euclidean tangent vectors
+    reached 0.982 on sub-01 where the trained network reaches 0.961, on
+    strictly less data, so the information is present in the covariance and the
+    network is not currently reading it.
+
+    Reference point
+    ---------------
+    The tangent map needs a base point on the SPD manifold. AdaptiveAlignment
+    already maintains one -- the running covariance -- which is updated
+    label-free and keeps updating at test time, so the branch inherits the
+    paper's adaptation mechanism instead of introducing a second one. When
+    alignment is disabled the branch keeps its own running mean under the same
+    momentum, so the ablation isolates the branch rather than silently removing
+    adaptation as well.
+
+    Why the tangent map carries no gradient
+    ---------------------------------------
+    The map itself has no parameters: it is covariance, shrinkage, whitening by
+    the reference, matrix logarithm, vectorisation. Only the projection that
+    follows is learned. Backward through torch.linalg.eigh carries
+    1 / (lambda_i - lambda_j) terms which explode on near-degenerate spectra,
+    and 60-channel covariances estimated from 32-window batches are routinely
+    near-degenerate. Detaching costs nothing that was measured to matter: the
+    probe that motivated this branch was itself a linear map on fixed tangent
+    features, and that is exactly what is being trained here, jointly with the
+    rest of the network rather than after it.
+
+    Shrinkage
+    ---------
+    Covariances are shrunk toward a scaled identity before the logarithm. With
+    60 channels from 400 samples the sample covariance is poorly conditioned,
+    and the existing code handles that by clamping eigenvalues at 1e-6, which
+    is a floor rather than an estimator. Shrinkage also bounds the condition
+    number the logarithm sees.
+    """
+
+    def __init__(self, n_chan, d_out, shrink=None, momentum=None, dropout=0.3):
+        import os as _os
+        super().__init__()
+        if momentum is None:
+            momentum = float(_os.environ.get("DN_MOMENTUM", "0.2"))
+        if shrink is None:
+            shrink = float(_os.environ.get("DN_TAN_SHRINK", "0.1"))
+        self.n_chan, self.shrink, self.momentum = n_chan, shrink, momentum
+        self.register_buffer("run_cov", torch.eye(n_chan))
+        self.register_buffer("primed", torch.zeros(1))
+        iu = torch.triu_indices(n_chan, n_chan)
+        self.register_buffer("iu", iu)
+        # Off-diagonal entries are counted once but appear twice in the matrix,
+        # so they are scaled by sqrt(2) to keep the vector's Euclidean norm
+        # equal to the matrix Frobenius norm. Without it the diagonal is
+        # over-weighted and the branch drifts back toward being a power feature.
+        w = torch.full((iu.shape[1],), 2.0 ** 0.5)
+        w[iu[0] == iu[1]] = 1.0
+        self.register_buffer("vec_w", w)
+        d_in = n_chan * (n_chan + 1) // 2
+        self.proj = nn.Sequential(nn.LayerNorm(d_in), nn.Linear(d_in, d_out),
+                                  nn.GELU(), nn.Dropout(dropout))
+        self.d_in, self.d_out = d_in, d_out
+
+    def _shrunk_cov(self, x):
+        """Per-window covariance, trace-normalised then shrunk to identity."""
+        xc = x - x.mean(dim=-1, keepdim=True)
+        c = torch.einsum("nct,ndt->ncd", xc, xc) / x.shape[-1]
+        tr = torch.diagonal(c, dim1=1, dim2=2).mean(-1)[:, None, None]
+        c = c / (tr + EPS)
+        eye = torch.eye(self.n_chan, device=c.device, dtype=c.dtype)
+        return (1.0 - self.shrink) * c + self.shrink * eye
+
+    def forward(self, x, ref=None):                      # (N, C, T)
+        with torch.no_grad():
+            c = self._shrunk_cov(x.detach().double())
+            if ref is None:
+                m = c.mean(0)
+                if self.primed.item() == 0:
+                    self.run_cov.copy_(m.to(self.run_cov.dtype))
+                    self.primed.fill_(1)
+                else:
+                    self.run_cov.mul_(1 - self.momentum).add_(
+                        m.to(self.run_cov.dtype), alpha=self.momentum)
+                ref = self.run_cov
+            rw, rv = torch.linalg.eigh(ref.double())
+            rinv = rv @ torch.diag(torch.clamp(rw, min=1e-6).rsqrt()) @ rv.t()
+            w, v = torch.linalg.eigh(rinv @ c @ rinv)
+            logm = v @ torch.diag_embed(torch.clamp(w, min=1e-6).log())                 @ v.transpose(-1, -2)
+            t = logm[:, self.iu[0], self.iu[1]] * self.vec_w
+        return self.proj(t.to(x.dtype))
+
+
 class MultiScalePower(nn.Module):
     """Parallel temporal resolutions -> spatial filters -> log-power sequence."""
 
@@ -206,9 +303,11 @@ class DriftNet(nn.Module):
 
     def __init__(self, n_chan, n_time, n_outputs=2, n_filt=16, depth_mult=2,
                  d_model=128, n_layers=3, n_heads=4, dropout=0.3, sfreq=100.0,
-                 use_align=True, use_ctx=True, use_gate=True, n_scales=3):
+                 use_align=True, use_ctx=True, use_gate=True, n_scales=3,
+                 use_tangent=False, tangent_shrink=0.1):
         super().__init__()
         self.use_align, self.use_ctx, self.use_gate = use_align, use_ctx, use_gate
+        self.use_tangent = use_tangent
         self.align = AdaptiveAlignment(n_chan) if use_align else None
         scales = (64.0, 128.0, 256.0)[:n_scales]
         self.stem = MultiScalePower(n_chan, scales, n_filt, depth_mult,
@@ -224,6 +323,13 @@ class DriftNet(nn.Module):
             self.ctx = nn.TransformerEncoder(layer, n_layers)
         self.norm = nn.LayerNorm(d_model)
         self.drop = nn.Dropout(dropout)
+        # The branch fuses back to d_model, so the classifier and the gate are
+        # untouched by adding it. Their shapes stay identical with the branch
+        # on or off, which is what lets the ablation be a single module in or
+        # out rather than a different network.
+        self.tangent = (TangentBranch(n_chan, d_model, shrink=tangent_shrink,
+                                      dropout=dropout) if use_tangent else None)
+        self.fuse = (nn.Linear(d_model * 2, d_model) if use_tangent else None)
         self.classify = nn.Linear(d_model, n_outputs)
         self.gate = nn.Sequential(nn.Linear(d_model, d_model // 4), nn.GELU(),
                                   nn.Dropout(dropout),
@@ -236,6 +342,12 @@ class DriftNet(nn.Module):
         f = x.reshape(B * K, C, T)
         if self.align is not None:
             f = self.align(f)
+        if self.tangent is not None:
+            # Referenced to the alignment layer's running covariance when it
+            # exists, so the branch adapts through the same label-free
+            # statistic rather than adding a second adaptation path.
+            ref = self.align.run_cov if self.align is not None else None
+            t = self.tangent(f, ref).reshape(B, K, -1)[:, -1]
         z = self.stem(f)                                  # (B*K, F, T')
         z = self.frame_norm(z.transpose(1, 2))            # (B*K, T', F)
         z = self.proj(z)
@@ -245,7 +357,10 @@ class DriftNet(nn.Module):
             mask = torch.triu(torch.ones(K, K, device=x.device, dtype=torch.bool),
                               diagonal=1)
             e = self.ctx(self.pos(e), mask=mask)
-        h = self.drop(self.norm(e[:, -1]))
+        last = e[:, -1]
+        if self.tangent is not None:
+            last = self.fuse(torch.cat([last, t], dim=-1))
+        h = self.drop(self.norm(last))
         out = {"logits": self.classify(h), "emb": h}
         out["gate"] = (torch.sigmoid(self.gate(h)).squeeze(-1) if self.use_gate
                        else torch.ones(B, device=x.device))

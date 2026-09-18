@@ -93,6 +93,14 @@ DRIFT_ARMS = {
     "dn_noctx":    dict(use_align=True,  use_ctx=False, use_gate=True),
     "dn_nogate":   dict(use_align=True,  use_ctx=True,  use_gate=False),
     "dn_stem":     dict(use_align=False, use_ctx=False, use_gate=False),
+    # Second-order branch. Each is its own control's arm plus ONE module, so
+    # the ablation is that module in or out and nothing else moves: dn_tan
+    # against dn_noctx, dn_stem_tan against dn_stem. Neither changes the
+    # training recipe, so the published baselines stay comparable.
+    "dn_tan":      dict(use_align=True,  use_ctx=False, use_gate=True,
+                        use_tangent=True),
+    "dn_stem_tan": dict(use_align=False, use_ctx=False, use_gate=False,
+                        use_tangent=True),
     # Selection head without alignment or context. Paired with dn_noctx it
     # isolates alignment as the single differing factor, which the pre-registered
     # third-cohort test (paper/PREREGISTRATION_cohort3.md) requires.
