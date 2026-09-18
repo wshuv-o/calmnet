@@ -152,7 +152,7 @@ Our contributions are:
 \item Pre-register a stronger version of the same condition, one that sets the adaptation rate from the block length, and report it as falsified (Section~\ref{sec:prereg}).
 \end{enumerate}
 
-The branch costs parameters. It adds roughly 271{,}000 to a 20{,}000-parameter stem, so the reported model is no longer compact and we do not claim parameter efficiency; Section~\ref{sec:compare} reports the counts beside the accuracies so the trade is visible.
+The branch costs parameters. It adds 238{,}028 to a 19{,}505-parameter stem path, plus 32{,}896 for the fusion it requires, so the reported model is no longer compact and we do not claim parameter efficiency; Section~\ref{sec:compare} reports the counts beside the accuracies so the trade is visible.
 
 %=============================================================================
 \section{Related work}
@@ -278,7 +278,7 @@ model.
 %=============================================================================
 \section{Method}
 
-The reported decoder has two components. A multi-scale log-power stem reads the diagonal of each window's spatial covariance, and a tangent-space branch reads the rest of it. Their outputs are concatenated and passed to one linear classifier. The stem carries 20{,}019 parameters and the branch 270{,}924, so the branch is the larger part of the model by an order of magnitude and Section~\ref{sec:compare} reports what that buys.
+The reported decoder has two components. A multi-scale log-power stem reads the diagonal of each window's spatial covariance, and a tangent-space branch reads the rest of it. Their outputs are concatenated and passed to one linear classifier. The stem path carries 19{,}505 parameters and the branch 238{,}028, with a further 32{,}896 in the fusion layer the branch requires, so the branch is the larger part of the model by an order of magnitude and Section~\ref{sec:compare} reports what that buys.
 
 Three further components were built and tested, and none is retained: an adaptive alignment layer, a causal cross-epoch transformer and a selective head. Section~\ref{sec:dropped} describes them and points at the measurements that removed them, because each defines an arm of the ablation and one of them, the alignment layer, supplies the mechanism that explains where the branch fails.
 
@@ -349,7 +349,7 @@ with off-diagonal entries scaled by $\sqrt{2}$ so that the vector's Euclidean no
 
 The reference $M$ is a running mean over the covariances of incoming windows, updated by (\ref{eq:update}) with momentum $m$ and no labels, and it keeps updating at inference. This is what lets the representation follow a session as it changes, and it is also the component that fails: because $M$ is an average over whatever is currently streaming, a protocol that presents one class for longer than a single update spans will drive $M$ onto that class. Condition~\ref{prop:band} states when that cannot happen and Section~\ref{sec:fivecohort} measures it on five cohorts. The condition was derived on the alignment layer of Section~\ref{sec:dropped}, which shares this estimator, and it transfers to the branch unchanged.
 
-The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch adds 270{,}924 parameters to the 20{,}019 of the stem.
+The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch carries 238{,}028 parameters and the fusion layer it requires a further 32{,}896, against 19{,}505 in the stem path; the reported model is 290{,}943 in total, of which the branch and its fusion are 93\,%.
 
 \subsection{Components tested and not retained}
 \label{sec:dropped}
