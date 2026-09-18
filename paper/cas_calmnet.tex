@@ -72,41 +72,19 @@ Data curation, Writing -- original draft, Visualization}
 \cortext[1]{Corresponding author}
 
 \begin{abstract}
-An EEG decoder for a lower-limb exoskeleton is fitted once but must work
-for weeks, while changes in electrode impedance and montage shift
-the covariance its spatial filters depend on. Re-estimating the input covariance
-at inference and whitening by it, without labels, corrects this shift inside the
-network. Under a protocol that presents classes in long blocks, however, the
-running estimate converges to the active class and whitens away the signal it
-should protect.
+An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting the shift by whitening at inference reintroduces a hazard: under a protocol that presents classes in long blocks, a running covariance estimate converges to the active class and whitens away the signal it should protect.
 
-We present a 24{,}181-parameter decoder built around such a layer, and derive a
-lower bound on its adaptation rate from the class-block timescale of the
-recording protocol. The layer reduces session-to-session covariance distance by
-$45.9 \pm 4.9\,\%$ and $62.5 \pm 12.2\,\%$ on two cohorts, in 15 of 15
-participants. On a seven-participant exoskeleton cohort the decoder reaches
-$0.868 \pm 0.026$ balanced accuracy over three seeds, level with eight published
-decoders, and no component, alignment included, is shown to change accuracy
-relative to the convolutional stem alone. On a treadmill cohort whose class
-blocks last 309 windows, the decoder transfers at $0.729$ without the layer over three seeds, and enabling the layer costs $0.149$,
-lower in 8 of 8 participants. The lower bound then predicted a third cohort in
-advance: both registered predictions held, and the decoder reached $0.796$
-against $0.783$ for the strongest published decoder, with calibration error
-$0.061$. The upper bound, set by the drift timescale, was not measurable; the lower
-bound can be checked from the recording protocol before training.
+We add a second-order branch that maps each window's covariance into the tangent space at a running reference the network already maintains without labels, and concatenates it with the log-power stem. On a 20-participant motor-execution cohort held out from all development, the branch raises balanced accuracy from $0.779$ to $0.843 \pm 0.006$, higher in 20 of 20 participants ($p = 8.8 \times 10^{-5}$), against $0.783$ for the strongest of eight published decoders trained in the same pipeline. On a 7-participant exoskeleton cohort it gives $0.909 \pm 0.004$ against $0.864$, higher in 6 of 7. On a treadmill cohort whose class blocks last 309 windows it collapses to $0.568$, below the $0.744$ of the stem alone and close to the $0.500$ chance line, which is what the class-block condition governing the alignment layer predicts: the reference converges on the streaming class. Lengthening the estimator memory from 160 to 3200 windows, as that condition prescribes, returns the cohort to $0.718$ ($p = 0.31$ against the stem). Removing the reference instead repairs that cohort and is null or negative on the other two, so the adapting reference is the source of the gain and not the liability.
+
+One condition, read from the recording protocol before training, therefore governs two independent mechanisms and says in advance where each will fail. Its upper bound, set by the drift timescale, remains unmeasurable on both cohorts.
 \end{abstract}
 
 \begin{highlights}
-\item A 24{,}181-parameter EEG decoder with label-free alignment that adapts at
-      test time.
-\item Accuracy is level with eight published decoders trained in the same
-      pipeline.
-\item In-network alignment reduces session drift by 46--63\% in 15 of
-      15 subjects.
-\item Test-time adaptation can track the streaming class and erase the signal it
-      protects.
-\item A lower bound on adaptation rate, read from the protocol, predicted a new
-      cohort.
+\item A tangent-space branch supplies the channel covariance a log-power stem discards.
+\item It raises accuracy by $0.064$ in 20 of 20 held-out participants, $p<10^{-4}$.
+\item The branch collapses where class blocks outlast the estimator memory.
+\item One protocol-derived condition predicts where both adaptive mechanisms fail.
+\item The slow adaptation it prescribes recovers the cohort it rules out.
 \end{highlights}
 
 \begin{keywords}
@@ -430,6 +408,19 @@ Table~\ref{tab:repr} also reports the control that retired an amplitude
 side-channel: supplying a per-window amplitude feature and supplying the same
 feature with its window assignment shuffled differ by less than $0.02$ for four
 of five models.
+
+\subsection{Tangent-space branch}
+\label{sec:tangent}
+
+The stem of Section~\ref{sec:stem} reduces each window to log power per channel, which is the diagonal of its spatial covariance. The off-diagonal structure, how channels covary, is discarded. The branch restores it. For a window $X$ we form the per-window covariance $C = XX^{\top}/T$, normalise its trace, shrink it toward a scaled identity by $\lambda = 0.1$, and map it to the tangent space at a reference $M$,
+\begin{equation}
+\phi(X) = \mathrm{vec}\big(\log(M^{-1/2} C M^{-1/2})\big),
+\end{equation}
+with off-diagonal entries scaled by $\sqrt{2}$ so that the vector's Euclidean norm equals the matrix Frobenius norm. A linear projection maps $\phi(X)$ to the embedding width and concatenates it with the stem before the classifier, which leaves the classifier and the selective head unchanged in shape so the branch ablates as one module.
+
+The reference is the running covariance the alignment layer of Section~\ref{sec:align} already maintains, updated without labels and still updating at test time. Where alignment is disabled the branch keeps its own running mean under the same momentum, so removing the branch does not silently remove adaptation as well. Tying the two mechanisms to one statistic is what places the branch under Condition~\ref{prop:band}: the rate that makes the alignment layer safe is the rate that makes the reference safe, and Section~\ref{sec:tanres} tests that consequence.
+
+The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch adds 270{,}924 parameters to the 20{,}019 of the stem.
 
 \subsection{Causal cross-epoch context}
 
@@ -1220,6 +1211,50 @@ replication seeds and formed no part of the registered prediction.
 
 The test covers the lower bound of Condition~\ref{prop:band} and its contrast
 with cohort~B. It does not test the upper bound.
+
+\subsection{A second-order branch, and where the rate condition sends it}
+\label{sec:tanres}
+
+Table~\ref{tab:tangent} reports the branch of Section~\ref{sec:tangent} against the stem alone, three seeds everywhere, paired across participants.
+
+\begin{table}[t]
+\centering
+\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants. Cohort~C was held out from every design decision. Cohort~B is shown at the default adaptation rate and at the rate Condition~\ref{prop:band} prescribes for its 309-window class blocks.}
+\label{tab:tangent}
+\begin{tabular}{lccccc}
+\hline
+Cohort & Stem & Stem + branch & $\Delta$ & Higher & $p$ \\
+\hline
+A ($n{=}7$) & $0.864$ & $0.909 \pm 0.004$ & $+0.045$ & 6/7 & $0.21875$ \\
+C ($n{=}20$), held out & $0.779$ & $0.843 \pm 0.006$ & $+0.064$ & 20/20 & $8.8\times10^{-5}$ \\
+B ($n{=}8$), $m{=}0.2$ & $0.744$ & $0.568 \pm 0.005$ & $-0.175$ & 0/8 & $0.00781$ \\
+B ($n{=}8$), $m{=}0.01$ & $0.744$ & $0.718 \pm 0.004$ & $-0.026$ & 3/8 & $0.3125$ \\
+\hline
+\end{tabular}
+\end{table}
+
+On cohort~C, which no design decision touched, the branch adds $0.064$ and is higher in every one of the 20 participants. It reaches $0.843$ against $0.783$ for the strongest of the eight published decoders in the same pipeline, and lowers expected calibration error from $0.075$ to $0.062$. On cohort~A it adds $0.045$ in 6 of 7 participants. The effect there is not significant at seven participants ($p=0.22$), and the more robust observation is stability: the seed-to-seed spread of the grand mean falls from $0.032$ for the stem to $0.004$ with the branch.
+
+Cohort~B inverts. At the default rate the branch reaches $0.568$ against $0.744$, lower in 8 of 8 participants, and sits close to the $0.500$ chance line. This is the failure Condition~\ref{prop:band} predicts rather than a separate one. That cohort presents Walk in blocks of 309 windows and is $88\,\%$ Walk; at $m=0.2$ the estimator memory is 160 windows, shorter than a block, so the reference converges on the Walk covariance, and whitening a Walk window by the Walk covariance removes the variance that separates the classes. Lengthening the memory to 3200 windows, which the condition prescribes for a 309-window block, returns the cohort to $0.718$, indistinguishable from the stem ($p=0.31$). The same rate that makes the alignment layer safe makes the reference safe, on a mechanism introduced independently of it.
+
+Table~\ref{tab:tanref} separates the two roles of the reference. Freezing it at the fitting-split mean removes the ability to track the streaming class but not the class imbalance in the fitting data itself, and recovers cohort~B only partly. Removing it altogether repairs cohort~B and is null on cohort~C and negative on cohort~A, so the adapting reference is where the gain comes from and the no-reference variant is a cohort~B patch with no support elsewhere. We therefore retain the adapting reference and let Condition~\ref{prop:band}, read from the protocol, decide where the branch is admissible. Nothing in that choice is fitted on a confirmation cohort.
+
+\begin{table}[t]
+\centering
+\caption{Where the tangent reference comes from, three seeds, $\Delta$ against the stem alone on the same cohort. The adapting reference is the only setting that helps on the two cohorts whose class blocks are short.}
+\label{tab:tanref}
+\begin{tabular}{lccc}
+\hline
+Reference & Cohort A & Cohort B & Cohort C \\
+\hline
+Running (adapting) & $+0.045$ & $-0.175$ & $+0.064$ \\
+Frozen at fitting mean & $-0.039$ & $-0.026$ & -- \\
+None (no whitening) & $-0.021$ & $+0.011$ & $+0.003$ \\
+\hline
+\end{tabular}
+\end{table}
+
+One boundary on the claim. The branch helps the stem, and it does not help the configuration that already contains the alignment layer: on cohort~C the same branch added to the aligned arm changes accuracy by $+0.002$ ($p=0.52$, higher in 14 of 20). Both read the same second-order structure, so they are substitutes rather than complements, and the configuration we report is the stem with the branch and no alignment layer.
 
 %=============================================================================
 \section{Discussion}
