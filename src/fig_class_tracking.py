@@ -196,7 +196,7 @@ def build(sub_a="sub-01", sub_b=None):
     Csb, Cwb = class_covs(Xb, yb)
     strmb = streaming_class(yb)
 
-    for col, mom, lab in ((1, 0.2, r"cohort B, $\tau_{\mathrm{blk}}=309$, "
+    for col, mom, lab in ((1, 0.2, r"cohort B, $\tau_{\mathrm{blk}}=214$, "
                                    r"$m=0.2$ (memory 160)"),
                           (2, 0.01, r"cohort B, $m=0.01$ (memory 3200)")):
         tb = ema_trajectory(Xb, mom)

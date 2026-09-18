@@ -210,7 +210,7 @@ class TangentBranch(nn.Module):
         # Where the base point of the tangent map comes from. The running
         # reference collapsed on cohort B (0.744 -> 0.565, barely above the
         # 0.500 chance line) and the cause looks structural rather than
-        # incidental: that cohort is 88 % Walk in blocks of 309 windows, so an
+        # incidental: that cohort is 88 % Walk in blocks of 214 windows, so an
         # EMA over the test stream becomes the Walk covariance, and whitening a
         # Walk window by the Walk covariance removes the very variance that
         # separates the classes. That is the failure this project already

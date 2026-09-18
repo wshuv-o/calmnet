@@ -116,7 +116,7 @@ def fig_inversion():
                     fontsize=8, color=c)
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["cohort A" + NL + "exoskeleton, blocks 18 win",
-                        "cohort B" + NL + "treadmill, blocks 309 win"],
+                        "cohort B" + NL + "treadmill, blocks 214 win"],
                        fontsize=8.5)
     ax.set_xlim(-0.30, 1.72)
     ax.set_ylabel("balanced accuracy")

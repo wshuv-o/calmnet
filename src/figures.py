@@ -232,7 +232,7 @@ def fig_rate():
         ("cohort A", 18, "noalign", m3(["a_gate_3seed.json"], "dn_gate"),
          [(160, m3(["a_aligngate_3seed.json"], "dn_noctx")),
           (3200, m3(["a_slow_noctx_3seed.json"], "dn_noctx"))]),
-        ("cohort B", 309, "ours", m3(["b_gate_aligngate_3seed.json"], "dn_gate"),
+        ("cohort B", 214, "ours", m3(["b_gate_aligngate_3seed.json"], "dn_gate"),
          [(160, m3(["b_gate_aligngate_3seed.json"], "dn_noctx")),
           (320, m3(["b_floor_m0.10.json"], "dn_noctx")),
           (1600, m3(["b_floor_m0.02.json"], "dn_noctx")),
@@ -324,7 +324,7 @@ def fig_inversion():
                 va="center")
     ax.set_xticks([0, 1])
     ax.set_xticklabels([r"cohort A" + NL + r"$\tau_{\mathrm{blk}}=18$",
-                        r"cohort B" + NL + r"$\tau_{\mathrm{blk}}=309$"],
+                        r"cohort B" + NL + r"$\tau_{\mathrm{blk}}=214$"],
                        fontsize=6.8)
     ax.set_xlim(-0.12, 1.95)
     ax.set_ylabel("balanced accuracy")

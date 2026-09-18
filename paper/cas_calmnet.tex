@@ -74,7 +74,7 @@ Data curation, Writing -- original draft, Visualization}
 \begin{abstract}
 An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting the shift by whitening at inference reintroduces a hazard: under a protocol that presents classes in long blocks, a running covariance estimate converges to the active class and whitens away the signal it should protect.
 
-We add a second-order branch that maps each window's covariance into the tangent space at a running reference the network already maintains without labels, and concatenates it with the log-power stem. On a 20-participant motor-execution cohort held out from all development, the branch raises balanced accuracy from $0.779$ to $0.843 \pm 0.006$, higher in 20 of 20 participants ($p = 8.8 \times 10^{-5}$), against $0.783$ for the strongest of eight published decoders trained in the same pipeline. On a 7-participant exoskeleton cohort it gives $0.909 \pm 0.004$ against $0.864$, higher in 6 of 7. On a treadmill cohort whose class blocks last 309 windows it collapses to $0.568$, below the $0.744$ of the stem alone and close to the $0.500$ chance line, which is what the class-block condition governing the alignment layer predicts: the reference converges on the streaming class. Lengthening the estimator memory from 160 to 3200 windows, as that condition prescribes, returns the cohort to $0.718$ ($p = 0.31$ against the stem). Removing the reference instead repairs that cohort and is null or negative on the other two, so the adapting reference is the source of the gain and not the liability.
+We add a second-order branch that maps each window's covariance into the tangent space at a running reference the network already maintains without labels, and concatenates it with the log-power stem. On a 20-participant motor-execution cohort held out from all development, the branch raises balanced accuracy from $0.779$ to $0.843 \pm 0.006$, higher in 20 of 20 participants ($p = 8.8 \times 10^{-5}$), against $0.783$ for the strongest of eight published decoders trained in the same pipeline. On a 7-participant exoskeleton cohort it gives $0.909 \pm 0.004$ against $0.864$, higher in 6 of 7. On a treadmill cohort whose class blocks last 214 windows it collapses to $0.568$, below the $0.744$ of the stem alone and close to the $0.500$ chance line, which is what the class-block condition governing the alignment layer predicts: the reference converges on the streaming class. Lengthening the estimator memory from 160 to 3200 windows, as that condition prescribes, returns the cohort to $0.718$ ($p = 0.31$ against the stem). Removing the reference instead repairs that cohort and is null or negative on the other two, so the adapting reference is the source of the gain and not the liability.
 
 One condition, read from the recording protocol before training, therefore governs two independent mechanisms and says in advance where each will fail. Its upper bound, set by the drift timescale, remains unmeasurable on both cohorts.
 \end{abstract}
@@ -473,16 +473,21 @@ The protocols differ sharply in temporal structure, which
 Section~\ref{sec:rate} shows to be decisive (Table~\ref{tab:blocks}).
 
 \begin{table}[t]
-\caption{Contiguous single-class block structure. $\tau_{\mathrm{blk}}$ is the
-median block duration in windows.}
+\caption{Contiguous single-class block structure, computed from the label
+sequence alone by \texttt{tools/tau\_blk\_rule.py}. Blocks are counted within a
+recording, never across one, and pooled over participants;
+$\tau_{\mathrm{blk}}$ is the median block duration in windows. It is a property
+of the protocol and not of the participant: every participant of every cohort
+returns the same median.}
 \label{tab:blocks}
 \centering
 \begin{tabular}{lrrr}
 \toprule
 Cohort & Blocks & $\tau_{\mathrm{blk}}$ & Longest \\
 \midrule
-A (exoskeleton) & 109 & 18 & 126 \\
-B (treadmill)   & 7   & 309 & 2211 \\
+A (exoskeleton)     & 789  & 18  & 486 \\
+B (treadmill)       & 66   & 214 & 2211 \\
+C (motor execution) & 3600 & 5   & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -960,7 +965,7 @@ The remainder of the results characterises this inversion.
 two architectures. The lower bound of Condition~\ref{prop:band} acts as a switch
 whose position is fixed by the recording protocol: with the default estimator
 memory $\mu = 32/m = 160$ windows, cohort A's $\tau_{\mathrm{blk}}=18$ satisfies
-$\tau_{\mathrm{blk}} < \mu$ and cohort B's $\tau_{\mathrm{blk}}=309$ does not.
+$\tau_{\mathrm{blk}} < \mu$ and cohort B's $\tau_{\mathrm{blk}}=214$ does not.
 Enabling alignment exactly when the lower bound is satisfied selects $0.901$ on
 cohort A and $0.792$ on cohort B, the best configuration of
 Table~\ref{tab:external} on each at seed 0, from one model and one rule
@@ -1009,7 +1014,7 @@ $B$ batches. When a protocol presents a class in contiguous blocks longer than
 that memory, the estimate converges to the currently streaming class, and
 whitening by it removes the between-class difference. Cohort A's blocks
 ($\tau_{\mathrm{blk}}=18$) sit far inside even the fastest memory; cohort B's
-($\tau_{\mathrm{blk}}=309$) do not.
+($\tau_{\mathrm{blk}}=214$) do not.
 
 Fig.~\ref{fig:tracking} shows the estimate itself for one participant from each
 cohort. It is the layer's internal state, which depends only on the input
@@ -1031,7 +1036,7 @@ distance and coloured by the streaming class. Bottom row: distance from the
 estimate to each class covariance against window index, with the background
 shaded by the streaming class. (a,b) Cohort A, $\tau_{\mathrm{blk}}=18$,
 $m=0.2$: the estimate stays closer to the stop covariance throughout and
-approaches neither class. (c,d) Cohort B, $\tau_{\mathrm{blk}}=309$, $m=0.2$:
+approaches neither class. (c,d) Cohort B, $\tau_{\mathrm{blk}}=214$, $m=0.2$:
 the estimate starts near the stop covariance, moves to the walk covariance when
 the walk block begins, and the two distances swap back when stop returns. (e,f)
 Cohort B at $m=0.01$: the estimate moves toward the walk covariance more slowly
@@ -1041,7 +1046,7 @@ and crosses over once, late in the recording.}
 
 If this mechanism is responsible, slowing adaptation until the memory exceeds a class block should restore cohort B. The memory is approximately 160, 640 and 3200 windows
 at $m=0.2$, $0.05$ and $0.01$, so the crossing of
-$\tau_{\mathrm{blk}}=309$ falls between the first and second settings.
+$\tau_{\mathrm{blk}}=214$ falls between the first and second settings.
 Three seeds under the current estimator trace the recovery more finely for
 \textit{align + gate} (Table~\ref{tab:ratecurve}), against the gate-only arm,
 which differs only in alignment and does not use the estimator ($0.729$). Alignment
@@ -1049,7 +1054,7 @@ costs $0.149$ at a memory of 160 windows (lower in 8 of 8 participants; Wilcoxon
 $p=0.008$), $0.091$ at 320 (7 of 8; $p=0.016$), $0.034$ at 1600 (6 of 8; $p=0.15$) and
 $0.031$ at 3200 (6 of 8; $p=0.15$). The cost falls by similar amounts on either
 side of the block length and then levels off, so the recovery is gradual and
-shows no step at $\tau_{\mathrm{blk}}=309$. Alignment never becomes beneficial,
+shows no step at $\tau_{\mathrm{blk}}=214$. Alignment never becomes beneficial,
 and at the two slowest rates its remaining cost is not significant.
 
 \begin{figure*}[t]
@@ -1129,7 +1134,7 @@ advance; its upper bound is not measured, and we give no proof.
 \end{condition}
 
 Cohort A satisfies the lower bound with a wide margin ($\tau_{\mathrm{blk}}=18$
-against $\mu=160$), and cohort B's 309-window blocks violate it at the default
+against $\mu=160$), and cohort B's 214-window blocks violate it at the default
 rate. On cohort B the cost of alignment falls gradually as $\mu$ lengthens past
 $\tau_{\mathrm{blk}}$ (Section~\ref{sec:rate}), so the bound marks where class
 tracking begins to weaken, and it does not mark a sharp threshold. Whether cohort B has any admissible rate cannot be decided from these
@@ -1222,7 +1227,7 @@ Table~\ref{tab:tangent} reports the branch of Section~\ref{sec:tangent} against 
 
 \begin{table}[t]
 \centering
-\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants. Cohort~C was held out from every design decision. Cohort~B is shown at the default adaptation rate and at the rate Condition~\ref{prop:band} prescribes for its 309-window class blocks.}
+\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants. Cohort~C was held out from every design decision. Cohort~B is shown at the default adaptation rate and at the rate Condition~\ref{prop:band} prescribes for its 214-window class blocks.}
 \label{tab:tangent}
 \begin{tabular}{lccccc}
 \hline
@@ -1238,7 +1243,7 @@ B ($n{=}8$), $m{=}0.01$ & $0.744$ & $0.718 \pm 0.004$ & $-0.026$ & 3/8 & $0.3125
 
 On cohort~C, which no design decision touched, the branch adds $0.064$ and is higher in every one of the 20 participants. It reaches $0.843$ against $0.783$ for the strongest of the eight published decoders in the same pipeline, and lowers expected calibration error from $0.075$ to $0.062$. On cohort~A it adds $0.045$ in 6 of 7 participants. The effect there is not significant at seven participants ($p=0.22$), and the more robust observation is stability: the seed-to-seed spread of the grand mean falls from $0.032$ for the stem to $0.004$ with the branch.
 
-Cohort~B inverts. At the default rate the branch reaches $0.568$ against $0.744$, lower in 8 of 8 participants, and sits close to the $0.500$ chance line. This is the failure Condition~\ref{prop:band} predicts rather than a separate one. That cohort presents Walk in blocks of 309 windows and is $88\,\%$ Walk; at $m=0.2$ the estimator memory is 160 windows, shorter than a block, so the reference converges on the Walk covariance, and whitening a Walk window by the Walk covariance removes the variance that separates the classes. Lengthening the memory to 3200 windows, which the condition prescribes for a 309-window block, returns the cohort to $0.718$, indistinguishable from the stem ($p=0.31$). The same rate that makes the alignment layer safe makes the reference safe, on a mechanism introduced independently of it.
+Cohort~B inverts. At the default rate the branch reaches $0.568$ against $0.744$, lower in 8 of 8 participants, and sits close to the $0.500$ chance line. This is the failure Condition~\ref{prop:band} predicts rather than a separate one. That cohort presents Walk in blocks of 214 windows and is $88\,\%$ Walk; at $m=0.2$ the estimator memory is 160 windows, shorter than a block, so the reference converges on the Walk covariance, and whitening a Walk window by the Walk covariance removes the variance that separates the classes. Lengthening the memory to 3200 windows, which the condition prescribes for a 214-window block, returns the cohort to $0.718$, indistinguishable from the stem ($p=0.31$). The same rate that makes the alignment layer safe makes the reference safe, on a mechanism introduced independently of it.
 
 Table~\ref{tab:tanref} separates the two roles of the reference. Freezing it at the fitting-split mean removes the ability to track the streaming class but not the class imbalance in the fitting data itself, and recovers cohort~B only partly. Removing it altogether repairs cohort~B and is null on cohort~C and negative on cohort~A, so the adapting reference is where the gain comes from and the no-reference variant is a cohort~B patch with no support elsewhere. We therefore retain the adapting reference and let Condition~\ref{prop:band}, read from the protocol, decide where the branch is admissible. Nothing in that choice is fitted on a confirmation cohort.
 

@@ -102,7 +102,7 @@ def main():
     # ---- (b) opposite directions --------------------------------------------
     ax = axes[1]
     pairs = [("cohort A\nblocks 18 win", acc(a020, "dn_full"), acc(a001, "dn_full"), RAW),
-             ("cohort B\nblocks 309 win", acc(m020f, "dn_full"), acc(m001, "dn_full"), ALIGN)]
+             ("cohort B\nblocks 214 win", acc(m020f, "dn_full"), acc(m001, "dn_full"), ALIGN)]
     for i, (lab, fast, slow, c) in enumerate(pairs):
         if fast is None or slow is None:
             continue
@@ -138,7 +138,7 @@ def main():
             ha="center", fontsize=7.0, color=INK, style="italic")
 
     for k, (lab, block, col) in enumerate([("cohort A", 18, RAW),
-                                           ("cohort B", 309, ALIGN)]):
+                                           ("cohort B", 214, ALIGN)]):
         y = 1 - k
         ax.plot([block], [y], "|", ms=14, mew=2.4, color=col, zorder=5)
         ax.annotate(f"class block\n{block} win", (block, y - 0.36), ha="center",
