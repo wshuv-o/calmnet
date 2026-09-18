@@ -170,6 +170,31 @@ def load_mobi(sub, seed):
             "imu_t": test.motion, "vt": np.ones(len(test), bool)}
 
 
+def load_bnci(sub, seed):
+    """Fourth cohort (BNCI2014-001), same dict shape as the others.
+
+    Two sessions recorded on different days, fit on the first and test on the
+    second, matching the across-session convention of cohorts A and C. Trial
+    order is randomised, so a single-class block is one trial: this is the
+    cohort where the batch of 32 windows spans many blocks by construction.
+    """
+    from dataio_bnci import build_subject
+    es = build_subject(sub, win=WIN, step=STEP, zscore=False)
+    fit, test = es.by_sessions([0]), es.by_sessions([1])
+    if len(fit.y) < 40 or len(test.y) < 40:
+        raise RuntimeError("too few trials for %s" % sub)
+    ti, ci = grouped_split(fit.segment, fit.y, frac=0.3, seed=seed)
+    ti, ci = np.sort(ti), np.sort(ci)
+    return {"Xf": fit.X[ti], "yf": fit.y[ti], "sf": fit.session[ti],
+            "tf": fit.task[ti], "gf": fit.segment[ti],
+            "Xc": fit.X[ci], "yc": fit.y[ci], "sc": fit.session[ci],
+            "tc": fit.task[ci], "gc": fit.segment[ci],
+            "Xt": test.X, "yt": test.y, "st": test.session,
+            "tt": test.task, "gt": test.segment,
+            "imu_t": np.zeros((len(test.y), 1), np.float32),
+            "vt": np.zeros(len(test.y), bool)}
+
+
 def load_eegbci(sub, seed):
     """Third cohort (EEGMMIDB), in the same dict shape.
 
@@ -394,6 +419,9 @@ def main():
     elif COHORT == "eegbci":
         from dataio_eegbci import subjects as _es
         subs, loader = _es(), load_eegbci
+    elif COHORT == "bnci":
+        from dataio_bnci import subjects as _bs
+        subs, loader = _bs(), load_bnci
     else:
         subs, loader = SUBJECTS, load
     D = {}
