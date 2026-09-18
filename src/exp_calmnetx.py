@@ -170,6 +170,36 @@ def load_mobi(sub, seed):
             "imu_t": test.motion, "vt": np.ones(len(test), bool)}
 
 
+def load_decoded(sub, seed):
+    """Fifth cohort (DECODED / EUROBENCH), lower-limb exoskeleton.
+
+    Standing relaxed with the exoskeleton stopped against walking under motor
+    imagery, which is the same contrast cohort A decodes, on a real device.
+    Only one participant has two recording dates, so the split is temporal
+    across runs rather than across sessions: first half of the runs fit, second
+    half test. That tests less drift than cohorts A, C and D, and is the same
+    convention cohort B uses.
+    """
+    from dataio_decoded import build_subject
+    es = build_subject(sub, win=WIN, step=STEP, zscore=False)
+    nr = es.n_runs
+    fit_runs = list(range(nr))[:nr // 2]
+    test_runs = list(range(nr))[nr // 2:]
+    fit, test = es.by_sessions(fit_runs), es.by_sessions(test_runs)
+    if len(fit.y) < 60 or len(test.y) < 60:
+        raise RuntimeError("too few windows for %s" % sub)
+    ti, ci = grouped_split(fit.segment, fit.y, frac=0.3, seed=seed)
+    ti, ci = np.sort(ti), np.sort(ci)
+    return {"Xf": fit.X[ti], "yf": fit.y[ti], "sf": fit.session[ti],
+            "tf": fit.task[ti], "gf": fit.segment[ti],
+            "Xc": fit.X[ci], "yc": fit.y[ci], "sc": fit.session[ci],
+            "tc": fit.task[ci], "gc": fit.segment[ci],
+            "Xt": test.X, "yt": test.y, "st": test.session,
+            "tt": test.task, "gt": test.segment,
+            "imu_t": np.zeros((len(test.y), 1), np.float32),
+            "vt": np.zeros(len(test.y), bool)}
+
+
 def load_bnci(sub, seed):
     """Fourth cohort (BNCI2014-001), same dict shape as the others.
 
@@ -422,6 +452,9 @@ def main():
     elif COHORT == "bnci":
         from dataio_bnci import subjects as _bs
         subs, loader = _bs(), load_bnci
+    elif COHORT == "decoded":
+        from dataio_decoded import subjects as _ds
+        subs, loader = _ds(), load_decoded
     else:
         subs, loader = SUBJECTS, load
     D = {}
