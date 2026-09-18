@@ -133,6 +133,10 @@ SUBJECTS = [f"sub-0{i}" for i in range(1, 8)]
 N_TRAIN, WIN, STEP = 3, 4.0, 0.5
 K_CTX, S_CTX = 8, 3
 EPOCHS = int(os.environ.get("CX_EPOCHS", "30"))
+# Windows per covariance update. The running reference is updated once per
+# forward pass, in training and at inference alike, so this is the N that the
+# regime boundary compares against tau_blk. Table tab:batchsweep varies it.
+BATCH = int(os.environ.get("CX_BATCH", "32"))
 SIZE = os.environ.get("CX_SIZE", "base")
 TRIALS = tuple("trial%02d" % i for i in range(1, 13))
 COHORT = os.environ.get("CX_COHORT", "ds007788")
@@ -316,7 +320,8 @@ def make_split(X, y, s, t, g, k):
 
 
 @torch.no_grad()
-def infer(model, X, idx, batch=32):
+def infer(model, X, idx, batch=None):
+    batch = BATCH if batch is None else batch
     model.eval()
     L, G = [], []
     for i in range(0, len(idx), batch):
@@ -357,11 +362,11 @@ def run(d, arm, seed):
 
     opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-2)
     sched = torch.optim.lr_scheduler.OneCycleLR(
-        opt, max_lr=3e-4, total_steps=EPOCHS * max(1, len(ixf) // 32 + 1))
+        opt, max_lr=3e-4, total_steps=EPOCHS * max(1, len(ixf) // BATCH + 1))
     cnt = np.bincount(d["yf"], minlength=2).astype(float)
     w = torch.tensor(cnt.sum() / (2 * np.maximum(cnt, 1)), dtype=torch.float32,
                      device=DEVICE)
-    dl = DataLoader(TensorDataset(ixf, tyf), batch_size=32, shuffle=True)
+    dl = DataLoader(TensorDataset(ixf, tyf), batch_size=BATCH, shuffle=True)
 
     best, best_sc, best_ep = None, -1e9, 0
     for ep in range(EPOCHS):
