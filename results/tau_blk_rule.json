@@ -1,0 +1,70 @@
+{
+ "_note": "tau_blk computed from the label sequence only. No model is trained or read, and no accuracy is consulted, which is what would make a prescribed rate a derivation rather than a fit. Every statistic-by-pooling combination is reported because the manuscript value (median, 18 and 309) had to be reproduced before any rule could be built on it.",
+ "batch": 32,
+ "cohorts": {
+  "A": {
+   "n_blocks_pooled": 789,
+   "pooled_median": 18.0,
+   "pooled_mean": 25.138149556400506,
+   "longest": 486,
+   "median_of_per_subject_medians": 18.0,
+   "mean_of_per_subject_means": 25.250945879517307,
+   "per_subject_median": {
+    "sub-01": 18.0,
+    "sub-02": 18.0,
+    "sub-03": 18.0,
+    "sub-04": 18.0,
+    "sub-05": 18.0,
+    "sub-06": 18.0,
+    "sub-07": 18.0
+   }
+  },
+  "B": {
+   "n_blocks_pooled": 66,
+   "pooled_median": 214.0,
+   "pooled_mean": 900.7575757575758,
+   "longest": 2211,
+   "median_of_per_subject_medians": 214.0,
+   "mean_of_per_subject_means": 906.3556547619048,
+   "per_subject_median": {
+    "SL01": 214.0,
+    "SL02": 214.0,
+    "SL03": 214.0,
+    "SL04": 214.0,
+    "SL05": 214.0,
+    "SL06": 214.0,
+    "SL07": 214.0,
+    "SL08": 214.0
+   }
+  }
+ },
+ "rule": [
+  {
+   "cohort": "A",
+   "m": 0.2,
+   "mu": 160.0,
+   "tau_blk": 18.0,
+   "admissible": true,
+   "measured_delta": 0.045,
+   "agrees": true
+  },
+  {
+   "cohort": "B",
+   "m": 0.2,
+   "mu": 160.0,
+   "tau_blk": 214.0,
+   "admissible": false,
+   "measured_delta": -0.175,
+   "agrees": true
+  },
+  {
+   "cohort": "B",
+   "m": 0.01,
+   "mu": 3200.0,
+   "tau_blk": 214.0,
+   "admissible": true,
+   "measured_delta": -0.026,
+   "agrees": true
+  }
+ ]
+}
