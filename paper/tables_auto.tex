@@ -79,40 +79,38 @@ EEGConformer \citep{conformer} & 0.828 $\pm$ 0.066 & \textbf{0.829} $\pm$ 0.079 
 \end{table}
 
 \begin{table}[t]
-\caption{Measurement noise. The first block repeats arms for which momentum and estimator version are inert, so all variation is run-to-run: the arm without the cross-epoch transformer is bit-identical across three runs, and the arms with it are not. Across data-split seeds the spread is larger again, \textbf{0.032 to 0.046} for our arms without the transformer. \textbf{Differences below 0.02 are not interpreted anywhere in this work}, and differences below the seed spread are reported without a ranking.}
+\caption{Measurement noise, for the arms this paper reports. Spread is the range of balanced accuracy across three data-split seeds with every other setting fixed. The largest is the stem on cohort~A at $0.0569$; the reported model is tighter on every cohort, at most $0.0216$. \textbf{Differences below $0.02$ are not interpreted anywhere in this work}, and differences below the relevant seed spread are reported without a ranking.}
 \label{tab:noise}
 \centering
 \small
 \resizebox{\columnwidth}{!}{%
-\begin{tabular}{llrr}
+\begin{tabular}{lrr}
 \toprule
-Arm & Transformer & $n$ & Spread \\
+Arm & $n$ & Spread \\
 \midrule
-\multicolumn{4}{l}{\textit{Fixed seed, repeated runs of arms where the manipulated variable is inert}} \\
-stem only, cohort B & no & 3 & \textbf{0.0000} \\
-no-align, cohort A & yes & 3 & 0.0069 \\
-no-align, cohort B & yes & 4 & 0.0107 \\
+\multicolumn{3}{l}{\textit{Across three data-split seeds, reported arms}} \\
+stem $+$ branch, cohort~A & 3 & 0.0070 \\
+stem $+$ branch, cohort~B & 3 & 0.0088 \\
+stem $+$ branch, cohort~C & 3 & 0.0108 \\
+stem $+$ branch, cohort~D & 3 & 0.0216 \\
+stem $+$ branch, cohort~E & 3 & 0.0091 \\
+stem, cohort~A & 3 & 0.0569 \\
+stem, cohort~B & 3 & 0.0300 \\
+stem, cohort~C & 3 & 0.0132 \\
+stem, cohort~D & 3 & 0.0455 \\
+stem, cohort~E & 3 & 0.0110 \\
 \midrule
-\multicolumn{4}{l}{\textit{Across three data-split seeds, trace-normalised estimator}} \\
-align + gate & no & 3 & 0.0455 \\
-gate only & no & 3 & 0.0409 \\
-align only & no & 3 & 0.0320 \\
-\midrule
-\multicolumn{4}{l}{\textit{Cohort B, memory 320 windows, three data-split seeds}} \\
-align + gate & no & 3 & 0.0028 \\
-no-align & yes & 3 & 0.0369 \\
-\midrule
-\multicolumn{4}{l}{\textit{Across data-split seeds, published decoders, same pipeline}} \\
-Deep4Net & --- & 3 & 0.0265 \\
-EEGConformer & --- & 3 & 0.0153 \\
-EEGNeX & --- & 3 & 0.0268 \\
-EEGNet & --- & 3 & 0.0518 \\
-EEGTCNet & --- & 3 & 0.0175 \\
-FBLightConvNet & --- & 3 & 0.0215 \\
-ShallowFBCSPNet & --- & 3 & 0.0393 \\
-TSception & --- & 3 & 0.0062 \\
+\multicolumn{3}{l}{\textit{Across data-split seeds, published decoders, same pipeline}} \\
+Deep4Net & 3 & 0.0265 \\
+EEGConformer & 3 & 0.0153 \\
+EEGNeX & 3 & 0.0268 \\
+EEGNet & 3 & 0.0518 \\
+EEGTCNet & 3 & 0.0175 \\
+FBLightConvNet & 3 & 0.0215 \\
+ShallowFBCSPNet & 3 & 0.0393 \\
+TSception & 3 & 0.0062 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
 }
 \end{table}
 

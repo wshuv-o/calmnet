@@ -10,6 +10,19 @@ nothing in the manuscript needs changing.
 
     python tools/make_arch_drawio.py
 """
+import sys as _sys
+_sys.exit("RETIRED. The architecture figure is now maintained by hand:
+"
+  "  paper/fig_arch.drawio  -- the editable source (drawio / diagrams.net)
+"
+  "  results/fig_arch.pdf   -- exported from it, included by the manuscript
+"
+  "Edit the .drawio and re-export to PDF with 'Include a copy of my diagram'
+"
+  "so the XML stays embedded. Do not regenerate the figure from this script;
+"
+  "it would overwrite hand edits.")
+
 from __future__ import annotations
 
 import io
