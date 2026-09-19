@@ -258,7 +258,7 @@ write(get(s, "Rectangle 5"),
 # ------------------------------------------------------------------ 8 five cohorts
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "Five Cohorts, One Pipeline")
+title(s, "Datasets and Evaluation Protocol")
 place(get(s, "TextBox 4"), left=0.70, top=1.75, width=5.60, height=4.60)
 picture(s, ASSETS / "tab_blocks.png", 6.50, 1.90, 6.25, 4.30)
 write(get(s, "TextBox 4"), [
@@ -272,7 +272,7 @@ write(get(s, "TextBox 4"), [
 
 # ------------------------------------------------------------------ 9 what is decoded
 s = clone(8)
-title(s, "What Is Actually Decoded")
+title(s, "Artefact Control")
 picture(s, ASSETS / "tab_artefact.png", 0.55, 2.15, 6.30, 4.00)
 write(get(s, "TextBox 5"), [
     P(R("Walk and stop differ in movement, so the accuracy could be artefact.", 17, bold=True), sa=12, ls=1.15),
@@ -286,7 +286,7 @@ write(get(s, "TextBox 5"), [
 
 # ------------------------------------------------------------------ 10 topography
 s = clone(6)
-title(s, "Where the Reference Acts")
+title(s, "Scalp Topography of the Reference")
 picture(s, RES / "fig_topography.png", 0.87, 1.60, 11.60, 4.40)
 write(get(s, "TextBox 5"),
       [P(R("The branch's own reference:  ", 16, bold=True),
@@ -297,7 +297,7 @@ write(get(s, "TextBox 5"),
 
 # ------------------------------------------------------------------ 11 activations
 s = clone(6)
-title(s, "What the Model Computes")
+title(s, "Learned Representations")
 picture(s, RES / "fig_activations.png", 0.87, 1.55, 11.60, 4.45)
 write(get(s, "TextBox 5"),
       [P(R("Measured, not drawn:  ", 16, bold=True),
@@ -310,7 +310,7 @@ write(get(s, "TextBox 5"),
 # ------------------------------------------------------------------ 12 comparison
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "Against Eight Published Decoders")
+title(s, "Comparison with Published Decoders")
 place(get(s, "TextBox 4"), left=0.70, top=1.48, width=12.00, height=1.00)
 picture(s, ASSETS / "tab_compare.png", 0.55, 2.70, 12.20, 3.55)
 write(get(s, "TextBox 4"),
@@ -322,7 +322,7 @@ write(get(s, "TextBox 4"),
 # ------------------------------------------------------------------ 13 branch vs stem
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "The Branch Against the Stem")
+title(s, "Branch versus Stem Across Cohorts")
 place(get(s, "TextBox 4"), left=0.70, top=1.48, width=12.00, height=1.00)
 picture(s, ASSETS / "tab_allcoh.png", 0.70, 2.80, 11.90, 3.20)
 write(get(s, "TextBox 4"),
@@ -334,7 +334,7 @@ write(get(s, "TextBox 4"),
 
 # ------------------------------------------------------------------ 14 cohort C
 s = clone(6)
-title(s, "Cohort C, Held Out From Every Design Decision")
+title(s, "Results on the Held-Out Cohort")
 picture(s, RES / "fig_cohortC.png", 0.87, 1.65, 11.60, 4.30)
 write(get(s, "TextBox 5"),
       [P(R("20 of 20 participants improve  ", 16, bold=True),
@@ -343,7 +343,7 @@ write(get(s, "TextBox 5"),
 
 # ------------------------------------------------------------------ 15 every cohort
 s = clone(6)
-title(s, "The Boundary Across Five Cohorts")
+title(s, "Effect Size Against Class-Block Length")
 picture(s, RES / "fig_cohorts.png", 0.87, 1.65, 11.60, 4.30)
 write(get(s, "TextBox 5"),
       [P(R("Nothing is fitted here:  ", 16, bold=True),
@@ -353,7 +353,7 @@ write(get(s, "TextBox 5"),
 
 # ------------------------------------------------------------------ 16 rate by manipulation
 s = clone(6)
-title(s, "The Rate Condition, Measured by Manipulation")
+title(s, "Direct Manipulation of the Estimator Memory")
 picture(s, RES / "fig_rate.png", 0.87, 1.65, 11.60, 4.30)
 write(get(s, "TextBox 5"),
       [P(R("One cohort, one variable:  ", 16, bold=True),
@@ -365,7 +365,7 @@ write(get(s, "TextBox 5"),
 # ------------------------------------------------------------------ 17 rate table
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "Estimator Memory Against Block Length")
+title(s, "Estimator Memory and Block Length: Summary")
 place(get(s, "TextBox 4"), left=0.70, top=1.75, width=5.55, height=4.60)
 picture(s, ASSETS / "tab_rate.png", 6.45, 1.60, 6.25, 4.70)
 write(get(s, "TextBox 4"), [
@@ -379,7 +379,7 @@ write(get(s, "TextBox 4"), [
 # ------------------------------------------------------------------ 18 ablation
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "Ablation of the Reported Model")
+title(s, "Ablation Study")
 place(get(s, "TextBox 4"), left=0.70, top=1.48, width=12.00, height=1.00)
 picture(s, ASSETS / "tab_ablation.png", 0.70, 2.70, 11.90, 2.15)
 picture(s, ASSETS / "tab_tanref.png", 0.70, 5.10, 11.90, 1.30)
@@ -392,7 +392,7 @@ write(get(s, "TextBox 4"),
 # ------------------------------------------------------------------ 19 noise
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "Measurement Noise")
+title(s, "Measurement Noise and Ranking Criteria")
 place(get(s, "TextBox 4"), left=0.70, top=1.75, width=5.55, height=4.60)
 picture(s, ASSETS / "tab_noise.png", 6.55, 1.55, 6.15, 4.75)
 write(get(s, "TextBox 4"), [
@@ -407,7 +407,7 @@ write(get(s, "TextBox 4"), [
 # ------------------------------------------------------------------ 20 deployment
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "What the Branch Costs a Controller")
+title(s, "Control-Relevant Outcome Measures")
 place(get(s, "TextBox 4"), left=0.70, top=1.75, width=5.55, height=4.60)
 picture(s, ASSETS / "tab_deploy.png", 6.55, 1.55, 6.15, 4.75)
 write(get(s, "TextBox 4"), [
@@ -422,7 +422,7 @@ write(get(s, "TextBox 4"), [
 # ------------------------------------------------------------------ 21 new cohorts
 s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
                    "TextBox 9", "TextBox 10"))
-title(s, "Two Cohorts Added Last")
+title(s, "Results on Cohorts D and E")
 place(get(s, "TextBox 4"), left=0.70, top=1.75, width=5.55, height=4.60)
 picture(s, ASSETS / "tab_newbase.png", 6.55, 1.55, 6.15, 4.75)
 write(get(s, "TextBox 4"), [
