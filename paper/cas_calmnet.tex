@@ -563,6 +563,7 @@ The seed column is worth as much as the accuracy column. The stem's grand mean m
 \centering
 \caption{Ablation of the proposed model on cohort~A, three data-split seeds. Every row is a choice the architecture actually makes: whether the second-order branch is present, and where its tangent reference comes from. SD is across seeds, so it measures reproducibility; $\Delta$ and the test are paired against the stem across participants with seeds averaged within participant. The branch raises accuracy and reduces the seed spread by about nine-fold. Freezing the reference after fitting or removing it entirely both cost accuracy on this cohort, whose class blocks are short enough for an adapting reference to be safe.}
 \label{tab:ablation_rep}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
 Configuration & Acc & SD$_{\mathrm{seed}}$ & $\Delta$ vs stem & $p$ (higher) \\
@@ -572,7 +573,8 @@ stem alone & $0.864$ & $0.032$ & --- & --- \\
 stem $+$ branch, reference frozen after fitting & $0.825$ & $0.012$ & $-0.039$ & $0.031$ (1/7) \\
 stem $+$ branch, no reference & $0.843$ & $0.027$ & $-0.021$ & $0.578$ (3/7) \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \subsection{Artefact control}
@@ -752,6 +754,7 @@ Two limits belong with this claim. The boundary was identified after cohorts~A, 
 \centering
 \caption{The estimator memory against the class-block length, varied directly. $\mu = N/m$ is the memory in windows, set by the number $N$ averaged into one covariance update and the momentum $m$; controls are matched on $N$, which changes training, while $m$ is inert for a stem that maintains no running statistic. The branch helps wherever $\mu$ exceeds the block length and fails wherever it does not, on both cohorts and across a 400-fold range of $\mu$. Cohort~A at $N=8$, $m=0.2$ is the row that settles the formulation: $N$ has fallen below the block length while $\mu$ has not, and the gain survives, so the governing quantity is the memory and not the update size.}
 \label{tab:batchsweep}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrrlrrr}
 \toprule
 Cohort & $\tau_{\mathrm{blk}}$ & $N$ & $m$ & $\mu$ & $\mu>\tau_{\mathrm{blk}}$ & $\Delta$ & Higher & $p$ \\
@@ -763,7 +766,8 @@ B & 214 & 32 & 0.2 & 160 & \textbf{no} & $-0.175$ & 0/8 & $0.008$ \\
 B & 214 & 256 & 0.2 & 1280 & yes & $-0.046$ & 3/8 & $0.109$ \\
 B & 214 & 32 & 0.01 & 3200 & yes & $-0.026$ & 3/8 & $0.312$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \subsection{What the branch costs a controller}\label{sec:deploy}
@@ -772,6 +776,7 @@ B & 214 & 32 & 0.01 & 3200 & yes & $-0.026$ & 3/8 & $0.312$ \\
 \centering
 \caption{What a wearer would experience, all five cohorts, three seeds, mean over participants. ECE is expected calibration error; FA/min is spurious Walk commands per minute of standing, which is the quantity a per-window error rate hides, since one long false run and many scattered false windows score identically; Missed is the fraction of true onsets never detected. The branch lowers calibration error on 4 of the five cohorts and misses fewer onsets on 3, and it raises the spurious-activation rate on cohort~A from $0.70$ to $2.09$ per minute. For a device that moves a wearer's legs that is a real cost, and it is the one place where higher accuracy does not mean a better controller.}
 \label{tab:deploy}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrrrr}
 \toprule
 Cohort & Model & Acc & ECE & FA/min & Missed \\
@@ -792,7 +797,8 @@ E, exoskeleton & stem & $0.928$ & $0.043$ & $1.80$ & $0.000$ \\
 & \textbf{$+$ branch} & $\mathbf{0.949}$ & $0.037$ & $1.46$ & $0.000$ \\
 \addlinespace[2pt]
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 Table~\ref{tab:deploy} reports the quantities a controller would act on. Calibration improves with the branch on 4 of the five cohorts and the missed-onset rate falls on 3, so the accuracy gain is not bought by a worse-behaved posterior. The exception is the spurious-activation rate on cohort~A, which rises from $0.70$ to $2.09$ per minute of standing. A decoder that is more often right per window can still command more false starts, because the two are different functions of the same posterior, and on a lower-limb exoskeleton the second is the one that throws a wearer off balance. We report it rather than the accuracy alone.

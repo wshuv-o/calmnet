@@ -15,13 +15,19 @@ OUT = Path(__file__).resolve().parent / "paper_assets"
 OUT.mkdir(exist_ok=True)
 
 TABLES = {
-    "tab_compare": "The proposed decoder and eight published decoders trained in one",
-    "tab_ablation3": "Component ablation on cohort A over three",
-    "tab_ratecurve": "Cohort B over three",
-    "tab_prereg": "Predictions registered before any model",
-    "tab_artefact": "Artefact control on cohort",
-    "tab_drift": "Per-participant session drift",
-    "tab_blocks": "block structure",
+    # Captions as the current manuscript prints them. The deck shows the
+    # paper's own rendering of each table, so these must track the paper.
+    "tab_blocks":    "Contiguous single-class block structure",
+    "tab_compare":   "The reported model, the stem it is built on, and eight published",
+    "tab_noise":     "Measurement noise, for the arms this paper reports",
+    "tab_ablation":  "Ablation of the proposed model on cohort",
+    "tab_artefact":  "Artefact control on cohort",
+    "tab_tangent":   "The tangent-space branch against the convolutional stem",
+    "tab_tanref":    "Where the tangent reference comes from",
+    "tab_allcoh":    "The tangent-space branch against the stem alone",
+    "tab_rate":      "The estimator memory against the class-block length",
+    "tab_deploy":    "What a wearer would experience",
+    "tab_newbase":   "Published decoders on the two cohorts added last",
 }
 
 
@@ -70,20 +76,95 @@ def crop_table(doc, name, phrase, dpi=300):
     return path, clip, page.number + 1
 
 
-def crop_arch(doc, dpi=300):
-    """Figure 1 is vector artwork: crop from below the running header down to
-    its caption, over the drawings' horizontal extent."""
-    page, hit = find(doc, "The decoder. The adaptive alignment layer")
-    ds = [d["rect"] for d in page.get_drawings() if d["rect"].y1 < hit.y0 and d["rect"].y0 > 50]
-    x0 = min(r.x0 for r in ds) - 6
-    x1 = max(r.x1 for r in ds) + 6
-    y0 = min(r.y0 for r in ds) - 6
-    r = fitz.Rect(x0, y0, x1, hit.y0 - 2)
-    pix = page.get_pixmap(dpi=dpi, clip=r)
+def crop_col(doc, name, phrase, dpi=300, gap=150):
+    """Crop a table by its own rules, grouped by vertical gap.
+
+    crop_table walks rules by shared horizontal extent, which fails for tables
+    that resizebox has widened past their column (Tables 7, 12 and 13 all do).
+    Here the rules are those starting inside the caption's column and below it,
+    cut at the first gap wider than `gap`, and the clip takes x from the caption
+    block so a table* spanning both columns works too.
+    """
+    page, hit = find(doc, phrase)
+    blocks = [b for b in page.get_text("blocks")
+              if b[1] <= hit.y1 + 2 and b[3] >= hit.y0 - 2
+              and b[0] <= hit.x0 + 2 and b[2] >= hit.x1 - 2]
+    cap = fitz.Rect(blocks[0][:4]) if blocks else hit
+    rules = sorted((d["rect"] for d in page.get_drawings()
+                    if d["rect"].height <= 2.5 and d["rect"].width > 60
+                    and d["rect"].y0 > cap.y1 - 2
+                    and cap.x0 - 30 <= d["rect"].x0 <= cap.x1),
+                   key=lambda r: r.y0)
+    if not rules:
+        raise SystemExit("no rules under the caption for " + name)
+    grp = [rules[0]]
+    for r in rules[1:]:
+        if r.y0 - grp[-1].y0 > gap:
+            break
+        grp.append(r)
+    # Some bottom rules are not reported by get_drawings (Table 14's is not),
+    # which cuts the final rows. Extend past the last rule over text rows that
+    # follow without a paragraph-sized gap.
+    bottom = grp[-1].y1
+    ys = sorted({round(w[1]) for w in page.get_text("words")
+                 if w[1] > bottom - 12 and cap.x0 - 4 <= w[0] <= cap.x1 + 4})
+    prev = bottom - 12
+    for y in ys:
+        if y - prev > 20:
+            break
+        prev = y
+    bottom = max(bottom, prev + 15)
+    clip = fitz.Rect(cap.x0 - 4, grp[0].y0 - 4, cap.x1 + 4, bottom) & page.rect
+    page.get_pixmap(dpi=dpi, clip=clip).save(str(OUT / (name + ".png")))
+    return OUT / (name + ".png"), clip, page.number + 1
+
+
+def crop_between(doc, name, phrase, next_phrase, dpi=300):
+    """Crop a table whose body is wider than its own column.
+
+    crop_table filters candidate rules to the caption's horizontal extent, which
+    drops tables that 
+esizebox has widened past the column (Table 7 runs to
+    x=662 in a column ending at 548). Here the rules are taken from the caption
+    down to the next caption instead, with no width filter, and the clip is
+    their union.
+    """
+    page, hit = find(doc, phrase)
+    stop = page.search_for(next_phrase)
+    y_stop = stop[0].y0 if stop else page.rect.height
+    rules = [d["rect"] for d in page.get_drawings()
+             if d["rect"].height <= 2.5 and d["rect"].width > 60
+             and hit.y1 < d["rect"].y0 < y_stop
+             and abs(d["rect"].x0 - hit.x0) < 25]
+    if not rules:
+        raise SystemExit("no rules between captions for " + name)
+    # resizebox reports rule geometry before the transform, so the rule
+    # extent can run past the page. Take y from the rules and x from the text
+    # actually rendered in that band.
+    y0 = min(r.y0 for r in rules) - 4
+    y1 = max(r.y1 for r in rules) + 4
+    # Both rule and word coordinates come back pre-transform, so neither gives
+    # the rendered width. Use the caption's own column, which is what the
+    # reader sees, and intersect with the page so nothing is clipped away.
+    blocks = [b for b in page.get_text("blocks")
+              if b[1] <= hit.y1 + 2 and b[3] >= hit.y0 - 2
+              and b[0] <= hit.x0 + 2 and b[2] >= hit.x1 - 2]
+    cap = fitz.Rect(blocks[0][:4]) if blocks else hit
+    clip = fitz.Rect(cap.x0 - 4, y0, cap.x1 + 4, y1) & page.rect
+    page.get_pixmap(dpi=dpi, clip=clip).save(str(OUT / (name + ".png")))
+    return OUT / (name + ".png"), clip, page.number + 1
+
+
+def crop_arch(doc=None, dpi=300):
+    """The architecture figure is hand-maintained in drawio and exported to
+    results/fig_arch.pdf. Render that file rather than cropping the page: it is
+    the same artwork without the page's margins or caption."""
+    src = ROOT / "results" / "fig_arch.pdf"
+    fd = fitz.open(str(src))
+    pix = fd[0].get_pixmap(dpi=dpi)
     path = OUT / "fig_arch_paper.png"
     pix.save(str(path))
-    return path, r, page.number + 1
-
+    return path, fd[0].rect, 1
 
 
 def drop_rows(src_name, phrase, labels, out_name, dpi=300):
@@ -148,8 +229,16 @@ if __name__ == "__main__":
     for name, phrase in TABLES.items():
         path, clip, pg = crop_table(doc, name, phrase)
         print("%-14s page %2d  clip %s" % (name, pg, tuple(round(v) for v in clip)))
-    print("tab_compare_ppt  EEGTCNet row cut at", drop_rows("tab_compare", TABLES["tab_compare"], ["EEGTCNet"], "tab_compare_ppt"))
-    drop_rows("tab_ablation3", TABLES["tab_ablation3"], ["align + ctx", "ctx + gate", "stem only"], "tab_ablation3_ppt")
-    keep_columns_until("tab_ratecurve", TABLES["tab_ratecurve"], "Cost", "tab_ratecurve_ppt")
+    path, clip, pg = crop_between(doc, "tab_ablation",
+                                  "Ablation of the proposed model on cohort",
+                                  "Artefact control on cohort")
+    print("%-14s page %2d  clip %s (re-cropped)" % ("tab_ablation", pg,
+                                                    tuple(round(v) for v in clip)))
+    for nm, ph in (("tab_rate", TABLES["tab_rate"]),
+                   ("tab_deploy", TABLES["tab_deploy"]),
+                   ("tab_newbase", "mean and standard deviation over three seeds")):
+        path, clip, pg = crop_col(doc, nm, ph)
+        print("%-14s page %2d  clip %s (by column)"
+              % (nm, pg, tuple(round(v) for v in clip)))
     path, clip, pg = crop_arch(doc)
     print("%-14s page %2d  clip %s" % ("fig_arch", pg, tuple(round(v) for v in clip)))
