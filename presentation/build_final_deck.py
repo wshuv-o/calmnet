@@ -337,9 +337,12 @@ s = clone(6)
 title(s, "Results on the Held-Out Cohort")
 picture(s, RES / "fig_cohortC.png", 0.87, 1.65, 11.60, 4.30)
 write(get(s, "TextBox 5"),
-      [P(R("20 of 20 participants improve  ", 16, bold=True),
-         R("(p = 8.8 × 10⁻⁵, mean +0.064, range +0.007 to +0.158). No design decision "
-           "touched this cohort, and the branch was not tuned on it.", 16, color=GRY), sa=8, ls=1.15)])
+      [P(R("Consistent, above the noise, and ahead of the field.  ", 16, bold=True),
+         R("(a) all 20 participants improve, mean +0.064 (p = 8.8 × 10⁻⁵). (b) the change "
+           "exceeds that participant's own spread across seeds in 16 of the 20. (c) it leads "
+           "the strongest published decoder on this cohort by +0.060, higher in 18 of 20 "
+           "(p = 1.3 × 10⁻⁴). Calibration error falls from 0.075 to 0.062 on the same runs.",
+           16, color=GRY), sa=8, ls=1.15)])
 
 # ------------------------------------------------------------------ 15 every cohort
 s = clone(6)
