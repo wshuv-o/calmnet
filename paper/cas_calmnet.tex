@@ -42,6 +42,14 @@
 \newtheorem{condition}{Condition}
 \newdefinition{remark}{Remark}
 
+% cas-common writes lastpage at the end of the text, before the trailing
+% float pages, so an 18-page article footed 'of 16'. Rewrite it at the true
+% end of the document, where the float pages are already set.
+\makeatletter
+\AtEndDocument{\clearpage\immediate\write\@auxout{%
+  \string\csxdef{lastpage}{\the\numexpr\value{page}-1\relax}}}
+\makeatother
+
 \begin{document}
 \let\WriteBookmarks\relax
 \def\floatpagepagefraction{1}
@@ -50,7 +58,7 @@
 \shorttitle{Tangent-space features for EEG movement-intent decoding}
 \shortauthors{E. M. C. Abha et al.}
 
-\title[mode = title]{Tangent-space features for longitudinal EEG movement-intent decoding, and the protocol condition that bounds them}
+\title[mode = title]{Tangent-space features for cross-session EEG movement-intent decoding, and the protocol condition that bounds them}
 
 \author[1]{Esm E Moula Chowdhury Abha}
 \ead{26-94089-2@student.aiub.edu}
@@ -397,12 +405,26 @@ rest against movement of the hands or feet. The model is fitted on runs 3, 5,
 each lying wholly inside one annotated period. The protocol alternates the two
 classes about every 4\,s, a median of 5 windows per class block. Its analysis plan was committed to version control before any model was trained on it.
 
-\textbf{Cohort D (BCI Competition IV-2a, BNCI2014-001).} Nine participants recorded in two sessions on different days, 22-channel EEG at 250\,Hz resampled to 100\,Hz, cued motor imagery of the left against the right hand. The model is fitted on the first session and evaluated on the second, with 4\,s windows covering the imagery interval, 288 trials per participant and balanced classes. Trial order is randomised, so a single-class block is one trial: this is the cohort where a covariance update spans the largest number of blocks. It contributes about 100 fitting windows per participant, the fewest of the five, which Section~\ref{sec:newbaselines} shows breaks most of the published decoders under shared hyperparameters.
+\textbf{Cohort D (BCI Competition IV-2a, BNCI2014-001).} \citep{tangermann} Nine participants recorded in two sessions on different days, 22-channel EEG at 250\,Hz resampled to 100\,Hz, cued motor imagery of the left against the right hand. The model is fitted on the first session and evaluated on the second, with 4\,s windows covering the imagery interval, 288 trials per participant and balanced classes. Trial order is randomised, so a single-class block is one trial: this is the cohort where a covariance update spans the largest number of blocks. It contributes about 100 fitting windows per participant, the fewest of the five, which Section~\ref{sec:newbaselines} shows breaks most of the published decoders under shared hyperparameters.
 
-\textbf{Cohort E (lower-limb exoskeleton, DECODED).} Seven participants wearing a powered lower-limb exoskeleton, 27-channel EEG at 200\,Hz resampled to 100\,Hz, from the DECODED subproject of EUROBENCH. Each run presents 15\,s standing relaxed with the device stopped, 24\,s walking under kinesthetic motor imagery, 22\,s walking under a regressive-counting distractor and 14\,s standing relaxed. We decode standing relaxed against walking under motor imagery, the same contrast as cohort A on a second device, and drop the counting condition rather than folding it into either class, since it is a distractor rather than a movement-intent state. Windows are 4\,s at 0.5\,s stride and never cross a condition boundary. Only one participant recorded on two dates, so unlike cohorts~A, C and~D the split is temporal across runs, the first eight fitting and the rest testing. This cohort therefore matches best on task and tests least drift, and Section~\ref{sec:limits} says so.
+\textbf{Cohort E (lower-limb exoskeleton, DECODED).} Seven participants wearing a powered lower-limb exoskeleton, 27-channel EEG at 200\,Hz resampled to 100\,Hz, from the DECODED subproject of EUROBENCH \citep{decoded}. Each run presents 15\,s standing relaxed with the device stopped, 24\,s walking under kinesthetic motor imagery, 22\,s walking under a regressive-counting distractor and 14\,s standing relaxed. We decode standing relaxed against walking under motor imagery, the same contrast as cohort A on a second device, and drop the counting condition rather than folding it into either class, since it is a distractor rather than a movement-intent state. Windows are 4\,s at 0.5\,s stride and never cross a condition boundary. Only one participant recorded on two dates, so unlike cohorts~A, C and~D the split is temporal across runs, the first eight fitting and the rest testing. This cohort therefore matches best on task and tests least drift, and Section~\ref{sec:limits} says so.
 
 The protocols differ sharply in temporal structure, which
 Section~\ref{sec:rate} shows to be decisive (Table~\ref{tab:blocks}).
+
+$\tau_{\mathrm{blk}}$ is a median, and Table~\ref{tab:blocks} also shows that
+cohort~A contains single blocks of 486 windows, longer than the 160-window
+memory the default rate gives. The two are consistent because what the
+reference tracks is typical exposure and not the worst block: on cohort~A, 2 of
+789 blocks exceed the memory and they hold $4.8\,\%$ of the windows, with the
+95th percentile block at 112 windows. A block that outlasts the memory pulls the
+reference toward its class while it streams, and the reference returns once the
+protocol alternates again, so on that cohort the corruption is a rare excursion.
+On cohort~B the median itself exceeds the memory, so the same corruption is the
+normal state rather than an excursion, which is the distinction the condition
+turns on. The median is therefore the operative statistic, and a protocol whose
+median sits below the memory but whose long blocks dominate the recording would
+not be covered by the evidence here.
 
 \begin{table}[t]
 \caption{Contiguous single-class block structure, computed from the label
@@ -431,7 +453,13 @@ E (exoskeleton, DECODED) & 192 & 13 & 33 \\
 Signals are band-pass filtered to 8--30\,Hz and resampled to 100\,Hz. Cohort A
 uses a zero-phase FIR filter in MNE-Python \citep{gramfort}, after which the
 EOG channels, filtered to the same band, are regressed linearly out of the EEG.
-Cohorts B and C use a zero-phase fourth-order Butterworth filter and have no EOG step. No other artefact rejection, ICA decomposition or channel interpolation
+Cohorts B and C use a zero-phase fourth-order Butterworth filter and have no EOG step.
+Zero-phase filtering is acausal: each filtered sample depends on samples that
+follow it. The alignment of this paper is causal, and the amplitude
+normalisation takes its statistics from the fitting split alone, but the
+band-pass does not, so the evaluation reported here is an offline one. A
+deployed version would substitute a causal band-pass, which the results below do
+not measure. No other artefact rejection, ICA decomposition or channel interpolation
 is applied, so that the running reference is evaluated on the shift it is meant to track. The artefact control of Section~\ref{sec:artefact} is the one exception and is reported separately. The band also excludes the gait cycle, near 1--2\,Hz, and most
 electromyographic power above 30\,Hz. Amplitude normalisation is applied globally, before the squaring stage, for the reason given in Section~\ref{sec:stem}. The per-channel mean and standard deviation are computed on the fitting split alone and then applied unchanged to the calibration and test splits, so no statistic is taken from the recordings the model is evaluated on.
 
@@ -482,10 +510,22 @@ the backbone. No per-model tuning was performed. Parameter counts include the
 shared classifier and are instantiated at cohort A's input shape.
 
 \subsection{Outcome measures}
+\label{sec:outcomes}
 
 Balanced accuracy for comparability with the literature; expected calibration
 error (ECE) with 10 equal-width bins \citep{naeini}, because a device acting on
-a confidence value needs that value to mean something; and spurious activations per minute of standing. Detection latency is not reported: the inference cost of Section~\ref{sec:cost} measures computation, which is not the same quantity, and the model's 4\,s windows set a floor on detection that this evaluation does not resolve.
+a confidence value needs that value to mean something; and spurious activations per minute of standing.
+
+Both onset quantities are computed from the decided label sequence, with no
+threshold, hysteresis or merging: the decision is the argmax of the
+temperature-scaled posterior, and quantities are accumulated within a recording
+and never across one. A \emph{false onset} is a $0 \rightarrow 1$ transition of
+the predicted sequence at a window whose true label is the negative class; the
+rate divides the count by the duration of the negative-class windows, each
+window contributing its $0.5$\,s stride. A \emph{missed onset} is a true
+$0 \rightarrow 1$ transition for which no window is predicted positive between
+that transition and the end of the positive block it opens; the reported figure
+is the fraction of true onsets that are missed. Detection latency is not reported: the inference cost of Section~\ref{sec:cost} measures computation, which is not the same quantity, and the model's 4\,s windows set a floor on detection that this evaluation does not resolve.
 
 \paragraph{Leakage guard} Unconditioned nuisance-decodability is confounded with
 accuracy. In our pipeline a decoder that uses no movement information whatever
@@ -790,7 +830,15 @@ B & 214 & 32 & 0.01 & 3200 & yes & $-0.026$ & 3/8 & $0.312$ \\
 
 \begin{table}[t]
 \centering
-\caption{What a wearer would experience, all five cohorts, three seeds, mean over participants. ECE is expected calibration error; FA/min is spurious Walk commands per minute of standing; Missed is the fraction of true onsets never detected.}
+\caption{The quantities a controller would act on, all five cohorts, three
+seeds, mean over participants. ECE is expected calibration error. FA/min counts
+spurious transitions into the positive class per minute of the negative class,
+and Missed is the fraction of true onsets never detected, both defined in
+Section~\ref{sec:outcomes}. On cohorts~A, B and~E the positive class is walking
+and these read as spurious Walk commands per minute of standing; cohorts~C and~D
+are rest against movement and left hand against right hand, where the same
+arithmetic applies but no walk command exists, so the generic reading is the
+correct one there.}
 \label{tab:deploy}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrrrr}
@@ -991,8 +1039,11 @@ relationships that could have appeared to influence the work reported in this
 paper.
 
 \section*{Data availability}
-All five datasets are publicly available. All code, configurations and result files,
-including those of experiments that failed, are in the accompanying repository.
+All five datasets are publicly available. All code, configurations and result
+files, including those of experiments that failed, are in the accompanying
+repository at \url{https://github.com/wshuv-o/calmnet}, on branch
+\texttt{representation-beats-architecture} at tag \texttt{manuscript-v1}, which
+is the state from which every number in this paper was produced.
 
 \bibliographystyle{elsarticle-num-names}
 \bibliography{refs}

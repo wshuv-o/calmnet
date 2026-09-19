@@ -1,4 +1,9 @@
-"""Audit every number written into the manuscript overnight against its source.
+"""DEPRECATED. This audited the pre-tangent-branch manuscript (alignment layer,
+three cohorts) and 124 of its 135 claims no longer appear, because the paper was
+rewritten around the tangent-space branch and five cohorts. The current checker
+is tools/final_check.py. Kept for the record of what the earlier draft asserted.
+
+Audit every number written into the manuscript overnight against its source.
 
 Each claim is recomputed from results/*.json or the ICA log and rounded exactly
 as the paper prints it, then the printed string is searched for in the

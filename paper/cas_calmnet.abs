@@ -1,5 +1,18 @@
-An EEG decoder for a lower-limb exoskeleton is fitted once but must work for weeks, while changes in electrode impedance and montage shift the covariance its spatial filters depend on. A log-power stem summarises each channel on its own and discards the covariance between channels, and correcting the shift by whitening at inference reintroduces a hazard: under a protocol that presents classes in long blocks, a running covariance estimate converges to the active class and whitens away the signal it should protect.
+Compact EEG decoders summarise each window as log power per channel, the
+diagonal of its spatial covariance. How channels covary is discarded, and that
+structure carries movement-intent information the diagonal does not.
 
-We add a second-order branch that maps each window's covariance into the tangent space at a running reference the network already maintains without labels, and concatenates it with the log-power stem. On a 20-participant motor-execution cohort held out from all development, the branch raises balanced accuracy from $0.779$ to $0.843 \pm 0.006$, higher in 20 of 20 participants ($p = 8.8 \times 10^{-5}$), against $0.783$ for the strongest of eight published decoders trained in the same pipeline. On a 7-participant exoskeleton cohort it gives $0.909 \pm 0.004$ against $0.864$, higher in 6 of 7. On a treadmill cohort whose class blocks last 214 windows it collapses to $0.568$, below the $0.744$ of the stem alone and close to the $0.500$ chance line, which is what the class-block condition governing the alignment layer predicts: the reference converges on the streaming class. Lengthening the estimator memory from 160 to 3200 windows, as that condition prescribes, returns the cohort to $0.718$ ($p = 0.31$ against the stem). Removing the reference instead repairs that cohort and is null or negative on the other two, so the adapting reference is the source of the gain and not the liability.
+We add a tangent-space branch beside the log-power stem. Each window's
+covariance is shrunk, mapped to the tangent space at a reference the network
+maintains from the input alone, then projected into the classifier. No labels
+are used at inference and the reference keeps updating on the test stream.
+Across five cohorts and 51 participants, three seeds each, the branch raises
+balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort
+held out from all development ($p=8.8\times10^{-5}$, higher in 20 of
+20), $+0.045$ on a lower-limb exoskeleton cohort ($p=0.22$), $+0.040$ on BCI
+Competition IV-2a ($p=0.020$) and $+0.021$ on a second exoskeleton cohort
+($p=0.047$). On those four it has the highest mean balanced accuracy among eight published decoders trained in the same pipeline, untuned.
 
-One condition, read from the recording protocol before training, therefore governs two independent mechanisms and says in advance where each will fail. Its upper bound, set by the drift timescale, remains unmeasurable on both cohorts.
+On the fifth it costs $0.175$, and that failure is predictable before
+training. The reference is a running mean over incoming windows, safe only while its effective memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows there against a memory of 160, and 1 to 18 where the branch helps. Both are fixed before training, and separate all five cohorts. Moving the memory across the block length switches the effect
+off and on: $+0.045$ at 160 windows, $+0.048$ at 40 and $-0.076$ at 8. A stronger prescription setting the rate from the block length was pre-specified before the run and falsified.
