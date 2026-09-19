@@ -563,6 +563,13 @@ pipelines and are used only for comparisons within each table.
 \label{fig:activations}
 \end{figure*}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../results/fig_topography.pdf}
+\caption{Where the branch's reference acts, and what the classes differ by. One cohort~A participant, first three sessions, montage from the recorded channel names. The reference is built by the branch itself, with its own shrinkage and per-window trace normalisation, so these are the quantities the reported model holds at inference. (a) Channel power at the reference. (b) Per-channel gain of $\mathbf{M}^{-1/2}$, which the tangent map applies: the frontocentral midline is amplified most (AFz, Fz, F2 at $2.9$) and the temporal sites most exposed to jaw and neck muscle are amplified least (T7 and T8 at $1.9$). (c) Absolute 8--30\,Hz power, Walk minus Stop. The decrease is over left sensorimotor cortex (C3 $-3.5$\,dB, C1 $-3.0$, CP3 $-2.8$), the topography and sign expected of mu and beta desynchronisation, and the increase is occipital (O1 and O2 at $+2.1$), consistent with optic flow during walking. Gross movement artefact would raise power during walking rather than lower it over sensorimotor cortex, so the sign of this contrast argues against an artefact account without settling it. It is one participant, and a power contrast is not an artefact rejection (Section~\ref{sec:limits}).}
+\label{fig:topo}
+\end{figure*}
+
 \subsection{The branch against the stem}\label{sec:ablation}
 
 Table~\ref{tab:ablation_rep} and Fig.~\ref{fig:ablation} give the branch against the stem it is added to, on cohort~A, over three data-split seeds. Accuracy rises from $0.864$ to $0.909$, higher in 6 of 7 participants. At seven participants the paired difference is not significant ($p=0.22$), and the cohorts that carry the effect are the larger ones in Section~\ref{sec:fivecohort}.
