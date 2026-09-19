@@ -235,14 +235,19 @@ if __name__ == "__main__":
                                   "Artefact control on cohort")
     print("%-14s page %2d  clip %s (re-cropped)" % ("tab_ablation", pg,
                                                     tuple(round(v) for v in clip)))
-    # tab_rate now sits directly above tab_deploy in the same column, and
-    # the gap between their rules is under the grouping threshold, so it
-    # has to be bounded by the next caption instead.
-    path, clip, pg = crop_between(doc, "tab_rate", TABLES["tab_rate"],
-                                  TABLES["tab_deploy"])
+    # tab_rate and tab_deploy have sat in the same column and in facing
+    # columns at different points in this paper's layout. crop_col
+    # groups a table's own rules by vertical gap, which is correct in
+    # both arrangements, so it is used for all three.
+    # tab_cost sits below tab_deploy in the same column with only a 75pt
+    # gap between their rules, under the grouping threshold, so deploy
+    # is bounded by the cost caption rather than grouped.
+    path, clip, pg = crop_between(doc, "tab_deploy",
+                                  TABLES["tab_deploy"],
+                                  TABLES["tab_cost"])
     print("%-14s page %2d  clip %s (bounded)"
-          % ("tab_rate", pg, tuple(round(v) for v in clip)))
-    for nm, ph in (("tab_deploy", TABLES["tab_deploy"]),
+          % ("tab_deploy", pg, tuple(round(v) for v in clip)))
+    for nm, ph in (("tab_rate", TABLES["tab_rate"]),
                    ("tab_newbase", "mean and standard deviation over three seeds")):
         path, clip, pg = crop_col(doc, nm, ph)
         print("%-14s page %2d  clip %s (by column)"
