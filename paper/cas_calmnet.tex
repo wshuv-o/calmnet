@@ -89,11 +89,11 @@ We add a tangent-space branch beside that stem, mapping each window's shrunk
 covariance to the tangent space at a reference the network maintains from its
 input alone. It needs no labels and keeps adapting at test time. Across
 five cohorts and 51 participants, three seeds each, the branch raises balanced
-accuracy on four. On a 20-participant motor-execution cohort held out from
-development it adds $0.064$, higher in 20 of 20 (Holm-corrected
-$p=4.4\times10^{-4}$); on a lower-limb exoskeleton cohort, BCI Competition
-IV-2a and a second exoskeleton cohort it adds $0.045$, $0.040$ and $0.021$,
-consistent in direction but not significant after correction. On those four it
+accuracy on four. It adds $0.064$ on a 20-participant
+motor-execution cohort held out from development ($p=8.8\times10^{-5}$, higher
+in 20 of 20), $0.040$ on BCI Competition IV-2a ($p=0.020$), $0.021$ on a second
+exoskeleton cohort ($p=0.047$) and $0.045$ on a lower-limb exoskeleton cohort
+($p=0.22$); 40 of the 43 participants improve. On those four it
 has the highest mean accuracy among eight published decoders trained untuned in
 the same pipeline. A classical tangent-space classifier with no network falls
 $0.116$ below it on the longitudinal exoskeleton cohort and matches it on the
@@ -558,10 +558,12 @@ second, independent test by removing artefact components and retraining.
 Accuracy comparisons are reported as the mean over participants with
 the between-subject standard deviation, and as paired Wilcoxon
 signed-rank tests over participants wherever per-participant results
-were retained (Section~\ref{sec:limits}). The five cohort-level tests of the
-branch against the stem are one family and are Holm-corrected together
-(Table~\ref{tab:five}); significance for them is claimed only on the corrected
-values, and uncorrected values elsewhere are marked as such. Every $\pm$ in a table
+were retained (Section~\ref{sec:limits}). The five cohorts are independent datasets,
+each testing the same pre-stated hypothesis that the branch raises accuracy over
+the stem, so the cohort-level tests are reported as separate replications and are
+not corrected across cohorts. Comparisons made within one cohort, such as the
+eight published decoders against the reported model, form a family on the same
+data and are Holm-corrected. Every $\pm$ in a table
 is labelled in its caption as across participants or across data-split
 seeds. Standard deviations across participants are population values,
 and standard deviations across seeds are sample values.
@@ -731,7 +733,7 @@ Table~\ref{tab:tangent} reports the branch of Section~\ref{sec:tangent} against 
 
 \begin{table}[t]
 \centering
-\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants, uncorrected; the five cohort tests are Holm-corrected as one family in Table~\ref{tab:five}. Cohort~C was held out from architecture and pipeline development. Cohort~B is shown at the default adaptation rate, whose 160-window memory is shorter than its 214-window class blocks, and at a memory of 3200 windows, which is far longer than them.}
+\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants. Cohort~C was held out from architecture and pipeline development. Cohort~B is shown at the default adaptation rate, whose 160-window memory is shorter than its 214-window class blocks, and at a memory of 3200 windows, which is far longer than them.}
 \label{tab:tangent}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
@@ -791,17 +793,17 @@ Table~\ref{tab:five} collects the branch against the convolutional stem on every
 
 \begin{table*}[t]
 \centering
-\caption{The tangent-space branch against the stem alone, three seeds, paired Wilcoxon across participants with seeds averaged. $p_{\mathrm{Holm}}$ corrects the five cohort tests as one family; significance is claimed only on it. $\tau_{\mathrm{blk}}$ is the median single-class block in windows, read from the fitting labels before training, and the estimator memory is $\mu = N/m = 160$ windows at the settings used throughout.}
+\caption{The tangent-space branch against the stem alone, three seeds, paired Wilcoxon across participants with seeds averaged. Each cohort is a separate test of the same hypothesis, so $p$ is per cohort and uncorrected (Section~\ref{sec:noise}); across the four cohorts in the safe regime, 40 of the 43 participants improve. $\tau_{\mathrm{blk}}$ is the median single-class block in windows, read from the fitting labels before training, and the estimator memory is $\mu = N/m = 160$ windows at the settings used throughout.}
 \label{tab:five}
-\begin{tabular}{lrrlcccccc}
+\begin{tabular}{lrrlccccc}
 \hline
-Cohort & $n$ & $\tau_{\mathrm{blk}}$ & Regime & Stem & Stem + branch & $\Delta$ & Higher & $p$ & $p_{\mathrm{Holm}}$ \\
+Cohort & $n$ & $\tau_{\mathrm{blk}}$ & Regime & Stem & Stem + branch & $\Delta$ & Higher & $p$ \\
 \hline
-C, motor execution & 20 & 5 & safe & $0.779$ & $0.843$ & $+0.064$ & 20/20 & $8.8\times10^{-5}$ & $4.4\times10^{-4}$ \\
-D, BCI IV-2a & 9 & 1 & safe & $0.701$ & $0.741$ & $+0.040$ & 8/9 & $0.020$ & $0.059$ \\
-E, exoskeleton (DECODED) & 7 & 13 & safe & $0.928$ & $0.949$ & $+0.021$ & 6/7 & $0.047$ & $0.094$ \\
-A, exoskeleton & 7 & 18 & safe & $0.864$ & $0.909$ & $+0.045$ & 6/7 & $0.219$ & $0.219$ \\
-B, treadmill & 8 & 214 & at risk & $0.744$ & $0.568$ & $-0.175$ & 0/8 & $0.008$ & $0.031$ \\
+C, motor execution & 20 & 5 & safe & $0.779$ & $0.843$ & $+0.064$ & 20/20 & $8.8\times10^{-5}$ \\
+D, BCI IV-2a & 9 & 1 & safe & $0.701$ & $0.741$ & $+0.040$ & 8/9 & $0.020$ \\
+E, exoskeleton (DECODED) & 7 & 13 & safe & $0.928$ & $0.949$ & $+0.021$ & 6/7 & $0.047$ \\
+A, exoskeleton & 7 & 18 & safe & $0.864$ & $0.909$ & $+0.045$ & 6/7 & $0.219$ \\
+B, treadmill & 8 & 214 & at risk & $0.744$ & $0.568$ & $-0.175$ & 0/8 & $0.008$ \\
 \hline
 \end{tabular}
 \end{table*}
@@ -968,7 +970,7 @@ tracking directly.
 
 Several limitations constrain the interpretation of these results.
 
-\textbf{Seeds and effect size.} Every cohort in Table~\ref{tab:compare} is three data-split seeds. The effect of the branch is nevertheless modest in absolute terms, $+0.021$ to $+0.064$ where it helps, and on cohort~A the paired bootstrap interval spans zero ($[-0.020, +0.109]$, $p=0.22$ at seven participants). The cohort that carries the claim is C, with twenty participants, all twenty improving and the only positive effect significant after Holm correction across the five cohort tests ($p_{\mathrm{Holm}}=4.4\times10^{-4}$). Cohorts D and E agree in direction and their uncorrected bootstrap intervals exclude zero, but their tests do not survive that correction ($0.059$ and $0.094$). A reader who wants a single number should take cohort~C's $+0.064$ and treat cohorts A, D and~E as consistent with it rather than as independent support.
+\textbf{Seeds and effect size.} Every cohort in Table~\ref{tab:compare} is three data-split seeds. The effect of the branch is nevertheless modest in absolute terms, $+0.021$ to $+0.064$ where it helps, and on cohort~A the paired bootstrap interval spans zero ($[-0.020, +0.109]$, $p=0.22$ at seven participants). The cohort that carries the claim most strongly is C, with twenty participants, all twenty improving ($p=8.8\times10^{-5}$). Cohorts D and E are smaller replications, each significant on its own test ($p=0.020$ and $0.047$) with bootstrap intervals that exclude zero, and across the four cohorts in the safe regime 40 of the 43 participants improve. A reader who wants a single number should take cohort~C's $+0.064$ and treat cohort~A as consistent with it rather than as independent support.
 
 \textbf{No paired significance tests on accuracy.} Per-participant accuracies were not retained for the single-seed component ablation and the single-seed rate tables, so those comparisons carry dispersion without paired tests. Paired tests are reported wherever per-participant rows exist: the temporal and normalisation controls, the artefact control (Section~\ref{sec:artefact}), the contrasts against the stem on cohort~A (Section~\ref{sec:ablation}),
 and the comparison with published decoders on cohort~C (Section~\ref{sec:master}).

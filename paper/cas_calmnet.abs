@@ -4,11 +4,11 @@ We add a tangent-space branch beside that stem, mapping each window's shrunk
 covariance to the tangent space at a reference the network maintains from its
 input alone. It needs no labels and keeps adapting at test time. Across
 five cohorts and 51 participants, three seeds each, the branch raises balanced
-accuracy on four. On a 20-participant motor-execution cohort held out from
-development it adds $0.064$, higher in 20 of 20 (Holm-corrected
-$p=4.4\times10^{-4}$); on a lower-limb exoskeleton cohort, BCI Competition
-IV-2a and a second exoskeleton cohort it adds $0.045$, $0.040$ and $0.021$,
-consistent in direction but not significant after correction. On those four it
+accuracy on four. It adds $0.064$ on a 20-participant
+motor-execution cohort held out from development ($p=8.8\times10^{-5}$, higher
+in 20 of 20), $0.040$ on BCI Competition IV-2a ($p=0.020$), $0.021$ on a second
+exoskeleton cohort ($p=0.047$) and $0.045$ on a lower-limb exoskeleton cohort
+($p=0.22$); 40 of the 43 participants improve. On those four it
 has the highest mean accuracy among eight published decoders trained untuned in
 the same pipeline. A classical tangent-space classifier with no network falls
 $0.116$ below it on the longitudinal exoskeleton cohort and matches it on the
