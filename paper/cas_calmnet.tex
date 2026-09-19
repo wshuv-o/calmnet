@@ -79,15 +79,15 @@ Compact EEG decoders summarise each window as log power per channel, which is th
 
 We add a tangent-space branch beside the log-power stem. Each window's covariance is shrunk, mapped to the tangent space at a reference the network maintains from the input alone, and projected into the classifier. No labels are used at inference and the reference keeps updating on the test stream. Across five cohorts and 51 participants, three seeds each, the branch raises balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort held out from all development ($p=8.8\times10^{-5}$, higher in 20 of 20), $+0.021$ on a lower-limb exoskeleton cohort ($p=0.047$), $+0.040$ on BCI Competition IV-2a ($p=0.020$), and $+0.045$ on a second exoskeleton cohort. It beats all eight published decoders trained in the same pipeline on each cohort where the comparison was run.
 
-On the fifth cohort it costs $0.175$ and falls near chance, and that failure is predictable before training. The branch's reference is a running mean over the incoming windows, so it is safe only while a single covariance update spans more than one class block. A block lasts 214 windows there against an update of 32; on the four cohorts where the branch helps a block is 1 to 18 windows and every update is class-mixed by construction. Both quantities are read from the recording protocol, neither is fitted, and the comparison separates all five cohorts. Enlarging the update to span a block recovers 74\,% of the loss, which is causal support for the account without restoring parity. A stronger prescription, setting the adaptation rate from the block length, was pre-registered and falsified.
+On the fifth cohort it costs $0.175$ and falls near chance, and that failure is predictable before training. The branch's reference is a running mean over the incoming windows, so it is safe only while a single covariance update spans more than one class block. A block lasts 214 windows there against an update of 32; on the four cohorts where the branch helps a block is 1 to 18 windows and the memory spans many blocks. Both quantities are fixed before training, the block length by the protocol and the memory by the optimiser settings, and the comparison separates all five cohorts. Moving the memory across the block length on a single cohort, with nothing else changed, switches the effect off and on: it is $+0.045$ at a memory of 160 windows, $+0.048$ at 40, and $-0.076$ at 8, worse in every participant. Enlarging the memory on the failing cohort recovers 74\,\% of the loss, which is causal support for the account without restoring parity. A stronger prescription, setting the adaptation rate from the block length, was pre-registered and falsified.
 \end{abstract}
 
 \begin{highlights}
 \item A tangent-space branch supplies the channel covariance a log-power stem discards.
 \item Accuracy rises on four of five cohorts, 51 participants, three seeds each.
 \item It beats eight published decoders trained in the same pipeline on each cohort.
-\item Its label-free reference fails where a class block outlasts one covariance update.
-\item Block length against update size, read from the protocol, separates all five.
+\item Its label-free reference fails where a class block outlasts the estimator memory.
+\item Block length against estimator memory, read from the protocol, separates all five.
 \end{highlights}
 
 \begin{keywords}
@@ -147,8 +147,8 @@ Our contributions are:
 \item Add a tangent-space branch beside the log-power stem: each window's covariance is shrunk, mapped to the tangent space at a reference estimated from the input alone, and projected into the classifier, with no labels used at inference (Section~\ref{sec:tangent}).
 \item Measure it on five cohorts and 51 participants with three seeds each. Accuracy rises on four, including $+0.064$ in 20 of 20 participants of a cohort held out from every design decision (Section~\ref{sec:fivecohort}).
 \item Compare against eight published decoders trained in one pipeline with shared splits, seeds and metric code, and report the cohort where most of them fail to train rather than letting the resulting margins stand (Section~\ref{sec:newbaselines}).
-\item Identify the branch's failure mode and predict it from the protocol. The reference is a running mean over incoming windows, so it is safe only while one covariance update spans more than one class block; on the cohort where a block outlasts an update the branch costs $0.175$ and falls near chance (Condition~\ref{prop:band}, Section~\ref{sec:rate}).
-\item Test that account causally by enlarging the covariance update at fixed block length, which recovers 74\,% of the loss without restoring parity (Section~\ref{sec:fivecohort}).
+\item Identify the branch's failure mode and predict it from the protocol. The reference is a running mean over incoming windows, so it is safe only while its memory outlasts a class block; on the cohort where a block outlasts that memory the branch costs $0.175$ and falls near chance (Condition~\ref{prop:band}, Section~\ref{sec:rate}).
+\item Test that account causally by enlarging the covariance update at fixed block length, which recovers 74\,\% of the loss without restoring parity (Section~\ref{sec:fivecohort}).
 \item Pre-register a stronger version of the same condition, one that sets the adaptation rate from the block length, and report it as falsified (Section~\ref{sec:prereg}).
 \end{enumerate}
 
@@ -349,7 +349,7 @@ with off-diagonal entries scaled by $\sqrt{2}$ so that the vector's Euclidean no
 
 The reference $M$ is a running mean over the covariances of incoming windows, updated by (\ref{eq:update}) with momentum $m$ and no labels, and it keeps updating at inference. This is what lets the representation follow a session as it changes, and it is also the component that fails: because $M$ is an average over whatever is currently streaming, a protocol that presents one class for longer than a single update spans will drive $M$ onto that class. Condition~\ref{prop:band} states when that cannot happen and Section~\ref{sec:fivecohort} measures it on five cohorts. The condition was derived on the alignment layer of Section~\ref{sec:dropped}, which shares this estimator, and it transfers to the branch unchanged.
 
-The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch carries 238{,}028 parameters and the fusion layer it requires a further 32{,}896, against 19{,}505 in the stem path; the reported model is 290{,}943 in total, of which the branch and its fusion are 93\,%.
+The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch carries 238{,}028 parameters and the fusion layer it requires a further 32{,}896, against 19{,}505 in the stem path; the reported model is 290{,}943 in total, of which the branch and its fusion are 93\,\%.
 
 \subsection{Components tested and not retained}
 \label{sec:dropped}
@@ -871,7 +871,7 @@ during walking would both appear.}
 
 The alignment layer is not in the reported model, and the measurements that removed it are worth one section because they are the same phenomenon the branch shows.
 
-\paragraph{The ordering inverts between cohorts} On cohort~A the arms that use alignment lead and the alignment-free arms trail; on cohort~B the order reverses completely (Table~\ref{tab:external}, Fig.~\ref{fig:inversion}). With alignment enabled at the default rate the configuration averages $0.580$ on cohort~B, below every published decoder in Table~\ref{tab:compare}, while the alignment-free arm reaches $0.792$. This is not a transfer failure of a particular architecture. It is the same reversal the branch shows on the same cohort, for the same reason: both mechanisms divide by a running covariance, and cohort~B is the cohort whose class blocks outlast one covariance update, so that estimate converges on the streaming class (Section~\ref{sec:fivecohort}).
+\paragraph{The ordering inverts between cohorts} On cohort~A the arms that use alignment lead and the alignment-free arms trail; on cohort~B the order reverses completely (Table~\ref{tab:external}, Fig.~\ref{fig:inversion}). With alignment enabled at the default rate the configuration averages $0.580$ on cohort~B, below every published decoder in Table~\ref{tab:compare}, while the alignment-free arm reaches $0.792$. This is not a transfer failure of a particular architecture. It is the same reversal the branch shows on the same cohort, for the same reason: both mechanisms divide by a running covariance, and cohort~B is the cohort whose class blocks outlast the estimator memory, so that estimate converges on the streaming class (Section~\ref{sec:fivecohort}).
 
 \paragraph{Slowing the estimator has a cost where blocks are short} Lengthening the estimator memory from 160 to 3200 windows recovers cohort~B, and costs accuracy on both cohorts whose blocks are shorter than one update: $-0.050$ on cohort~A and $-0.016$ on cohort~C, the latter lower in 15 of 20 participants ($p=0.003$) and negative on all three seeds ($-0.085$, $-0.056$, $-0.008$). A rate cannot therefore be chosen once for all protocols, which is what makes the condition two-sided in principle even though only its lower side is measured here (Section~\ref{sec:limits}).
 
@@ -1123,7 +1123,7 @@ One boundary on the claim. The branch helps the stem, and it does not help the c
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_cohorts.pdf}
-\caption{The branch on every cohort. (a) Change in balanced accuracy against the stem alone, paired across participants with seeds averaged within participant; bars are 95\,\% intervals from a paired bootstrap over participants, and the annotation gives how many participants improved. Cohorts are ordered by the class-block length of their protocol. (b) The same five effects against that block length, with the number of windows averaged into one covariance update drawn as a dashed line. The branch helps on every cohort whose blocks are shorter than one update and fails on the only one whose blocks are longer. Both axes of (b) are fixed before training: the block length is read from the labels and the update size is the batch size, so the separation uses no accuracy.}
+\caption{The branch on every cohort. (a) Change in balanced accuracy against the stem alone, paired across participants with seeds averaged within participant; bars are 95\,\% intervals from a paired bootstrap over participants, and the annotation gives how many participants improved. Cohorts are ordered by the class-block length of their protocol. (b) The same five effects against that block length, with the estimator memory drawn as a dashed line. The branch helps on every cohort whose blocks are shorter than one update and fails on the only one whose blocks are longer. Both axes of (b) are fixed before training: the block length is read from the labels and the memory is fixed by the optimiser settings, so the separation uses no accuracy. Table~\ref{tab:batchsweep} moves the memory directly and crosses this boundary in both directions on one cohort.}
 \label{fig:cohorts}
 \end{figure*}
 
@@ -1131,7 +1131,7 @@ Table~\ref{tab:five} collects the branch against the convolutional stem on every
 
 \begin{table*}[t]
 \centering
-\caption{The tangent-space branch against the stem alone, three seeds, paired Wilcoxon across participants. $\tau_{\mathrm{blk}}$ is the median single-class block in windows, read from the fitting labels before training. One covariance update averages $N=32$ windows, so a cohort is at risk when a block outlasts an update. The regime column follows from that comparison alone and uses no accuracy.}
+\caption{The tangent-space branch against the stem alone, three seeds, paired Wilcoxon across participants. $\tau_{\mathrm{blk}}$ is the median single-class block in windows, read from the fitting labels before training. The estimator memory is $\mu = N/m = 160$ windows at the settings used throughout, so a cohort is at risk when a block outlasts that memory. The regime column follows from that comparison alone and uses no accuracy.}
 \label{tab:five}
 \begin{tabular}{lrrlccccc}
 \hline
@@ -1150,21 +1150,23 @@ The branch helps on four cohorts and fails on one. The cohort it fails on is the
 
 Lengthening the estimator memory on cohort~B moves it back monotonically: $0.568$ at a memory of 160 windows, $0.650$ at 428 and $0.718$ at 3200, against $0.744$ for the stem alone. The direction the comparison predicts is visible at every point measured.
 
-Two limits belong with this claim. The boundary was identified after cohorts~A, B and~C were run, so only its applications to cohorts~D and~E were prospective. And the boundary itself is untested: every cohort where the branch helps has $\tau_{\mathrm{blk}}$ between 1 and 18, the one where it fails has 214, and nothing is measured near $N=32$ where behaviour is claimed to change. Table~\ref{tab:batchsweep} is reserved for the experiment that would test it directly.
+Two limits belong with this claim. The boundary was identified after cohorts~A, B and~C were run, so only its applications to cohorts~D and~E were prospective. And the boundary itself is untested: every cohort where the branch helps has $\tau_{\mathrm{blk}}$ between 1 and 18, the one where it fails has 214, and no cohort has a block between 32 and 160 windows, which is why the block length appeared for a time to compete with $N$ rather than with $\mu$. Table~\ref{tab:batchsweep} settles it by the experiment that would test it directly.
 
 \begin{table}[t]
 \centering
-\caption{Reserved. Varying the covariance update size $N$ at fixed $\tau_{\mathrm{blk}}$ manipulates the proposed cause directly: reducing $N$ below cohort~A's block length should remove a gain, and raising it above cohort~B's should restore one. Not yet run.}
+\caption{The estimator memory against the class-block length, varied directly. $\mu = N/m$ is the memory in windows, set by the number $N$ averaged into one covariance update and the momentum $m$; controls are matched on $N$, which changes training, while $m$ is inert for a stem that maintains no running statistic. The branch helps wherever $\mu$ exceeds the block length and fails wherever it does not, on both cohorts and across a 400-fold range of $\mu$. Cohort~A at $N=8$, $m=0.2$ is the row that settles the formulation: $N$ has fallen below the block length while $\mu$ has not, and the gain survives, so the governing quantity is the memory and not the update size.}
 \label{tab:batchsweep}
-\begin{tabular}{lrrcc}
-\hline
-Cohort & $\tau_{\mathrm{blk}}$ & $N$ & Predicted & Measured $\Delta$ \\
-\hline
-A & 18 & 8 & break & \pending \\
-A & 18 & 32 & hold & $+0.045$ \\
-B & 214 & 32 & break & $-0.175$ \\
-B & 214 & 256 & hold & \pending \\
-\hline
+\begin{tabular}{lrrrrlrrr}
+\toprule
+Cohort & $\tau_{\mathrm{blk}}$ & $N$ & $m$ & $\mu$ & $\mu>\tau_{\mathrm{blk}}$ & $\Delta$ & Higher & $p$ \\
+\midrule
+A & 18 & 8 & 1 & 8 & \textbf{no} & $-0.076$ & 0/7 & $0.016$ \\
+A & 18 & 8 & 0.2 & 40 & yes & $+0.048$ & 6/7 & $0.156$ \\
+A & 18 & 32 & 0.2 & 160 & yes & $+0.045$ & 6/7 & $0.219$ \\
+B & 214 & 32 & 0.2 & 160 & \textbf{no} & $-0.175$ & 0/8 & $0.008$ \\
+B & 214 & 256 & 0.2 & 1280 & yes & $-0.046$ & 3/8 & $0.109$ \\
+B & 214 & 32 & 0.01 & 3200 & yes & $-0.026$ & 3/8 & $0.312$ \\
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -1202,7 +1204,7 @@ Table~\ref{tab:compare} is the comparison the rest of the results build toward: 
 
 
 
-The reported model is highest on 4 of the five cohorts. On the fifth, cohort~B, it is the worst entry in the column, and that is exactly the cohort where a class block outlasts one covariance update. What makes this a usable result rather than an unreliable one is that the stem alone leads that column: $0.744$ against $0.734$ for the strongest published decoder there. One of the two configurations is therefore the best entry in every column of the table, and the block-length condition selects between them from the recording protocol, before any data is collected and without consulting accuracy.
+The reported model is highest on 4 of the five cohorts. On the fifth, cohort~B, it is the worst entry in the column, and that is exactly the cohort where a class block outlasts the estimator memory. What makes this a usable result rather than an unreliable one is that the stem alone leads that column: $0.744$ against $0.734$ for the strongest published decoder there. One of the two configurations is therefore the best entry in every column of the table, and the block-length condition selects between them from the recording protocol, before any data is collected and without consulting accuracy.
 
 Parameter counts belong beside this. The reported model is 290{,}943 parameters against 19{,}505 for the stem, so the gains in this table cost roughly fifteen times the parameters. Of the published decoders, ShallowFBCSPNet and EEGNet are an order of magnitude smaller again, and EEG Conformer is larger than ours. Nothing here is a claim about efficiency.
 
@@ -1321,9 +1323,9 @@ rate condition, which is measured within each cohort.
 
 \textbf{Parameter cost.} The branch is 238{,}028 parameters and the fusion it requires a further 32{,}896, against 19{,}505 in the stem path. The reported model is therefore about fifteen times the size of the stem it improves on, for $0.02$ to $0.06$ of balanced accuracy. Two of the published decoders it beats are an order of magnitude smaller again. Whether the tangent vector can be projected more cheaply, for instance by reducing its dimension before the linear layer, is not tested here and is the obvious first place to look.
 
-\textbf{The block-length boundary was found after the fact.} The comparison between $\tau_{\mathrm{blk}}$ and the update size separates all five cohorts with nothing fitted, but it was identified after cohorts~A, B and~C had been run. Only its applications to cohorts~D and~E were prospective, and of those only cohort~C's original rate prediction was registered in the repository before the run. The boundary is supported, not established, and the test that would establish it is a cohort chosen in advance because its protocol sits near the boundary.
+\textbf{The block-length boundary was found after the fact.} The comparison between $\tau_{\mathrm{blk}}$ and the estimator memory separates all five cohorts with nothing fitted, but it was identified after cohorts~A, B and~C had been run. Only its applications to cohorts~D and~E were prospective, and of those only cohort~C's original rate prediction was registered in the repository before the run. The boundary is supported, not established, and the test that would establish it is a cohort chosen in advance because its protocol sits near the boundary.
 
-\textbf{The boundary is untested at the boundary.} Every cohort where the branch helps has a block of 1 to 18 windows and the one where it fails has 214, against an update of 32. Nothing is measured between 18 and 214, so the location of the change in behaviour is inferred from five points that straddle it, not measured.
+\textbf{The boundary is untested at the boundary.} Across cohorts the boundary is straddled but not located: every cohort where the branch helps has a block of 1 to 18 windows and the one where it fails has 214, against an update of 32. Nothing is measured between 18 and 214, so across cohorts the location of the change is inferred from five points that straddle it. Within cohorts it is measured directly: varying $\mu$ at fixed block length crosses the boundary in both directions (Table~\ref{tab:batchsweep}).
 
 \textbf{No calibrated threshold.} Two manipulations move the effect in the predicted direction and neither restores parity. Setting the adaptation rate from the block length with a fixed margin of two was pre-registered and falsified. Enlarging the update to 256 windows against a 214-window block recovers 74\,\% of the loss and still costs $0.046$. The condition therefore gives an ordering and a direction, not a rate a practitioner could set, and the upper side of the two-sided condition remains unmeasured on both cohorts where it was attempted.
 
@@ -1334,7 +1336,7 @@ rate condition, which is measured within each cohort.
 %=============================================================================
 \section{Conclusion}
 
-A log-power stem reads the diagonal of a window's spatial covariance and discards the rest of it. Supplying that structure through a tangent-space branch raises balanced accuracy on four of five cohorts and 51 participants, and beats eight published decoders trained in the same pipeline. It fails on the fifth, and the protocol says in advance which case a cohort is: the branch's reference is an average over whatever is currently streaming, so it survives only while one covariance update spans more than one class block.
+A log-power stem reads the diagonal of a window's spatial covariance and discards the rest of it. Supplying that structure through a tangent-space branch raises balanced accuracy on four of five cohorts and 51 participants, and beats eight published decoders trained in the same pipeline. It fails on the fifth, and the protocol says in advance which case a cohort is: the branch's reference is an average over whatever is currently streaming, so it survives only while its memory outlasts a class block.
 
 That condition is the part worth building on, and it is also the part least finished. It separates five cohorts with nothing fitted, it predicted the sign on two cohorts prospectively, and enlarging the update recovers most of the loss where it is violated. It still yields no rate a practitioner could set, its upper side has never been measured, and no cohort has been run near the boundary itself. The experiment that would settle it is small and specific: choose a protocol whose class blocks fall between 18 and 214 windows, register the prediction, and run it once.
 

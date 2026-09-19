@@ -38,7 +38,7 @@ import figstyle as S                                            # noqa: E402
 from figstyle import FULL, OURS, VERM, GREY                     # noqa: E402
 
 S.use()
-NBATCH = 32
+MU = 160          # estimator memory N/m at the settings used throughout
 COHORTS = [
     ("D", "BCI IV-2a", 1, "d_bnci_3seed.json", "d_bnci_3seed.json"),
     ("C", "motor execution", 5, "c_stem_tangent_3seed.json",
@@ -95,8 +95,8 @@ def main():
     # ------------------------------------- (b) effect against block length
     tau = np.array([r[2] for r in rows], float)
     eff = np.array([r[3] for r in rows])
-    ax2.axvspan(0.6, NBATCH, color=OURS, alpha=0.05, zorder=0)
-    ax2.axvline(NBATCH, color=GREY, lw=1.0, ls=(0, (4, 2)), zorder=1)
+    ax2.axvspan(0.6, MU, color=OURS, alpha=0.05, zorder=0)
+    ax2.axvline(MU, color=GREY, lw=1.0, ls=(0, (4, 2)), zorder=1)
     ax2.axhline(0, color=GREY, lw=0.8, zorder=1)
     for i, (k, t, tu, m, lo, hi, p, w, n) in enumerate(rows):
         col = OURS if m > 0 else VERM
@@ -110,8 +110,8 @@ def main():
     ax2.set_xlabel("class-block length $\\tau_{\\mathrm{blk}}$ (windows)")
     ax2.set_ylabel("change in balanced accuracy")
     ax2.set_xlim(0.6, 400)
-    S.note(ax2, NBATCH * 0.82, 0.085,
-           "one covariance\nupdate, $N=32$", ha="right", fontsize=6.6,
+    S.note(ax2, MU * 0.82, 0.085,
+           "estimator memory\n$\\mu = N/m = 160$", ha="right", fontsize=6.6,
            color=GREY)
     S.panel(ax2, "b", x=-0.22)
 
