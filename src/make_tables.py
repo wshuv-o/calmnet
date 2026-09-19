@@ -136,6 +136,7 @@ REFKEY = {
     "TSception": "tsception", "FBCNet": "fbcnet", "EEGITNet": "eegitnet",
     "SCCNet": "sccnet", "SincShallowNet": "sincshallow", "IFNet": "ifnet",
     "FBMSNet": "fbmsnet", "CTNet": "ctnet",
+    "FBLightConvNet": "lightconvnet", "BDTCN": "gemein2020",
 }
 
 
@@ -307,7 +308,7 @@ def t_compare():
             "A": "a_tangent_3seed.json", "B": "b_tangent_3seed.json",
             "C": "c_stem_tangent_3seed.json", "D": "d_bnci_3seed.json",
             "E": "e_decoded_3seed.json"}),
-        "stem alone": ("19" + BS + ",505", "dn_stem", {
+        "stem alone": ("20" + BS + ",019", "dn_stem", {
             "A": "a_ablation_s12.json", "B": "b_tangent_3seed.json",
             "C": "c_stem_tangent_3seed.json", "D": "d_bnci_3seed.json",
             "E": "e_decoded_3seed.json"}),

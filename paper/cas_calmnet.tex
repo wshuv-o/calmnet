@@ -99,7 +99,7 @@ the same pipeline. A classical tangent-space classifier with no network falls
 $0.116$ below it on the longitudinal exoskeleton cohort and matches it on the
 held-out cohort. On the fifth cohort the branch costs $0.175$, and that failure
 is predictable before training: the reference is a running mean, safe only while
-its effective memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows
+its nominal memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows
 there against a memory of 160, and 1 to 18 where the branch helps. Moving the
 memory across the block length switches the effect off and on: $+0.045$ at 160
 windows, $+0.048$ at 40 and $-0.076$ at 8. A pre-specified prescription for the rate itself was
@@ -107,9 +107,9 @@ falsified.
 \end{abstract}
 
 \begin{highlights}
-\item A tangent-space branch represents the channel covariance a log-power stem leaves implicit.
+\item A tangent-space branch exposes channel covariance a log-power stem leaves implicit.
 \item Accuracy rises on four of five cohorts, 51 participants, three seeds each.
-\item It leads eight published decoders on the four cohorts where it helps.
+\item Highest mean accuracy against eight published decoders run untuned.
 \item Its label-free reference fails where a class block outlasts the estimator memory.
 \item Block length against estimator memory, read from the protocol, separates all five.
 \end{highlights}
@@ -171,8 +171,8 @@ Our contributions are:
 \item Add a tangent-space branch beside the log-power stem: each window's covariance is shrunk, mapped to the tangent space at a reference estimated from the input alone, and projected into the classifier, with no labels used at inference (Section~\ref{sec:tangent}).
 \item Measure it on five cohorts and 51 participants with three seeds each. Accuracy rises on four, including $+0.064$ in 20 of 20 participants of a cohort held out from architecture and pipeline development (Section~\ref{sec:fivecohort}).
 \item Compare against eight published decoders trained in one pipeline with shared splits, seeds and metric code, and report the cohort where most of them fail to train rather than letting the resulting margins stand (Section~\ref{sec:newbaselines}).
-\item Identify the branch's failure mode and predict it from the protocol. The reference is a running mean over incoming windows, so it is safe only while its memory outlasts a class block; on the cohort where a block outlasts that memory the branch costs $0.175$ and falls near chance (Condition~\ref{prop:band}, Section~\ref{sec:rate}).
-\item Test that account causally by enlarging the covariance update at fixed block length, which recovers 74\,\% of the loss without restoring parity (Section~\ref{sec:fivecohort}).
+\item Identify the branch's failure mode and relate it to a quantity read from the protocol. The reference is a running mean over incoming windows, and it degrades when a class block outlasts its memory; on the cohort where a block outlasts that memory the branch costs $0.175$ and falls near chance (Condition~\ref{prop:band}, Section~\ref{sec:rate}).
+\item Perturb the estimator memory directly at fixed block length. Shrinking it below the block length reverses the gain on cohort~A, and enlarging it on cohort~B recovers 74\,\% of the loss without restoring parity, both in the direction the account predicts (Section~\ref{sec:fivecohort}).
 \item Report as falsified a stronger version of the same condition, one that sets the adaptation rate from the block length: at the memory it prescribes the failing cohort reaches $0.650$ against $0.744$ for the stem alone (Section~\ref{sec:fivecohort}).
 \end{enumerate}
 
@@ -192,10 +192,10 @@ parameter count by an order of magnitude using depthwise-separable convolutions
 architectures work well within a session and are the standard baselines in the
 field \citep{roy_review,craik}. Their limitation for our setting is that the
 learned spatial filters are fixed at training time, so a montage or impedance
-change between sessions is not compensated at all. We respond by placing an
-adaptive whitening stage before the spatial filters, so that what the filters
-see is referred to a covariance estimated on the current recording
-.
+change between sessions is not compensated at all. We keep such a stem
+unchanged and add a second path beside it that reads each window's covariance
+relative to a reference estimated on the current recording
+(Section~\ref{sec:tangent}).
 
 \subsection{Attention-based decoders}
 
@@ -218,16 +218,20 @@ These methods are effective and label-free, and reviews report them as the
 strongest general-purpose transfer tools for EEG \citep{lotte2018,wu_transfer}.
 Their limitation is operational. The alignment statistic
 is computed over a whole recording, so the recording must be complete before
-decoding starts, and within-recording drift is not tracked. We respond by moving
-the estimator inside the network as a layer that updates online, and we then
-show what that move costs (Section~\ref{sec:rate}).
+decoding starts, and within-recording drift is not tracked. Online variants remove that
+requirement: EDAPT updates a reference covariance by an exponential moving
+average after each trial and whitens incoming trials by its inverse square root
+\citep{edapt}, and the running reference used here is of the same kind. What this
+paper adds is not the online estimator but a second-order branch built on it,
+and an account of when such an estimator fails, which depends on the temporal
+structure of the test stream (Section~\ref{sec:rate}).
 
 \subsection{Riemannian and tangent-space representations}
 \label{sec:rw_riem}
 
 Spatial covariances are symmetric positive-definite matrices and do not form a vector space, so the methods built on them operate on the SPD manifold. The standard recipe computes a covariance per window, maps it to the tangent space at a reference point, and classifies the resulting vector with a linear model \citep{barachant,barachant2013,congedo}. The reference is usually the Riemannian or arithmetic mean of the training covariances, and the choice matters because the map is only a faithful local approximation near that point. These representations remain competitive with convolutional decoders on movement-intent tasks and are the strongest general-purpose transfer tools reported in reviews \citep{lotte2018,wu_transfer}. SPD networks learn the manifold operations instead of fixing them \citep{spdnet}.
 
-Two differences separate the branch used here from that line. The tangent map is a second input to a convolutional decoder rather than the representation the decoder is built on, so first-order band power and second-order structure are read together instead of one replacing the other; Section~\ref{sec:fivecohort} reports that the two are complementary and that the branch alone is weaker than the stem alone. And the reference point is estimated from the incoming windows at inference rather than fixed after fitting, which is what makes the representation track a changing session and is also, as Section~\ref{sec:rate} shows, what makes it fail under a blocked protocol.
+Two differences separate the branch used here from that line. The tangent map is a second input to a convolutional decoder rather than the representation the decoder is built on, so first-order band power and second-order structure are read together instead of one replacing the other; Section~\ref{sec:fivecohort} reports that their fusion exceeds the stem alone; a decoder built on the branch alone was not trained. And the reference point is estimated from the incoming windows at inference rather than fixed after fitting, which is what makes the representation track a changing session and is also, as Section~\ref{sec:rate} shows, what makes it fail under a blocked protocol.
 
 \subsection{Test-time adaptation}
 
@@ -242,7 +246,7 @@ adaptation under distribution shift with small or imbalanced batches
 \citep{sar}, and CoTTA and LAME address error accumulation in continual
 adaptation \citep{cotta,lame}. Our contribution relative to this line is
 quantitative: we show that in a blocked EEG protocol the
-relevant comparison is between the estimator's effective memory and the
+relevant comparison is between the estimator's nominal memory and the
 duration of a single-class block, and that this comparison predicted a new
 cohort in advance. The constraint should also have an upper side, because the
 same estimator is what tracks the drift the layer exists to remove; that side
@@ -298,14 +302,14 @@ model.
 %=============================================================================
 \section{Method}
 
-The reported decoder has two components. A multi-scale log-power stem reads the diagonal of each window's spatial covariance, and a tangent-space branch reads the rest of it. Their outputs are concatenated and passed to one linear classifier. The stem path carries 19{,}505 parameters and the branch 238{,}028, with a further 32{,}896 in the fusion layer the branch requires, so the branch is the larger part of the model by an order of magnitude and Section~\ref{sec:master} reports what that buys.
+The reported decoder has two components. A multi-scale log-power stem represents each window by the band power of learned spatial filters, which carries the covariance between channels only implicitly, and a tangent-space branch represents the full regularised covariance explicitly. Their outputs are concatenated and passed to one linear classifier. The stem path carries 19{,}505 parameters and the branch 238{,}028, with a further 32{,}896 in the fusion layer the branch requires, so the branch is the larger part of the model by an order of magnitude and Section~\ref{sec:master} reports what that buys.
 
 Three further components were built and tested during development and none is retained. They are not evaluated in this paper, and the ablations of Section~\ref{sec:ablation} concern only the two paths above.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_arch.pdf}
-\caption{The reported decoder. A window enters both paths: the stem gives log band power per channel, and the branch maps the window's covariance to the tangent space at a running reference and projects the result. The two are concatenated into one linear classifier. The dashed arrow is the reference update, which uses no labels and stays active at inference.}
+\caption{The reported decoder. A window enters both paths: the stem gives the log band power of learned spatial filters, and the branch maps the window's covariance to the tangent space at a running reference and projects the result. The two are concatenated into one linear classifier. The dashed arrow is the reference update, which uses no labels and stays active at inference.}
 \label{fig:arch}
 \end{figure*}
 
@@ -319,6 +323,16 @@ $\mathrm{square} \rightarrow \mathrm{pool} \rightarrow \log$, after
 log-power ratios survive: scaling a window by $s$ shifts its log-power by
 $2\log s$, a constant that a later affine layer absorbs, whereas normalising
 after the square destroys the ratio in which ERD is defined \citep{erd}.
+
+Each temporal resolution is a convolution with 16 kernels of 6, 13 or 26 samples
+at 100\,Hz, without bias, followed by batch normalisation, a depthwise
+convolution across all channels with two spatial filters per kernel, and batch
+normalisation again. Squaring, non-overlapping average pooling over 200\,ms
+frames and a logarithm with a floor of $10^{-6}$ give 32 log-power features per
+resolution and 96 per frame. After dropout of 0.3 and layer normalisation, each
+frame is projected to 128 dimensions with a GELU, and the frames of a window are
+pooled by a learned softmax attention over time into one 128-dimensional
+embedding.
 
 This ordering is load-bearing, and the evidence is a
 dose--response across representations that differ in how much marginal power
@@ -351,7 +365,7 @@ and per-window normalisation is the worst.
 Table~\ref{tab:norm} repeats the normalisation comparison across six
 published decoders, in an earlier training pipeline. Per-window normalisation is
 the best choice for two of them and the worst for two, and most differences are
-below the $0.02$ noise threshold, so this comparison neither supports nor
+below the $0.02$ run-to-run variation, so this comparison neither supports nor
 contradicts the representation-level dose--response in Table~\ref{tab:repr}.
 Table~\ref{tab:repr} also reports the control that retired an amplitude
 side-channel: supplying a per-window amplitude feature and supplying the same
@@ -361,23 +375,28 @@ of five models.
 \subsection{Tangent-space branch}
 \label{sec:tangent}
 
-The stem of Section~\ref{sec:stem} reduces each window to log power per channel, which is the diagonal of its spatial covariance. The off-diagonal structure, how channels covary, is discarded. The branch restores it. For a window $X$ we form the per-window covariance $C = XX^{\top}/T$, normalise its trace, shrink it toward a scaled identity by $\lambda = 0.1$, and map it to the tangent space at a reference $M$,
+The stem of Section~\ref{sec:stem} sees the covariance between channels only through its learned spatial filters: a filter $\mathbf{w}$ has output power $\mathbf{w}^{\top}C\mathbf{w}$, which depends on every entry of the covariance $C$, but only along the directions the filters have learned. The branch exposes the full covariance explicitly. For a window $X$, mean-centred over time, we form $C = XX^{\top}/T$, normalise its trace and shrink it toward the identity,
 \begin{equation}
-\phi(X) = \mathrm{vec}\big(\log(M^{-1/2} C M^{-1/2})\big),
+\tilde{C} = (1-\lambda)\,\frac{C}{\operatorname{tr}(C)/n_{\mathrm{ch}}} + \lambda I ,
+\qquad \lambda = 0.1 ,
+\label{eq:shrink}
 \end{equation}
-with off-diagonal entries scaled by $\sqrt{2}$ so that the vector's Euclidean norm equals the matrix Frobenius norm. A linear projection maps $\phi(X)$ to the embedding width and concatenates it with the stem before the classifier, which leaves the classifier unchanged in shape so the branch ablates as one module.
-
-The reference is a running mean over the covariances of incoming windows, with each window's covariance normalised by its own trace before being accumulated, so the estimate is an average of shapes rather than an average weighted by power:
+and map it to the tangent space at a reference $M$,
 \begin{equation}
-\mathbf{M} \leftarrow (1-m)\,\mathbf{M} + \frac{m}{N} \sum_{n=1}^{N}
-\frac{\mathbf{C}_n}{\operatorname{tr}(\mathbf{C}_n)/C},
-\qquad
-\mathbf{C}_n = \frac{\tilde{\mathbf{X}}_n \tilde{\mathbf{X}}_n^{\top}}{T},
+\phi(X) = \mathrm{vec}\big(\log(M^{-1/2} \tilde{C} M^{-1/2})\big),
+\end{equation}
+with off-diagonal entries scaled by $\sqrt{2}$ so that the vector's Euclidean norm equals the matrix Frobenius norm. Both matrix functions are computed by symmetric eigendecomposition in double precision, with eigenvalues floored at $10^{-6}$ before the inverse square root and the logarithm. The vector has $n_{\mathrm{ch}}(n_{\mathrm{ch}}+1)/2$ entries, 1830 for 60 channels, and passes through layer normalisation and a linear projection to 128 dimensions with a GELU and dropout of 0.3. It is concatenated with the stem's 128-dimensional embedding, and a linear fusion layer maps the pair back to 128 dimensions before the classifier, which leaves the classifier unchanged in shape so the branch ablates as one module.
+
+The reference is a running mean over the covariances of incoming windows, each trace-normalised and shrunk by (\ref{eq:shrink}) before being accumulated, so the estimate is an average of shapes rather than an average weighted by power:
+\begin{equation}
+\mathbf{M} \leftarrow (1-m)\,\mathbf{M} + \frac{m}{N} \sum_{n=1}^{N} \tilde{\mathbf{C}}_n ,
 \label{eq:update}
 \end{equation}
-where $\tilde{\mathbf{X}}_n$ is the mean-centred window, $N$ the number of windows in an update and $m$ the momentum, so the memory is $\mu = N/m$ windows. Without the trace normalisation the estimate is power-weighted, and on a cohort whose majority class carries $1.52\times$ the power of the minority class a power-weighted estimate is the majority class rather than an average over both.
+where $\tilde{\mathbf{C}}_n$ is (\ref{eq:shrink}) applied to the $n$-th window of an update, $N$ the number of windows in an update and $m$ the momentum. We use $\mu = N/m$ windows as the estimator's nominal memory. It is a characteristic scale rather than a buffer length: the weight of past updates decays geometrically, and at $m = 0.2$ the e-folding time is $-1/\ln(1-m) \approx 4.5$ updates, or 143 windows at $N = 32$, against the nominal 160. Under either definition cohort~B's 214-window block exceeds the memory at the default rate and every other cohort's median block falls well below it, so the comparisons that follow do not depend on the choice. Without the trace normalisation the estimate is power-weighted, and on a cohort whose majority class carries $1.52\times$ the power of the minority class a power-weighted estimate is the majority class rather than an average over both.
 
-The reference $M$ is a running mean over the covariances of incoming windows, updated by (\ref{eq:update}) with momentum $m$ and no labels, and it keeps updating at inference. This is what lets the representation follow a session as it changes, and it is also the component that fails: because $M$ is an average over whatever is currently streaming, a protocol that presents one class for longer than a single update spans will drive $M$ onto that class. Condition~\ref{prop:band} states when that cannot happen and Section~\ref{sec:fivecohort} measures it on five cohorts. 
+The reference $M$ is a running mean over the covariances of incoming windows, updated by (\ref{eq:update}) with momentum $m$ and no labels, and it keeps updating at inference. This is what lets the representation follow a session as it changes, and it is also the component that fails: because $M$ is an average over whatever is currently streaming, a protocol that presents one class for longer than the estimator remembers will drive $M$ onto that class. Condition~\ref{prop:band} states when that should not happen, and Section~\ref{sec:fivecohort} measures it on five cohorts.
+
+\paragraph{Update order at evaluation} The reference is initialised from the first training batch and is not reset afterwards: every forward pass updates it, in fitting, in the held-out validation passes and in calibration, so it enters each participant's test stream carrying that history. Test windows are presented in recording order, in consecutive batches of $N = 32$, and within a forward pass the reference is updated with the batch before it is applied to that same batch. Each test window's reference therefore includes the covariances of up to 31 later windows of its batch, about 15\,s at a 0.5\,s stride, so in this respect too the evaluation is offline. A causal implementation would compute the representation with the reference from before the batch and update it afterwards. That variant was not run, and whether the reported effects depend on the look-ahead is not measured here. 
 
 The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch carries 238{,}028 parameters and the fusion layer it requires a further 32{,}896, against 19{,}505 in the stem path and 514 in the shared classifier; the reported model is 290{,}943 in total, of which the branch and its fusion are 93\,\%. Counts quoted for a path exclude the classifier; counts quoted for a model include it, so the stem on its own is 20{,}019.
 
@@ -458,19 +477,30 @@ uses a zero-phase FIR filter in MNE-Python \citep{gramfort}, after which the
 EOG channels, filtered to the same band, are regressed linearly out of the EEG.
 Cohorts B and C use a zero-phase fourth-order Butterworth filter and have no EOG step.
 Zero-phase filtering is acausal: each filtered sample depends on samples that
-follow it. The alignment of this paper is causal, and the amplitude
-normalisation takes its statistics from the fitting split alone, but the
-band-pass does not, so the evaluation reported here is an offline one. A
+follow it. The amplitude normalisation takes its statistics from the fitting
+split alone, but the band-pass is acausal, and so is the order in which the
+running reference is updated within a batch (Section~\ref{sec:tangent}), so the
+evaluation reported here is an offline one. A
 deployed version would substitute a causal band-pass, which the results below do
-not measure. No other artefact rejection, ICA decomposition or channel interpolation
+not measure. Each recording, or each run where a cohort is split by runs, is
+filtered on its own, so no filter spans the boundary between fitting and test
+data. No other artefact rejection, ICA decomposition or channel interpolation
 is applied, so that the running reference is evaluated on the shift it is meant to track. The artefact control of Section~\ref{sec:artefact} is the one exception and is reported separately. The band also excludes the gait cycle, near 1--2\,Hz, and most
 electromyographic power above 30\,Hz. Amplitude normalisation is applied globally, before the squaring stage, for the reason given in Section~\ref{sec:stem}. The per-channel mean and standard deviation are computed on the fitting split alone and then applied unchanged to the calibration and test splits, so no statistic is taken from the recordings the model is evaluated on.
 
 Table~\ref{tab:hyper} lists the training configuration. The adaptation momentum
 is $m=0.2$ unless stated otherwise; Section~\ref{sec:rate} treats $m$ as the
 object of study. Model selection uses balanced accuracy on a held-out split of
-the fitting sessions, evaluated at the best epoch by that criterion, which is
-conventional but upward-biased on small folds (Section~\ref{sec:limits}).
+the fitting data, evaluated at the best epoch by that criterion, which is
+conventional but upward-biased on small folds (Section~\ref{sec:limits}). The
+held-out split takes whole segments, contiguous stretches of one recording and
+one class, choosing about 30\,\% of each class's segments at random, so
+overlapping windows from one segment never fall on both sides. On cohort~A it is
+drawn from the training-task recordings of the fitting sessions, and the
+closed-loop trial recordings are used for fitting only. A data-split seed (0, 1
+or 2) sets which segments are held out, the weight initialisation and the batch
+order; class weights and normalisation statistics come from the fitting data
+alone.
 
 \begin{table}[t]
 \caption{Training configuration, identical across all arms, all cohorts and the
@@ -486,14 +516,15 @@ Band-pass / resample & 8--30\,Hz, 100\,Hz (zero-phase) \\
 Artefact correction & EOG regression (A); none (B--E) \\
 Amplitude normalisation & global, fitting-split statistics \\
 Window / stride & 4\,s / 0.5\,s (A, E); 2\,s (B); 2\,s / 0.5\,s (C); 4\,s, one per trial (D) \\
-Context length $K$, stride & 8 epochs, 3 (14.5\,s span) \\
-Optimiser & AdamW \citep{adamw}, lr $3\times10^{-4}$, weight decay $10^{-2}$, one-cycle schedule \\
+Optimiser & AdamW \citep{adamw}, lr $3\times10^{-4}$, weight decay $10^{-2}$, one-cycle schedule (30\,\% warm-up, cosine annealing) \\
 Batch size $N$ & 32 \\
 Epochs & at most 30; early stopping after 12 without improvement \\
 Gradient clipping & norm 1.0 \\
 Loss & cross-entropy, inverse-frequency weighted \\
 
-Adaptation momentum $m$ & 0.2 (swept in \S\ref{sec:rate}) \\
+Adaptation momentum $m$ & 0.2, nominal memory $N/m = 160$ windows (swept in \S\ref{sec:rate}) \\
+Held-out split & about 30\,\% of whole segments per class, fitting data only \\
+Seeds & 0, 1, 2: held-out split, initialisation and batch order \\
 Model selection & best held-out balanced accuracy \\
 Calibration & temperature scaling fitted on the held-out split \\
 \bottomrule
@@ -504,8 +535,10 @@ Calibration & temperature scaling fitted on the held-out split \\
 \textit{braindecode} library \citep{braindecode_lib} were trained in the same
 pipeline as the decoder: ShallowFBCSPNet and Deep4Net
 \citep{schirrmeister}, EEGNet \citep{lawhern}, EEGNeX \citep{eegnex}, EEG
-Conformer \citep{conformer}, TSception \citep{tsception}, FBLightConvNet and
-EEG-TCNet \citep{eegtcnet}. Each model's classification layer is replaced by the
+Conformer \citep{conformer}, TSception \citep{tsception}, FBLightConvNet
+\citep{lightconvnet} and EEG-TCNet \citep{eegtcnet}. TSception was designed for
+emotion recognition and is used here as a general EEG backbone, not as an
+established movement-intent decoder. Each model's classification layer is replaced by the
 same linear projection and classifier, and each is trained with the
 preprocessing, optimiser, schedule, early stopping, model selection and
 temperature scaling of Table~\ref{tab:hyper}, so that the models differ only in
@@ -575,9 +608,10 @@ setting fixed, the reported model spans $0.0070$ to $0.0216$ depending on
 the cohort, and the stem spans $0.0110$ to $0.0569$; the widest is the stem
 on cohort~A. The stem is the noisier arm on all five cohorts,
 so the branch does not buy its accuracy with a less stable fit.
-Differences below $0.02$ are not interpreted anywhere in this paper,
-and differences smaller than the relevant seed spread are reported
-without a ranking. The effects we do interpret are measured over three
+Differences below $0.02$, the order of that run-to-run variation, and
+differences smaller than the relevant seed spread are reported without a
+ranking. This is a descriptive rule from three seeds, not a statistical
+criterion; the conclusions rest on the paired tests across participants. The effects we do interpret are measured over three
 data-split seeds and tested paired within participant (Tables~\ref{tab:compare} and \ref{tab:batchsweep}).
 
 \paragraph{Pipeline separation} The proposed decoder and the published decoders
@@ -613,7 +647,7 @@ The seed column is worth as much as the accuracy column. The stem's grand mean m
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{../results/fig_ablation.pdf}
-\caption{The branch against the stem on cohort~A, three seeds. (a) Balanced accuracy, with the proposed model solid and the stem grey; white bars are one standard deviation across seeds. (b) The same as a paired change against the stem, with the annotation giving how many participants improved and the shaded band the $0.02$ threshold below which differences are not interpreted.}
+\caption{The branch against the stem on cohort~A, three seeds. (a) Balanced accuracy, with the proposed model solid and the stem grey; white bars are one standard deviation across seeds. (b) The same as a paired change against the stem, with the annotation giving how many participants improved and the shaded band marking $\pm0.02$, the descriptive run-to-run variation.}
 \label{fig:ablation}
 \end{figure}
 
@@ -697,13 +731,13 @@ control constrains the artefact account rather than excluding it
 
 Where the reference acts is shown in Fig.~\ref{fig:topo}. The tangent map amplifies the frontocentral midline most (AFz, Fz and F2 at $2.9$) and the temporal sites most exposed to jaw and neck muscle least (T7 and T8 at $1.9$). The class contrast is separate from that and is a property of the data: absolute 8--30\,Hz power falls over left sensorimotor cortex during walking (C3 $-3.5$\,dB, C1 $-3.0$, CP3 $-2.8$), which is the topography and the sign expected of mu and beta desynchronisation, and rises occipitally (O1 and O2 at $+2.1$), which is consistent with optic flow. Gross movement artefact would raise power during walking rather than lower it over sensorimotor cortex, so the sign of the contrast argues against an artefact account without settling it. It is one participant, and a power contrast is not an artefact rejection.
 
-\subsection{The reference has an admissible rate}\label{sec:rate}
+\subsection{The running reference and the class-block timescale}\label{sec:rate}
 
 The branch maps each window's covariance into the tangent space at a reference $\mathbf{M}$ that is a running mean over the incoming windows. That is what lets the representation follow a session as it changes, and it is also the component that can fail: because $\mathbf{M}$ averages whatever is currently streaming, a protocol that presents one class for longer than the estimator remembers will drive the reference onto that class, and dividing a window of that class by its own covariance removes what separates it from the others.
 
-\begin{condition}[Admissible rate band]
+\begin{condition}[Protocol timescale hypothesis]
 \label{prop:band}
-Assume (i) the running estimate is an exponential moving average with effective
+Assume (i) the running estimate is an exponential moving average with nominal
 memory $\mu$ windows; (ii) the within-class covariance is stationary over a
 block; (iii) the protocol presents classes in contiguous blocks of length
 $\tau_{\mathrm{blk}}$; and (iv) session drift acts as a congruence transform
@@ -714,10 +748,10 @@ avoids tracking the streaming class and tracks session drift only if
 \label{eq:band}
 \end{equation}
 Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
-setting of $\mu$ satisfies both requirements. It is a design condition. Its lower bound is tested here empirically; its upper bound is not measured, and we give no proof.
+setting of $\mu$ satisfies both requirements. This is an empirical design hypothesis, not a derived result: we give no proof, its lower side is tested here empirically, and its upper side is not measured.
 \end{condition}
 
-The lower bound is what this paper measures. It is checked in two ways that do not share a failure mode: across cohorts, by comparing protocols whose block lengths differ by two orders of magnitude (Section~\ref{sec:fivecohort}), and within a cohort, by moving the memory directly while everything else is held fixed (Table~\ref{tab:batchsweep}, Fig.~\ref{fig:rate}). The upper bound is not measured here (Section~\ref{sec:limits}). Across a 400-fold range of $\mu$ on two cohorts, the sign and the size of the effect track the comparison. On cohort~A, where $\mu$ exceeds the block length, the branch gains, and driving $\mu$ below it reverses the effect to $-0.076$. On cohort~B, raising $\mu$ above the block length takes the cost from $0.175$ to $0.046$ and then to $0.026$, so crossing the boundary bounds the damage without turning it into a gain. The comparison therefore predicts the direction and the severity of the failure; it is not sufficient for a positive effect, and Section~\ref{sec:limits} says what that leaves open. Cohort~A at $N=8$, $m=0.2$ is the row that settles the formulation: $N$ has fallen below the block length while $\mu$ has not, and the gain survives, so the governing quantity is the memory and not the update size.
+The lower bound is what this paper measures. It is checked in two ways that do not share a failure mode: across cohorts, by comparing protocols whose block lengths differ by two orders of magnitude (Section~\ref{sec:fivecohort}), and within a cohort, by moving the memory directly while everything else is held fixed (Table~\ref{tab:batchsweep}, Fig.~\ref{fig:rate}). The upper bound is not measured here (Section~\ref{sec:limits}). Across a 400-fold range of $\mu$ on two cohorts, the sign and the size of the effect track the comparison. On cohort~A, where $\mu$ exceeds the block length, the branch gains, and driving $\mu$ below it reverses the effect to $-0.076$. On cohort~B, raising $\mu$ above the block length takes the cost from $0.175$ to $0.046$ and then to $0.026$, so crossing the boundary bounds the damage without turning it into a gain. The comparison therefore tracks the direction and the severity of the failure; it is not sufficient for a positive effect, and Section~\ref{sec:limits} says what that leaves open. The row at $N=8$, $m=0.2$ separates the two formulations: $N$ has fallen below the block length while $\mu$ has not, and the gain survives, so the governing quantity is the memory and not the update size.
 
 \begin{figure}[t]
 \centering
@@ -755,7 +789,7 @@ Cohort~B inverts. At the default rate the branch reaches $0.568$ against $0.744$
 
 Table~\ref{tab:tanref} separates the two roles of the reference. Freezing it at the fitting-split mean removes the ability to track the streaming class but not the class imbalance in the fitting data itself, and recovers cohort~B only partly. Removing it altogether repairs cohort~B and is null on cohort~C and negative on cohort~A, so the adapting reference is where the gain comes from and the no-reference variant is a cohort~B patch with no support elsewhere. We therefore retain the adapting reference and let Condition~\ref{prop:band}, read from the protocol, decide where the branch is admissible. Nothing in that choice is fitted on a confirmation cohort.
 
-The two paths are complementary inside the trained model, not only in the accuracy column. Training one cohort~A participant with the reported settings and recording activations with forward hooks on held-out windows (Fig.~\ref{fig:activations}, held-out balanced accuracy $0.967$), class separation measured as the mean standardised difference per unit is $0.74$ at the stem and $1.22$ at the branch, and $2.41$ after the two are fused. Fusion exceeding either path alone is what complementary means here, and the tangent vector folded back into its matrix shows the structure sitting off the diagonal, which a log-power stem represents only implicitly.
+Inside one trained model, the fused representation separates the classes more than either path does. Training one cohort~A participant with the reported settings and recording activations with forward hooks on held-out windows (Fig.~\ref{fig:activations}, held-out balanced accuracy $0.967$), class separation measured as the mean standardised difference per unit is $0.74$ at the stem and $1.22$ at the branch, and $2.41$ after the two are fused. This is one participant and illustrates the fusion; it is not a population result. A decoder built on the branch alone was not trained, so the paper makes no claim about the branch alone against the stem; the population result is that the fusion exceeds the stem (Table~\ref{tab:five}).
 
 \begin{table}[t]
 \centering
@@ -808,7 +842,7 @@ B, treadmill & 8 & 214 & at risk & $0.744$ & $0.568$ & $-0.175$ & 0/8 & $0.008$ 
 \end{tabular}
 \end{table*}
 
-The branch helps on four cohorts and fails on one. The cohort it fails on is the only one whose class blocks outlast the estimator memory, and that comparison is available before any model is trained: $\tau_{\mathrm{blk}}$ comes from the label sequence and $\mu=N/m$ from the batch size and momentum. On cohorts~D, C, E and~A a block is 1, 5, 13 and 18 windows against a memory of 160, so the reference averages over many blocks. The quantity is the memory and not the update size alone: on cohort~A an update of 8 windows at $m=0.2$ keeps the gain, and the same update at $m=1.0$, a memory of 8, removes it (Table~\ref{tab:batchsweep}). On cohort~B a block is 214 windows, an update sits inside it, and the reference converges on the Walk covariance; whitening a Walk window by the Walk covariance removes the variance separating the classes, and accuracy falls to $0.568$ against a $0.500$ chance line.
+The branch helps on four cohorts and fails on one. The cohort it fails on is the only one whose class blocks outlast the estimator memory, and that comparison is available before any model is trained: $\tau_{\mathrm{blk}}$ comes from the label sequence and $\mu=N/m$ from the batch size and momentum. On cohorts~D, C, E and~A a block is 1, 5, 13 and 18 windows against a memory of 160, so the reference averages over many blocks. The quantity is the memory and not the update size alone: on cohort~A an update of 8 windows at $m=0.2$ keeps the gain, and the same update at $m=1.0$, a memory of 8, removes it (Table~\ref{tab:batchsweep}). On cohort~B a block is 214 windows, longer than the 160-window memory, and the reference converges on the Walk covariance; whitening a Walk window by the Walk covariance removes the variance separating the classes, and accuracy falls to $0.568$ against a $0.500$ chance line.
 
 Lengthening the estimator memory on cohort~B moves it back monotonically: $0.568$ at a memory of 160 windows, $0.650$ at 428 and $0.718$ at 3200, against $0.744$ for the stem alone. The direction the comparison predicts is visible at every point measured.
 
@@ -846,7 +880,9 @@ Section~\ref{sec:outcomes}. On cohorts~A, B and~E the positive class is walking
 and these read as spurious Walk commands per minute of standing; cohorts~C and~D
 are rest against movement and left hand against right hand, where the same
 arithmetic applies but no walk command exists, so the generic reading is the
-correct one there.}
+correct one there. Both are computed on the raw decision sequence, with no
+smoothing, hysteresis or safety logic, so they are proxies for device behaviour
+rather than measurements of it.}
 \label{tab:deploy}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{llrrrr}
@@ -881,7 +917,7 @@ Parameters are the wrong measure of what the branch costs to run. Its expense is
 
 \begin{table}[t]
 \centering
-\caption{Inference cost at cohort~A's input shape, eight windows per forward. Latency is the median over 200 forwards after warm-up, batch~1, with CUDA synchronised; the 95th percentile is given for the online case. No training.}
+\caption{Inference cost at cohort~A's input shape. The benchmark passes eight windows per forward and returns one decision, more than the reported model needs, since it classifies each window on its own, so the figures are an upper bound on per-window cost. Latency is the median over 200 forwards after warm-up, batch~1, with CUDA synchronised; the 95th percentile is given for the online case. No training.}
 \label{tab:cost}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrr}
@@ -901,7 +937,7 @@ GPU peak memory (MB) & $60$ & $61$ & \\
 
 The decision rate sets the budget. Cohort~A advances one window every $0.5$\,s, and one forward covering eight windows takes $10.0$\,ms on a CPU, with a 95th percentile of $12.0$\,ms. That is around 2\,\% of the interval, so the reported model runs in the loop on a CPU and needs no accelerator. The label-free reference update, the part with no analogue in the stem, is $0.98$\,ms of that.
 
-Two things in the table are worth stating because they cut in opposite directions. The branch multiplies the parameter count by $14.5$ but the CPU latency by only $1.74$, so parameters overstate what it costs to run. Floating-point operations understate it, rising by $1.13\times$, because the counter does not see the eigendecomposition. Latency is the honest measure and it is the one reported here. On the GPU the overhead is proportionally larger, $6.7\times$, because an eigendecomposition of a small matrix is latency-bound and the device cannot hide it behind throughput.
+Two things in the table are worth stating because they cut in opposite directions. The branch multiplies the parameter count by $14.5$ but the CPU latency by only $1.74$, so parameters overstate what it costs to run. Floating-point operations understate it, rising by $1.13\times$, because the counter does not see the eigendecomposition. Measured latency is therefore the more informative estimate of computational cost. On the GPU the overhead is proportionally larger, $6.7\times$, because an eigendecomposition of a small matrix is latency-bound and the device cannot hide it behind throughput.
 
 
 \subsection{Published decoders on the two new cohorts}
@@ -1007,16 +1043,19 @@ test the upper bound.
 
 \textbf{Artefact.} Retraining the reported model after ICA cleaning changes balanced accuracy by $-0.038$ (Wilcoxon $p=0.58$; four of seven participants unchanged or better), and the mean is carried by sub-06 alone, which falls by $0.207$ (Section~\ref{sec:artefact}). The change does not follow the amount of muscle activity removed ($\rho=+0.05$). The band-power contrast points the same way: power falls over sensorimotor cortex during walking (Fig.~\ref{fig:topo}c), whereas gross movement artefact would raise it. Neither result establishes that the accuracy is neural. Seven participants are too few, average re-referencing is part of the cleaning, ICLabel is not trained on gait-related artefact specifically, and a power contrast in one participant is not an artefact rejection.
 
-\textbf{Window length differs between cohorts.} Cohort B uses 2\,s windows
-against cohort A's 4\,s, so the context pathway spans a shorter duration there.
-This is a confound for the context ablation specifically, though not for the
-rate condition, which is measured within each cohort.
+\textbf{Block length depends on windowing.} $\tau_{\mathrm{blk}}$ and the
+memory are both counted in windows, so for a given protocol they depend on the
+window stride as well: the same 10\,s block is 20 windows at a 0.5\,s stride and
+10 at 1\,s. Window length and stride differ between cohorts
+(Table~\ref{tab:hyper}), so each comparison is made within one cohort's own
+windowing, and a statement in seconds would need both quantities converted
+together.
 
 \textbf{Parameter cost.} The branch is 238{,}028 parameters and the fusion it requires a further 32{,}896, against 19{,}505 in the stem path and 514 in the shared classifier. The reported model is therefore about fifteen times the size of the stem it improves on, for $0.02$ to $0.06$ of balanced accuracy. Two of the published decoders it beats are an order of magnitude smaller again. Whether the tangent vector can be projected more cheaply, for instance by reducing its dimension before the linear layer, is not tested here and is the obvious first place to look.
 
 \textbf{The block-length boundary was found after the fact.} The comparison between $\tau_{\mathrm{blk}}$ and the estimator memory separates all five cohorts with nothing fitted, but it was identified after cohorts~A, B and~C had been run. Only its applications to cohorts~D and~E were prospective. The boundary is supported, not established, and the test that would establish it is a cohort chosen in advance because its protocol sits near the boundary.
 
-\textbf{The boundary is untested at the boundary.} Across cohorts the boundary is straddled but not located: every cohort where the branch helps has a block of 1 to 18 windows and the one where it fails has 214, against an update of 32. Nothing is measured between 18 and 214, so across cohorts the location of the change is inferred from five points that straddle it. Within cohorts it is measured directly: varying $\mu$ at fixed block length crosses the boundary in both directions (Table~\ref{tab:batchsweep}).
+\textbf{The boundary is untested at the boundary.} Across cohorts the boundary is straddled but not located: every cohort where the branch helps has a block of 1 to 18 windows and the one where it fails has 214, against a nominal memory of 160. Nothing is measured between 18 and 214, so across cohorts the location of the change is inferred from five points that straddle it. Within cohorts it is measured directly: varying $\mu$ at fixed block length crosses the boundary in both directions (Table~\ref{tab:batchsweep}).
 
 \textbf{No calibrated threshold.} Two manipulations move the effect in the predicted direction and neither restores parity. Setting the adaptation rate from the block length with a fixed margin of two was pre-specified in version control and falsified. Enlarging the update to 256 windows against a 214-window block recovers 74\,\% of the loss and still costs $0.046$. The condition therefore gives an ordering and a direction, not a rate a practitioner could set, and the upper side of the two-sided condition remains unmeasured on both cohorts where it was attempted.
 
@@ -1027,7 +1066,7 @@ rate condition, which is measured within each cohort.
 %=============================================================================
 \section{Conclusion}
 
-A log-power stem reads the diagonal of a window's spatial covariance and discards the rest of it. Supplying that structure through a tangent-space branch raises balanced accuracy on four of five cohorts and 51 participants, and beats eight published decoders trained in the same pipeline. It fails on the fifth, and the protocol says in advance which case a cohort is: the branch's reference is an average over whatever is currently streaming, so it survives only while its memory outlasts a class block.
+A log-power stem sees the covariance between channels only through its learned spatial filters. Supplying that structure explicitly through a tangent-space branch raises balanced accuracy on four of five cohorts and 51 participants, with the highest mean accuracy among eight published decoders trained untuned in the same pipeline. It fails on the fifth, and a quantity read from the protocol separates the two cases: the branch's reference is an average over whatever is currently streaming, so it survives only while its memory outlasts a class block.
 
 That condition is the part worth building on, and it is also the part least finished. It separates five cohorts with nothing fitted, it predicted the sign on two cohorts prospectively, and enlarging the update recovers most of the loss where it is violated. It still yields no rate a practitioner could set, its upper side has never been measured, and no cohort has been run near the boundary itself. The experiment that would settle it is small and specific: choose a protocol whose class blocks fall between 18 and 214 windows, register the prediction, and run it once.
 

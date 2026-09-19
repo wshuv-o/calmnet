@@ -14,7 +14,7 @@ the same pipeline. A classical tangent-space classifier with no network falls
 $0.116$ below it on the longitudinal exoskeleton cohort and matches it on the
 held-out cohort. On the fifth cohort the branch costs $0.175$, and that failure
 is predictable before training: the reference is a running mean, safe only while
-its effective memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows
+its nominal memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows
 there against a memory of 160, and 1 to 18 where the branch helps. Moving the
 memory across the block length switches the effect off and on: $+0.045$ at 160
 windows, $+0.048$ at 40 and $-0.076$ at 8. A pre-specified prescription for the rate itself was
