@@ -61,15 +61,13 @@ def cells(f, arm):
 
 # ------------------------------------------------------------------ ablation
 ARMS = [
+    # Only configurations the proposed model can actually take: the branch in
+    # or out, and where its tangent reference comes from.
     ("stem + branch", "a_tangent_3seed.json", "dn_stem_tan", True),
     ("stem", "a_ablation_s12.json", "dn_stem", False),
-    ("stem + align + gate + branch", "a_tangent_3seed.json", "dn_tan", False),
-    ("stem + align + gate", "a_aligngate_3seed.json", "dn_noctx", False),
-    ("stem + gate + ctx", "a_ablation_s12_2060.json", "dn_noalign", False),
-    ("stem + align", "a_align_s12.json", "dn_align", False),
-    ("stem + align + gate + ctx", "a_ablation_s12.json", "dn_full", False),
-    ("stem + align + ctx", "a_ablation_s12.json", "dn_nogate", False),
-    ("stem + gate", "a_gate_3seed.json", "dn_gate", False),
+    ("branch, reference frozen", "a_tangent_frozen_3seed.json",
+     "dn_stem_tan", False),
+    ("branch, no reference", "a_tangent_ref_none.json", "dn_stem_tan", False),
 ]
 
 

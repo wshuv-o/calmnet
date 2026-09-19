@@ -29,72 +29,6 @@ Deep4Net \citep{schirrmeister} & 717\,417 & 0.817 $\pm$ 0.014 & 0.617 $\pm$ 0.03
 \end{table*}
 
 \begin{table}[t]
-\caption{Component ablation on cohort A under the current estimator: balanced accuracy (mean $\pm$ SD across seeds), ECE, accuracy at $90\,\%$ coverage and spurious activations per minute of standing, each averaged over seeds. Acc@90 is withheld for arms without a trained gate, whose confidence ranks windows in recording order. Seed 0 of the stem-only arm predates the estimator fix and is excluded. The last three columns compare each arm with the stem-only arm over seeds 1 and 2, which every arm shares, paired over the 7 participants: difference in mean accuracy, participants higher than the stem-only arm, and the Wilcoxon signed-rank $p$, Holm-corrected over the six contrasts. None of the arms in this table is the reported model, which is the stem plus the tangent branch; these are the components of Section~\ref{sec:dropped}, and the reported model is compared with the same decoders in Table~\ref{tab:compare}.}
-\label{tab:ablation3}
-\centering
-\small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrrrrr}
-\toprule
-Components & Seeds & Acc & ECE & Acc@90 & FA/min & $\Delta$ stem & Higher & $p_{\mathrm{Holm}}$ \\
-\midrule
-align + gate & 3 of 3 & 0.868 $\pm$ 0.026 & 0.058 & 0.835 & 1.60 & $-0.022$ & 3 of 7 & 1.00 \\
-align only & 3 of 3 & 0.869 $\pm$ 0.017 & 0.054 & --- & 1.54 & $-0.020$ & 3 of 7 & 1.00 \\
-gate only & 3 of 3 & 0.842 $\pm$ 0.022 & 0.076 & 0.827 & 0.89 & $-0.027$ & 2 of 7 & 0.94 \\
-align + ctx + gate & 3 of 3 & 0.859 $\pm$ 0.002 & 0.072 & 0.818 & 1.16 & $-0.025$ & 3 of 7 & 1.00 \\
-align + ctx & 3 of 3 & 0.857 $\pm$ 0.004 & 0.074 & --- & 1.00 & $-0.027$ & 1 of 7 & 1.00 \\
-ctx + gate & 3 of 3 & 0.854 $\pm$ 0.017 & 0.080 & 0.796 & 0.66 & $-0.019$ & 2 of 7 & 1.00 \\
-stem only & 3 of 3 & 0.864 $\pm$ 0.032 & 0.063 & --- & 0.70 & --- & --- & --- \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\begin{table*}[t]
-\caption{The adaptation-rate condition, single seed. Accuracies are mean $\pm$ SD across participants. Momentum $m$ sets the estimator's memory to roughly $32/m$ windows: 160, 640 and 3200. \textbf{Every arm that uses alignment gains as the memory crosses the class-block length, and neither arm that omits it responds}; the stem-only arm reproduces 0.737 exactly at all three settings despite a 160-fold change. The lower block applies the identical change to the cohort whose blocks are short, where it costs 0.060, so the two cohorts have opposite optima. Three-seed values for cohort B are in Table~\ref{tab:ratecurve}, and for cohort A in Section~\ref{sec:alignfindings}. None of the arms in this table is the reported model, which is the stem plus the tangent branch; these are the components of Section~\ref{sec:dropped}, and the reported model is compared with the same decoders in Table~\ref{tab:compare}.}
-\label{tab:rate}
-\centering
-\small
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrrcr}
-\toprule
-Arm & $m{=}0.20$ & $m{=}0.05$ & $m{=}0.01$ & $\Delta$ at crossing & Aligns & $\Delta$ cohort A \\
-\midrule
-\multicolumn{7}{l}{\textit{Cohort B ($\tau_{\mathrm{blk}}=309$): slowing adaptation past the class block}} \\
-align + ctx + gate & 0.631 $\pm$ 0.092 & 0.724 $\pm$ 0.097 & 0.723 $\pm$ 0.120 & \textbf{+0.093} & yes & --- \\
-align + gate & 0.581 $\pm$ 0.044 & 0.671 $\pm$ 0.063 & 0.696 $\pm$ 0.089 & \textbf{+0.090} & yes & --- \\
-align + ctx & 0.606 $\pm$ 0.063 & 0.700 $\pm$ 0.082 & 0.726 $\pm$ 0.070 & \textbf{+0.094} & yes & --- \\
-ctx + gate & 0.788 $\pm$ 0.097 & 0.782 $\pm$ 0.111 & 0.783 $\pm$ 0.105 & -0.007 & \textbf{no} & --- \\
-stem only & 0.737 $\pm$ 0.104 & 0.737 $\pm$ 0.104 & 0.737 $\pm$ 0.104 & +0.000 & \textbf{no} & --- \\
-\midrule
-\multicolumn{7}{l}{\textit{Cohort A ($\tau_{\mathrm{blk}}=18$): the same change, matched estimator}} \\
-align + ctx + gate & 0.862 $\pm$ 0.145 & --- & 0.801 $\pm$ 0.107 & \textbf{-0.060} & yes & \textbf{-0.060} \\
-ctx + gate & 0.834 $\pm$ 0.094 & --- & 0.827 $\pm$ 0.116 & -0.007 & \textbf{no} & -0.007 \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
-
-\begin{table}[t]
-\caption{Cohort B over three data-split seeds under the current estimator. \textit{Cost} is \textit{align + gate} minus the gate-only arm (0.729 $\pm$ 0.006), which differs only in alignment and does not use the estimator, paired within participant with seeds averaged; $p$ is the Wilcoxon signed-rank test. The cost falls gradually as the memory lengthens, with no step at $\tau_{\mathrm{blk}}=309$, and it is no longer significant at memories of 1600 and 3200 windows. None of the arms in this table is the reported model, which is the stem plus the tangent branch; these are the components of Section~\ref{sec:dropped}, and the reported model is compared with the same decoders in Table~\ref{tab:compare}.}
-\label{tab:ratecurve}
-\centering
-\small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{rrrrrr}
-\toprule
-$m$ & Memory & align + gate & Cost & Lower in & $p$ \\
-\midrule
-0.20 & 160 & 0.580 $\pm$ 0.008 & $-0.149$ & 8 of 8 & 0.008 \\
-0.10 & 320 & 0.638 $\pm$ 0.002 & $-0.091$ & 7 of 8 & 0.016 \\
-0.02 & 1600 & 0.695 $\pm$ 0.005 & $-0.034$ & 6 of 8 & 0.148 \\
-0.01 & 3200 & 0.698 $\pm$ 0.002 & $-0.031$ & 6 of 8 & 0.148 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\begin{table}[t]
 \caption{Two-condition comparisons. \textbf{The first block is the identifying evidence for the stem design}: removing per-window normalisation is worth $+0.134$ and $+0.174$ where the representation is pure marginal power, and \textbf{exactly $+0.000$ where it is scale-free by construction} and therefore cannot respond. An effect that scales with power content and vanishes without it identifies the mechanism instead of merely demonstrating it. The second block retired an amplitude side-channel: supplying a per-window amplitude feature and supplying the same feature with its window assignment shuffled differ by under 0.02 for four of five models. Single seed; condition and control accuracies are mean $\pm$ SD across participants.}
 \label{tab:repr}
 \centering
@@ -145,42 +79,7 @@ EEGConformer \citep{conformer} & 0.828 $\pm$ 0.066 & \textbf{0.829} $\pm$ 0.079 
 \end{table}
 
 \begin{table}[t]
-\caption{Per-participant session drift. $\delta$ is the affine-invariant Riemannian distance between the fitting-session mean covariance and the held-out mean. The no-op control shares every code path but never updates its estimate. \textbf{Every participant improves}: 15 of 15, $t=-9.46$, $p=8\times10^{-5}$ (A) and $t=-12.33$, $p=5\times10^{-6}$ (B). The control changes the distance by at most $0.09\,\%$ of its raw value. The row under each cohort is the mean $\pm$ SD across participants.}
-\label{tab:drift}
-\centering
-\small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrr}
-\toprule
-Participant & Raw $\delta$ & No-op & Aligned & Reduction \\
-\midrule
-\multicolumn{5}{l}{\textit{Cohort A, 6 held-out sessions}} \\
-A01 & 6.925 & 6.926 & 3.385 & $51.1\,\%$ \\
-A02 & 11.867 & 11.878 & 7.273 & $38.7\,\%$ \\
-A03 & 5.891 & 5.891 & 2.875 & $51.2\,\%$ \\
-A04 & 10.337 & 10.339 & 5.240 & $49.3\,\%$ \\
-A05 & 5.208 & 5.208 & 3.163 & $39.3\,\%$ \\
-A06 & 6.909 & 6.909 & 3.650 & $47.2\,\%$ \\
-A07 & 8.986 & 8.987 & 4.986 & $44.5\,\%$ \\
-Mean $\pm$ SD & 8.017 $\pm$ 2.267 & 8.020 $\pm$ 2.270 & 4.367 $\pm$ 1.451 & $45.9 \pm 4.9\,\%$ \\
-\midrule
-\multicolumn{5}{l}{\textit{Cohort B, 2 held-out trials}} \\
-SL01 & 6.658 & 6.658 & 3.176 & $52.3\,\%$ \\
-SL02 & 8.122 & 8.126 & 3.623 & $55.4\,\%$ \\
-SL03 & 5.739 & 5.739 & 1.879 & $67.3\,\%$ \\
-SL04 & 4.803 & 4.803 & 2.701 & $43.8\,\%$ \\
-SL05 & 6.153 & 6.154 & 2.050 & $66.7\,\%$ \\
-SL06 & 6.696 & 6.696 & 1.546 & $76.9\,\%$ \\
-SL07 & 4.737 & 4.737 & 0.846 & $82.1\,\%$ \\
-SL08 & 6.462 & 6.462 & 2.854 & $55.8\,\%$ \\
-Mean $\pm$ SD & 6.171 $\pm$ 1.032 & 6.172 $\pm$ 1.033 & 2.334 $\pm$ 0.859 & $62.5 \pm 12.2\,\%$ \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\begin{table}[t]
-\caption{Measurement noise. The first block repeats arms for which momentum and estimator version are inert, so all variation is run-to-run: the arm without the cross-epoch transformer is bit-identical across three runs, and the arms with it are not. Across data-split seeds the spread is larger again, \textbf{0.032 to 0.046} for our arms without the transformer. \textbf{Differences below 0.02 are not interpreted anywhere in this work}, and differences below the seed spread are reported without a ranking. None of the arms in this table is the reported model, which is the stem plus the tangent branch; these are the components of Section~\ref{sec:dropped}, and the reported model is compared with the same decoders in Table~\ref{tab:compare}.}
+\caption{Measurement noise. The first block repeats arms for which momentum and estimator version are inert, so all variation is run-to-run: the arm without the cross-epoch transformer is bit-identical across three runs, and the arms with it are not. Across data-split seeds the spread is larger again, \textbf{0.032 to 0.046} for our arms without the transformer. \textbf{Differences below 0.02 are not interpreted anywhere in this work}, and differences below the seed spread are reported without a ranking.}
 \label{tab:noise}
 \centering
 \small
