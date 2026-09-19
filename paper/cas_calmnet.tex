@@ -652,8 +652,7 @@ avoids tracking the streaming class and tracks session drift only if
 \label{eq:band}
 \end{equation}
 Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
-setting of $\mu$ satisfies both requirements. It is a design condition. Its lower bound is tested here empirically, once in
-advance; its upper bound is not measured, and we give no proof.
+setting of $\mu$ satisfies both requirements. It is a design condition. Its lower bound is tested here empirically; its upper bound is not measured, and we give no proof.
 \end{condition}
 
 The lower bound is what this paper measures. It is checked in two ways that do not share a failure mode: across cohorts, by comparing protocols whose block lengths differ by two orders of magnitude (Section~\ref{sec:fivecohort}), and within a cohort, by moving the memory directly while everything else is held fixed (Table~\ref{tab:batchsweep}, Fig.~\ref{fig:rate}). The upper bound is not measured here (Section~\ref{sec:limits}).
