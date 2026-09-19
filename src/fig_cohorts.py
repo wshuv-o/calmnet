@@ -89,7 +89,9 @@ def main():
     ax1.set_yticklabels(["%s  %s\n$\\tau_{\\mathrm{blk}}=%d$" % (k, t, tau)
                          for k, t, tau, *_ in rows], fontsize=7)
     ax1.set_xlabel("change in balanced accuracy from the branch")
-    ax1.set_xlim(-0.23, 0.13)
+    # the improved-participant annotation sits at hi + 0.012, and cohort A's
+    # interval reaches furthest right, so the limit has to clear both
+    ax1.set_xlim(-0.23, 0.165)
     S.panel(ax1, "a", x=-0.40)
 
     # ------------------------------------- (b) effect against block length
