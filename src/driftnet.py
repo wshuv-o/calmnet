@@ -229,6 +229,12 @@ class TangentBranch(nn.Module):
         if ref_mode not in ("running", "frozen", "none"):
             raise ValueError("DN_TAN_REF must be running, frozen or none")
         self.ref_mode = ref_mode
+        # Update order. Off (default, the reported runs): the batch updates the
+        # running reference and is then mapped at the updated reference, so a
+        # window's reference includes later windows of its batch. On: the batch
+        # is mapped at the reference from before it and the update follows, so
+        # no window sees a later one. Applied in training and at inference alike.
+        self.causal = _os.environ.get("DN_TAN_CAUSAL", "0") == "1"
         self.n_chan, self.shrink, self.momentum = n_chan, shrink, momentum
         self.register_buffer("run_cov", torch.eye(n_chan))
         self.register_buffer("primed", torch.zeros(1))
@@ -292,12 +298,18 @@ class TangentBranch(nn.Module):
             elif ref is None:
                 m = c.mean(0)
                 if self.primed.item() == 0:
+                    # first fitting batch: nothing earlier exists to refer to
                     self.run_cov.copy_(m.to(self.run_cov.dtype))
                     self.primed.fill_(1)
+                    ref = self.run_cov
+                elif self.causal:
+                    ref = self.run_cov.clone()
+                    self.run_cov.mul_(1 - self.momentum).add_(
+                        m.to(self.run_cov.dtype), alpha=self.momentum)
                 else:
                     self.run_cov.mul_(1 - self.momentum).add_(
                         m.to(self.run_cov.dtype), alpha=self.momentum)
-                ref = self.run_cov
+                    ref = self.run_cov
             rw, rv = torch.linalg.eigh(ref.double())
             rinv = rv @ torch.diag(torch.clamp(rw, min=1e-6).rsqrt()) @ rv.t()
             w, v = torch.linalg.eigh(rinv @ c @ rinv)
