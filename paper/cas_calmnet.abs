@@ -1,21 +1,23 @@
-Compact EEG decoders summarise each window as the log band power of learned
-spatial filters, which carry the covariance between channels only implicitly.
-We add a tangent-space branch beside that stem, mapping each window's shrunk
-covariance to the tangent space at a reference the network maintains from its
-input alone. It needs no labels and keeps adapting at test time. Across
-five cohorts and 51 participants, three seeds each, the branch raises balanced
-accuracy on four. It adds $0.064$ on a 20-participant
-motor-execution cohort held out from development ($p=8.8\times10^{-5}$, higher
-in 20 of 20), $0.040$ on BCI Competition IV-2a ($p=0.020$), $0.021$ on a second
-exoskeleton cohort ($p=0.047$) and $0.045$ on a lower-limb exoskeleton cohort
-($p=0.22$); 40 of the 43 participants improve. On those four it
-has the highest mean accuracy among eight published decoders trained untuned in
-the same pipeline. A classical tangent-space classifier with no network falls
-$0.116$ below it on the longitudinal exoskeleton cohort and matches it on the
-held-out cohort. On the fifth cohort the branch costs $0.175$, and that failure
-is predictable before training: the reference is a running mean, safe only while
-its nominal memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows
-there against a memory of 160, and 1 to 18 where the branch helps. Moving the
-memory across the block length switches the effect off and on: $+0.045$ at 160
-windows, $+0.048$ at 40 and $-0.076$ at 8. A pre-specified prescription for the rate itself was
-falsified.
+Compact EEG decoders represent each window by the log band power of learned
+spatial filters, which capture the covariance between channels only implicitly.
+We add a tangent-space branch that maps each window's shrinkage-regularised
+covariance to the tangent space at a label-free running reference updated during
+inference. Across five cohorts (51 participants, three data-split seeds), the
+branch improved balanced accuracy in four cohorts: by
+$0.064$ on a 20-participant motor-execution cohort held out from development
+($p=8.8\times10^{-5}$, 20 of 20 participants improving), $0.040$ on BCI
+Competition IV-2a ($p=0.020$), $0.021$ on a second exoskeleton cohort
+($p=0.047$) and $0.045$ on a longitudinal exoskeleton cohort ($p=0.219$); 40 of
+the 43 participants improved. On these cohorts it achieved the highest mean
+balanced accuracy among eight published decoders trained in the same pipeline
+without per-model tuning. A classical tangent-space classifier scored $0.116$
+lower on the longitudinal cohort and similarly on the held-out cohort. On the
+fifth cohort the branch reduced balanced accuracy by $0.175$. Its median class
+block lasts 214 windows, longer than the reference's nominal memory of 160,
+whereas the other cohorts have median blocks of 1 to 18 windows. Varying the
+estimator memory across the block length changed the direction and size of the
+effect ($+0.045$ at 160 windows, $+0.048$ at 40, $-0.076$ at 8). A pre-specified
+rule for setting the adaptation rate from the block length was not supported.
+Adaptive tangent-space features can improve cross-session EEG decoding, but
+their effect depends on the temporal structure of the test stream relative to
+the reference memory.
