@@ -62,3 +62,15 @@ sub-07_ses-06_task-training_eeg,30,9,eye blink;eye blink;heart beat;heart beat;m
 sub-07_ses-07_task-training_eeg,30,12,eye blink;eye blink;channel noise;muscle artifact;channel noise;channel noise;channel noise;heart beat;channel noise;heart beat;heart beat;heart beat
 sub-07_ses-08_task-training_eeg,30,8,heart beat;channel noise;heart beat;muscle artifact;heart beat;heart beat;heart beat;heart beat
 sub-07_ses-09_task-training_eeg,30,12,eye blink;eye blink;heart beat;heart beat;heart beat;heart beat;channel noise;muscle artifact;muscle artifact;heart beat;heart beat;channel noise
+sub-01_ses-01_task-training_eeg,30,9,eye blink;muscle artifact;muscle artifact;muscle artifact;muscle artifact;muscle artifact;muscle artifact;muscle artifact;channel noise
+sub-01_ses-02_task-training_eeg,30,5,eye blink;eye blink;muscle artifact;muscle artifact;muscle artifact
+sub-01_ses-03_task-training_eeg,30,6,eye blink;muscle artifact;muscle artifact;muscle artifact;muscle artifact;eye blink
+sub-01_ses-04_task-training_eeg,30,5,eye blink;muscle artifact;muscle artifact;eye blink;channel noise
+sub-01_ses-05_task-training_eeg,30,6,eye blink;muscle artifact;muscle artifact;muscle artifact;muscle artifact;heart beat
+sub-01_ses-06_task-training_eeg,30,8,eye blink;muscle artifact;muscle artifact;muscle artifact;muscle artifact;eye blink;eye blink;channel noise
+sub-01_ses-07_task-training_eeg,30,3,eye blink;eye blink;eye blink
+sub-01_ses-08_task-training_eeg,30,4,eye blink;channel noise;channel noise;eye blink
+sub-01_ses-09_task-training_eeg,30,5,eye blink;eye blink;eye blink;muscle artifact;muscle artifact
+sub-01_ses-01_task-trial01_eeg,30,7,eye blink;muscle artifact;channel noise;muscle artifact;muscle artifact;muscle artifact;muscle artifact
+sub-01_ses-01_task-trial02_eeg,30,4,eye blink;muscle artifact;eye blink;muscle artifact
+sub-01_ses-01_task-trial03_eeg,30,2,eye blink;channel noise
