@@ -75,17 +75,36 @@ Data curation, Writing -- original draft, Visualization}
 \cortext[1]{Corresponding author}
 
 \begin{abstract}
-Compact EEG decoders summarise each window as log power per channel, which is the diagonal of its spatial covariance. How channels covary is discarded, and on movement-intent tasks that structure carries information the diagonal does not.
+Compact EEG decoders summarise each window as log power per channel, the
+diagonal of its spatial covariance. How channels covary is discarded, and that
+structure carries movement-intent information the diagonal does not.
 
-We add a tangent-space branch beside the log-power stem. Each window's covariance is shrunk, mapped to the tangent space at a reference the network maintains from the input alone, and projected into the classifier. No labels are used at inference and the reference keeps updating on the test stream. Across five cohorts and 51 participants, three seeds each, the branch raises balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort held out from all development ($p=8.8\times10^{-5}$, higher in 20 of 20), $+0.021$ on a lower-limb exoskeleton cohort ($p=0.047$), $+0.040$ on BCI Competition IV-2a ($p=0.020$), and $+0.045$ on a second exoskeleton cohort. It beats all eight published decoders trained in the same pipeline on each cohort where the comparison was run.
+We add a tangent-space branch beside the log-power stem. Each window's
+covariance is shrunk, mapped to the tangent space at a reference the network
+maintains from the input alone, then projected into the classifier. No labels
+are used at inference and the reference keeps updating on the test stream.
+Across five cohorts and 51 participants, three seeds each, the branch raises
+balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort
+held out from all development ($p=8.8\times10^{-5}$, higher in 20 of
+20), $+0.045$ on a lower-limb exoskeleton cohort ($p=0.22$), $+0.040$ on BCI
+Competition IV-2a ($p=0.020$) and $+0.021$ on a second exoskeleton cohort
+($p=0.047$). On those four it leads all eight published decoders trained in
+the same pipeline.
 
-On the fifth cohort it costs $0.175$ and falls near chance, and that failure is predictable before training. The branch's reference is a running mean over the incoming windows, so it is safe only while a single covariance update spans more than one class block. A block lasts 214 windows there against an update of 32; on the four cohorts where the branch helps a block is 1 to 18 windows and the memory spans many blocks. Both quantities are fixed before training, the block length by the protocol and the memory by the optimiser settings, and the comparison separates all five cohorts. Moving the memory across the block length on a single cohort, with nothing else changed, switches the effect off and on: it is $+0.045$ at a memory of 160 windows, $+0.048$ at 40, and $-0.076$ at 8, worse in every participant. Enlarging the memory on the failing cohort recovers 74\,\% of the loss, which is causal support for the account without restoring parity. A stronger prescription, setting the adaptation rate from the block length, was pre-registered and falsified.
+On the fifth it costs $0.175$, and that failure is predictable before
+training. The reference is a running mean over incoming windows, safe only while
+one covariance update spans more than one class block. Blocks last
+214 windows there against a memory of 160, and 1 to 18 windows where the
+branch helps. Both are fixed before training, and separate all five cohorts. Moving the memory across the block length switches the effect
+off and on: $+0.045$ at 160 windows, $+0.048$ at 40 and $-0.076$ at 8. A
+stronger prescription setting the rate from the block length was
+pre-registered and falsified.
 \end{abstract}
 
 \begin{highlights}
 \item A tangent-space branch supplies the channel covariance a log-power stem discards.
 \item Accuracy rises on four of five cohorts, 51 participants, three seeds each.
-\item It beats eight published decoders trained in the same pipeline on each cohort.
+\item It leads eight published decoders on the four cohorts where it helps.
 \item Its label-free reference fails where a class block outlasts the estimator memory.
 \item Block length against estimator memory, read from the protocol, separates all five.
 \end{highlights}
