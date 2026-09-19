@@ -453,7 +453,7 @@ def t_rate():
         "change to the cohort whose blocks are short, where it costs 0.060, "
         "so the two cohorts have opposite optima. Three-seed values for "
         "cohort B are in Table~" + BS + "ref{tab:ratecurve}, and for cohort A "
-        "in Section~" + BS + "ref{sec:twosided}.",
+        "in Section~" + BS + "ref{sec:alignfindings}.",
         "lrrrrcr",
         "Arm & $m{=}0.20$ & $m{=}0.05$ & $m{=}0.01$ & $" + BS +
         "Delta$ at crossing & Aligns & $" + BS + "Delta$ cohort A",
