@@ -556,6 +556,13 @@ pipelines and are used only for comparisons within each table.
 
 \input{tables_auto}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../results/fig_activations.pdf}
+\caption{What the model computes, measured rather than drawn. A model was trained on one cohort~A participant with the reported settings (held-out balanced accuracy $0.967$) and forward hooks recorded activations at the four points Fig.~\ref{fig:arch} names, on held-out windows. (a--c) The tangent vector folded back into the $60\times60$ symmetric matrix it came from, averaged over Stop and Walk windows and their difference: the branch sees structure off the diagonal, which is what a log-power stem discards. (d) Class separation at each tap, as the mean standardised difference per unit. (e--h) The same four representations in their first two principal components. Separation grows along both paths and is largest after fusion ($2.41$ against $1.22$ for the branch and $0.74$ for the stem alone), so the two are complementary in the trained model's own activations and not only in accuracy.}
+\label{fig:activations}
+\end{figure*}
+
 \subsection{The branch against the stem}\label{sec:ablation}
 
 Table~\ref{tab:ablation_rep} and Fig.~\ref{fig:ablation} give the branch against the stem it is added to, on cohort~A, over three data-split seeds. Accuracy rises from $0.864$ to $0.909$, higher in 6 of 7 participants. At seven participants the paired difference is not significant ($p=0.22$), and the cohorts that carry the effect are the larger ones in Section~\ref{sec:fivecohort}.
