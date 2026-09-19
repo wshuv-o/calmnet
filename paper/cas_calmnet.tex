@@ -88,21 +88,15 @@ balanced accuracy on four: $+0.064$ on a 20-participant motor-execution cohort
 held out from all development ($p=8.8\times10^{-5}$, higher in 20 of
 20), $+0.045$ on a lower-limb exoskeleton cohort ($p=0.22$), $+0.040$ on BCI
 Competition IV-2a ($p=0.020$) and $+0.021$ on a second exoskeleton cohort
-($p=0.047$). On those four it leads all eight published decoders trained in
-the same pipeline.
+($p=0.047$). On those four it has the highest mean balanced accuracy among eight published decoders trained in the same pipeline, untuned.
 
 On the fifth it costs $0.175$, and that failure is predictable before
-training. The reference is a running mean over incoming windows, safe only while
-one covariance update spans more than one class block. Blocks last
-214 windows there against a memory of 160, and 1 to 18 windows where the
-branch helps. Both are fixed before training, and separate all five cohorts. Moving the memory across the block length switches the effect
-off and on: $+0.045$ at 160 windows, $+0.048$ at 40 and $-0.076$ at 8. A
-stronger prescription setting the rate from the block length was
-pre-registered and falsified.
+training. The reference is a running mean over incoming windows, safe only while its effective memory $\mu=N/m$ outlasts a class block. Blocks last 214 windows there against a memory of 160, and 1 to 18 where the branch helps. Both are fixed before training, and separate all five cohorts. Moving the memory across the block length switches the effect
+off and on: $+0.045$ at 160 windows, $+0.048$ at 40 and $-0.076$ at 8. A stronger prescription setting the rate from the block length was pre-specified before the run and falsified.
 \end{abstract}
 
 \begin{highlights}
-\item A tangent-space branch supplies the channel covariance a log-power stem discards.
+\item A tangent-space branch represents the channel covariance a log-power stem leaves implicit.
 \item Accuracy rises on four of five cohorts, 51 participants, three seeds each.
 \item It leads eight published decoders on the four cohorts where it helps.
 \item Its label-free reference fails where a class block outlasts the estimator memory.
@@ -144,7 +138,7 @@ sustained false activation from fifty scattered false windows. The quantity a
 wearer experiences is spurious activations per minute of standing, which we
 report alongside accuracy throughout.
 
-\paragraph{What a log-power stem cannot see} Compact EEG decoders reduce each window to log power per channel after spatial filtering \citep{schirrmeister,eegnet}. That summary is the diagonal of the window's spatial covariance. The off-diagonal entries, how channels covary, are discarded, and covariance structure is the basis of the Riemannian methods that remain competitive on movement-intent tasks \citep{barachant,congedo}. Whether a convolutional decoder is losing usable information at that step is an empirical question, and it is the one this paper answers.
+\paragraph{What a log-power stem cannot see} Compact EEG decoders reduce each window to log power per channel after spatial filtering \citep{schirrmeister,lawhern}. That summary is the diagonal of the covariance of the filtered signal. A learned spatial filter $\mathbf{w}$ has output power $\mathbf{w}^\top \mathbf{C}\mathbf{w}$, so the stem is not blind to off-diagonal structure; it represents that structure implicitly, through whichever projections the filters happen to learn, and never holds the full covariance. Covariance structure is the basis of the Riemannian methods that remain competitive on movement-intent tasks \citep{barachant,congedo}. Whether a convolutional decoder is losing usable information at that step is an empirical question, and it is the one this paper answers.
 
 Existing responses to drift are mostly applied offline in preprocessing.
 Euclidean Alignment whitens each recording by the inverse square root of its
@@ -164,7 +158,7 @@ Our contributions are:
 
 \begin{enumerate}
 \item Add a tangent-space branch beside the log-power stem: each window's covariance is shrunk, mapped to the tangent space at a reference estimated from the input alone, and projected into the classifier, with no labels used at inference (Section~\ref{sec:tangent}).
-\item Measure it on five cohorts and 51 participants with three seeds each. Accuracy rises on four, including $+0.064$ in 20 of 20 participants of a cohort held out from every design decision (Section~\ref{sec:fivecohort}).
+\item Measure it on five cohorts and 51 participants with three seeds each. Accuracy rises on four, including $+0.064$ in 20 of 20 participants of a cohort held out from architecture and pipeline development (Section~\ref{sec:fivecohort}).
 \item Compare against eight published decoders trained in one pipeline with shared splits, seeds and metric code, and report the cohort where most of them fail to train rather than letting the resulting margins stand (Section~\ref{sec:newbaselines}).
 \item Identify the branch's failure mode and predict it from the protocol. The reference is a running mean over incoming windows, so it is safe only while its memory outlasts a class block; on the cohort where a block outlasts that memory the branch costs $0.175$ and falls near chance (Condition~\ref{prop:band}, Section~\ref{sec:rate}).
 \item Test that account causally by enlarging the covariance update at fixed block length, which recovers 74\,\% of the loss without restoring parity (Section~\ref{sec:fivecohort}).
@@ -374,7 +368,7 @@ where $\tilde{\mathbf{X}}_n$ is the mean-centred window, $N$ the number of windo
 
 The reference $M$ is a running mean over the covariances of incoming windows, updated by (\ref{eq:update}) with momentum $m$ and no labels, and it keeps updating at inference. This is what lets the representation follow a session as it changes, and it is also the component that fails: because $M$ is an average over whatever is currently streaming, a protocol that presents one class for longer than a single update spans will drive $M$ onto that class. Condition~\ref{prop:band} states when that cannot happen and Section~\ref{sec:fivecohort} measures it on five cohorts. 
 
-The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch carries 238{,}028 parameters and the fusion layer it requires a further 32{,}896, against 19{,}505 in the stem path; the reported model is 290{,}943 in total, of which the branch and its fusion are 93\,\%.
+The tangent map carries no gradient; only the projection is learned. Backward through an eigendecomposition contains $1/(\lambda_i - \lambda_j)$ terms that diverge on near-degenerate spectra, and covariances estimated from 60 channels and 400 samples are routinely near-degenerate. Nothing measured is lost by detaching it: the probe that motivated the branch was itself a linear map on fixed tangent features, and that is what is trained here, jointly with the network rather than after it. The branch carries 238{,}028 parameters and the fusion layer it requires a further 32{,}896, against 19{,}505 in the stem path and 514 in the shared classifier; the reported model is 290{,}943 in total, of which the branch and its fusion are 93\,\%. Counts quoted for a path exclude the classifier; counts quoted for a model include it, so the stem on its own is 20{,}019.
 
 \section{Experimental setup}
 
@@ -439,9 +433,7 @@ uses a zero-phase FIR filter in MNE-Python \citep{gramfort}, after which the
 EOG channels, filtered to the same band, are regressed linearly out of the EEG.
 Cohorts B and C use a zero-phase fourth-order Butterworth filter and have no EOG step. No other artefact rejection, ICA decomposition or channel interpolation
 is applied, so that the running reference is evaluated on the shift it is meant to track. The artefact control of Section~\ref{sec:artefact} is the one exception and is reported separately. The band also excludes the gait cycle, near 1--2\,Hz, and most
-electromyographic power above 30\,Hz. Amplitude
-normalisation is applied globally per recording, before the squaring stage, for
-the reason given in Section~\ref{sec:stem}.
+electromyographic power above 30\,Hz. Amplitude normalisation is applied globally, before the squaring stage, for the reason given in Section~\ref{sec:stem}. The per-channel mean and standard deviation are computed on the fitting split alone and then applied unchanged to the calibration and test splits, so no statistic is taken from the recordings the model is evaluated on.
 
 Table~\ref{tab:hyper} lists the training configuration. The adaptation momentum
 is $m=0.2$ unless stated otherwise; Section~\ref{sec:rate} treats $m$ as the
@@ -461,10 +453,10 @@ Setting & Value \\
 \midrule
 Band-pass / resample & 8--30\,Hz, 100\,Hz (zero-phase) \\
 Artefact correction & EOG regression (A); none (B--E) \\
-Amplitude normalisation & global, per recording \\
+Amplitude normalisation & global, fitting-split statistics \\
 Window / stride & 4\,s / 0.5\,s (A, E); 2\,s (B); 2\,s / 0.5\,s (C); 4\,s, one per trial (D) \\
 Context length $K$, stride & 8 epochs, 3 (14.5\,s span) \\
-Optimiser & AdamW \citep{adam}, lr $3\times10^{-4}$, weight decay $10^{-2}$, one-cycle schedule \\
+Optimiser & AdamW \citep{adamw}, lr $3\times10^{-4}$, weight decay $10^{-2}$, one-cycle schedule \\
 Batch size $N$ & 32 \\
 Epochs & at most 30; early stopping after 12 without improvement \\
 Gradient clipping & norm 1.0 \\
@@ -493,8 +485,7 @@ shared classifier and are instantiated at cohort A's input shape.
 
 Balanced accuracy for comparability with the literature; expected calibration
 error (ECE) with 10 equal-width bins \citep{naeini}, because a device acting on
-a confidence value needs that value to mean something; spurious activations per minute
-of standing; and detection latency, reported alongside the benefit it buys.
+a confidence value needs that value to mean something; and spurious activations per minute of standing. Detection latency is not reported: the inference cost of Section~\ref{sec:cost} measures computation, which is not the same quantity, and the model's 4\,s windows set a floor on detection that this evaluation does not resolve.
 
 \paragraph{Leakage guard} Unconditioned nuisance-decodability is confounded with
 accuracy. In our pipeline a decoder that uses no movement information whatever
@@ -569,7 +560,7 @@ pipelines and are used only for comparisons within each table.
 
 Table~\ref{tab:ablation_rep} and Fig.~\ref{fig:ablation} give the branch against the stem it is added to, on cohort~A, over three data-split seeds. Accuracy rises from $0.864$ to $0.909$, higher in 6 of 7 participants. At seven participants the paired difference is not significant ($p=0.22$), and the cohorts that carry the effect are the larger ones in Section~\ref{sec:fivecohort}.
 
-The seed column is worth as much as the accuracy column. The stem's grand mean moves by $0.032$ across seeds and the branch's by $0.0036$, so adding the branch makes the model roughly nine times more reproducible on this cohort. That matters for every comparison in this paper, because the threshold below which differences are not interpreted was set by seed spread.
+The seed column is worth as much as the accuracy column. The stem's grand mean moves by $0.032$ across seeds and the branch's by $0.0036$, so across the three seeds evaluated here the branch shows substantially lower seed-to-seed variability on this cohort. That matters for every comparison in this paper, because the threshold below which differences are not interpreted was set by seed spread.
 
 \begin{figure}[t]
 \centering
@@ -678,7 +669,7 @@ Where $\tau_{\mathrm{blk}} \ge \tau_{\mathrm{drift}}$ the band is empty and no
 setting of $\mu$ satisfies both requirements. It is a design condition. Its lower bound is tested here empirically; its upper bound is not measured, and we give no proof.
 \end{condition}
 
-The lower bound is what this paper measures. It is checked in two ways that do not share a failure mode: across cohorts, by comparing protocols whose block lengths differ by two orders of magnitude (Section~\ref{sec:fivecohort}), and within a cohort, by moving the memory directly while everything else is held fixed (Table~\ref{tab:batchsweep}, Fig.~\ref{fig:rate}). The upper bound is not measured here (Section~\ref{sec:limits}). The branch helps wherever $\mu$ exceeds the block length and fails wherever it does not, on both cohorts and across a 400-fold range of $\mu$. Cohort~A at $N=8$, $m=0.2$ is the row that settles the formulation: $N$ has fallen below the block length while $\mu$ has not, and the gain survives, so the governing quantity is the memory and not the update size.
+The lower bound is what this paper measures. It is checked in two ways that do not share a failure mode: across cohorts, by comparing protocols whose block lengths differ by two orders of magnitude (Section~\ref{sec:fivecohort}), and within a cohort, by moving the memory directly while everything else is held fixed (Table~\ref{tab:batchsweep}, Fig.~\ref{fig:rate}). The upper bound is not measured here (Section~\ref{sec:limits}). Across a 400-fold range of $\mu$ on two cohorts, the sign and the size of the effect track the comparison. On cohort~A, where $\mu$ exceeds the block length, the branch gains, and driving $\mu$ below it reverses the effect to $-0.076$. On cohort~B, raising $\mu$ above the block length takes the cost from $0.175$ to $0.046$ and then to $0.026$, so crossing the boundary bounds the damage without turning it into a gain. The comparison therefore predicts the direction and the severity of the failure; it is not sufficient for a positive effect, and Section~\ref{sec:limits} says what that leaves open. Cohort~A at $N=8$, $m=0.2$ is the row that settles the formulation: $N$ has fallen below the block length while $\mu$ has not, and the gain survives, so the governing quantity is the memory and not the update size.
 
 \begin{figure}[t]
 \centering
@@ -694,7 +685,7 @@ Table~\ref{tab:tangent} reports the branch of Section~\ref{sec:tangent} against 
 
 \begin{table}[t]
 \centering
-\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants. Cohort~C was held out from every design decision. Cohort~B is shown at the default adaptation rate, whose 160-window memory is shorter than its 214-window class blocks, and at a memory of 3200 windows, which is far longer than them.}
+\caption{The tangent-space branch against the convolutional stem, three seeds, paired Wilcoxon across participants. Cohort~C was held out from architecture and pipeline development. Cohort~B is shown at the default adaptation rate, whose 160-window memory is shorter than its 214-window class blocks, and at a memory of 3200 windows, which is far longer than them.}
 \label{tab:tangent}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
@@ -716,7 +707,7 @@ Cohort~B inverts. At the default rate the branch reaches $0.568$ against $0.744$
 
 Table~\ref{tab:tanref} separates the two roles of the reference. Freezing it at the fitting-split mean removes the ability to track the streaming class but not the class imbalance in the fitting data itself, and recovers cohort~B only partly. Removing it altogether repairs cohort~B and is null on cohort~C and negative on cohort~A, so the adapting reference is where the gain comes from and the no-reference variant is a cohort~B patch with no support elsewhere. We therefore retain the adapting reference and let Condition~\ref{prop:band}, read from the protocol, decide where the branch is admissible. Nothing in that choice is fitted on a confirmation cohort.
 
-The two paths are complementary inside the trained model, not only in the accuracy column. Training one cohort~A participant with the reported settings and recording activations with forward hooks on held-out windows (Fig.~\ref{fig:activations}, held-out balanced accuracy $0.967$), class separation measured as the mean standardised difference per unit is $0.74$ at the stem and $1.22$ at the branch, and $2.41$ after the two are fused. Fusion exceeding either path alone is what complementary means here, and the tangent vector folded back into its matrix shows the structure sitting off the diagonal, which is what a log-power stem discards.
+The two paths are complementary inside the trained model, not only in the accuracy column. Training one cohort~A participant with the reported settings and recording activations with forward hooks on held-out windows (Fig.~\ref{fig:activations}, held-out balanced accuracy $0.967$), class separation measured as the mean standardised difference per unit is $0.74$ at the stem and $1.22$ at the branch, and $2.41$ after the two are fused. Fusion exceeding either path alone is what complementary means here, and the tangent vector folded back into its matrix shows the structure sitting off the diagonal, which a log-power stem represents only implicitly.
 
 \begin{table}[t]
 \centering
@@ -736,7 +727,7 @@ None (no whitening) & $-0.021$ & $+0.011$ & $+0.003$ \\
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_cohortC.pdf}
-\caption{The branch on cohort~C, held out from every design decision, three seeds throughout. (a) Balanced accuracy, one line per participant, with the mean heavy. (b) The same change per participant, sorted; whiskers are that participant's standard deviation across seeds. (c) The eight published decoders of Table~\ref{tab:compare} on the same cohort, as mean and standard error over participants.}
+\caption{The branch on cohort~C, held out from architecture and pipeline development, three seeds throughout. (a) Balanced accuracy, one line per participant, with the mean heavy. (b) The same change per participant, sorted; whiskers are that participant's standard deviation across seeds. (c) The eight published decoders of Table~\ref{tab:compare} on the same cohort, as mean and standard error over participants.}
 \label{fig:cohortC}
 \end{figure*}
 
@@ -891,7 +882,7 @@ Table~\ref{tab:compare} is the comparison the rest of the results build toward: 
 
 The reported model is highest on 4 of the five cohorts. On the fifth, cohort~B, it is the worst entry in the column, and that is exactly the cohort where a class block outlasts the estimator memory. What makes this a usable result rather than an unreliable one is that the stem alone leads that column: $0.744$ against $0.734$ for the strongest published decoder there. One of the two configurations is therefore the best entry in every column of the table, and the block-length condition selects between them from the recording protocol, before any data is collected and without consulting accuracy.
 
-Parameter counts belong beside this. The reported model is 290{,}943 parameters against 19{,}505 for the stem, so the gains in this table cost roughly fifteen times the parameters. Of the published decoders, ShallowFBCSPNet and EEGNet are an order of magnitude smaller again, and EEG Conformer is larger than ours. Nothing here is a claim about efficiency.
+Parameter counts belong beside this. The reported model is 290{,}943 parameters against 20{,}019 for the stem as a runnable model, so the gains in this table cost roughly fifteen times the parameters. Of the published decoders, ShallowFBCSPNet and EEGNet are an order of magnitude smaller again, and EEG Conformer is larger than ours. Nothing here is a claim about efficiency.
 
 One comparison in this table is with neural decoders only, and the branch reads a Riemannian representation, so the obvious question is whether the classical pipeline would do as well without a network. On cohort~A, in this harness and on these splits, it does not. Tangent space at the Riemannian mean of the fitting covariances followed by logistic regression reaches $0.793$ over three seeds, and minimum distance to the Riemannian mean reaches $0.706$, against $0.909$ for the reported model: a paired difference of $+0.116$, higher in 7 of the 7 participants ($p=0.016$). Expected calibration error is also worse, $0.078$ against $0.049$. The classical pipeline sits below the convolutional stem alone as well, at $0.864$, though with seven participants that gap is not significant. Its reference is the Riemannian mean of the fitting split, fitted once and then held fixed, which is the static counterpart of the running estimate Section~\ref{sec:rate} studies. This was run on cohort~A only.
 
@@ -963,13 +954,13 @@ against cohort A's 4\,s, so the context pathway spans a shorter duration there.
 This is a confound for the context ablation specifically, though not for the
 rate condition, which is measured within each cohort.
 
-\textbf{Parameter cost.} The branch is 238{,}028 parameters and the fusion it requires a further 32{,}896, against 19{,}505 in the stem path. The reported model is therefore about fifteen times the size of the stem it improves on, for $0.02$ to $0.06$ of balanced accuracy. Two of the published decoders it beats are an order of magnitude smaller again. Whether the tangent vector can be projected more cheaply, for instance by reducing its dimension before the linear layer, is not tested here and is the obvious first place to look.
+\textbf{Parameter cost.} The branch is 238{,}028 parameters and the fusion it requires a further 32{,}896, against 19{,}505 in the stem path and 514 in the shared classifier. The reported model is therefore about fifteen times the size of the stem it improves on, for $0.02$ to $0.06$ of balanced accuracy. Two of the published decoders it beats are an order of magnitude smaller again. Whether the tangent vector can be projected more cheaply, for instance by reducing its dimension before the linear layer, is not tested here and is the obvious first place to look.
 
 \textbf{The block-length boundary was found after the fact.} The comparison between $\tau_{\mathrm{blk}}$ and the estimator memory separates all five cohorts with nothing fitted, but it was identified after cohorts~A, B and~C had been run. Only its applications to cohorts~D and~E were prospective. The boundary is supported, not established, and the test that would establish it is a cohort chosen in advance because its protocol sits near the boundary.
 
 \textbf{The boundary is untested at the boundary.} Across cohorts the boundary is straddled but not located: every cohort where the branch helps has a block of 1 to 18 windows and the one where it fails has 214, against an update of 32. Nothing is measured between 18 and 214, so across cohorts the location of the change is inferred from five points that straddle it. Within cohorts it is measured directly: varying $\mu$ at fixed block length crosses the boundary in both directions (Table~\ref{tab:batchsweep}).
 
-\textbf{No calibrated threshold.} Two manipulations move the effect in the predicted direction and neither restores parity. Setting the adaptation rate from the block length with a fixed margin of two was pre-registered and falsified. Enlarging the update to 256 windows against a 214-window block recovers 74\,\% of the loss and still costs $0.046$. The condition therefore gives an ordering and a direction, not a rate a practitioner could set, and the upper side of the two-sided condition remains unmeasured on both cohorts where it was attempted.
+\textbf{No calibrated threshold.} Two manipulations move the effect in the predicted direction and neither restores parity. Setting the adaptation rate from the block length with a fixed margin of two was pre-specified in version control and falsified. Enlarging the update to 256 windows against a 214-window block recovers 74\,\% of the loss and still costs $0.046$. The condition therefore gives an ordering and a direction, not a rate a practitioner could set, and the upper side of the two-sided condition remains unmeasured on both cohorts where it was attempted.
 
 \textbf{Cohort E tests task, not drift.} Only one participant recorded on two dates, so its split is temporal across runs within a session. It is the closest match in the paper to the target application and the weakest test of longitudinal shift, and those two facts are in tension.
 
