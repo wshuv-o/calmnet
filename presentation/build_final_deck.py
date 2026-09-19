@@ -437,7 +437,26 @@ write(get(s, "TextBox 4"), [
         "near chance on at least one seed, which its ~100 fitting windows per participant "
         "explain. Only the three that trained are load-bearing.", 15, color=GRY), sa=8, ls=1.18)])
 
-# ------------------------------------------------------------------ 22 limitations
+# ------------------------------------------------------- 22 cost and baseline
+s = clone(9, skip=("Table 5", "Rectangle 6", "Rectangle 7", "Rectangle 8",
+                   "TextBox 9", "TextBox 10"))
+title(s, "Inference Cost and the Classical Baseline")
+place(get(s, "TextBox 4"), left=0.70, top=1.75, width=5.55, height=4.60)
+picture(s, ASSETS / "tab_cost.png", 6.55, 1.95, 6.15, 2.60)
+write(get(s, "TextBox 4"), [
+    P(R("Can it run online? Yes, on a CPU.", 18, bold=True), sa=10, ls=1.15),
+    P(R("One forward over eight windows takes 10.0 ms on CPU, 12.0 ms at the "
+        "95th percentile. Cohort A decides once per 0.5 s, so that is about "
+        "2 % of the budget, with no accelerator.", 16, color=GRY),
+      sa=12, ls=1.18),
+    P(R("Why not just a Riemannian classifier?", 18, bold=True), sa=10, ls=1.15),
+    P(R("On cohort A, tangent space at the Riemannian mean with logistic "
+        "regression reaches 0.793 and MDM 0.706, against 0.909 for the "
+        "reported model: +0.116, higher in 7 of 7 (p = 0.016). It sits below "
+        "the stem alone at 0.864. Cohort A only.", 16, color=GRY),
+      sa=8, ls=1.18)])
+
+# ------------------------------------------------------------------ 23 limitations
 s = clone(7)
 title(s, "Limitations")
 bul = [("•  The boundary was found after the fact:",

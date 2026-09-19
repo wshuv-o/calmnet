@@ -82,7 +82,21 @@ Cohort E tests task, not drift: only one participant recorded on two dates, so i
 
 Best-epoch model selection is upward-biased on small folds. It applies equally to every arm and baseline in a pipeline.
 
-## 5. Why this had not been done
+## 5. Cost, and the classical Riemannian baseline
+
+Both of these answer questions a reviewer asks first, and both are in the paper now.
+
+Can it run online? Yes, on a CPU. One forward covering eight windows takes 10.0 ms on CPU (95th percentile 12.0 ms) and 4.3 ms on an RTX 5080. Cohort A decides once per 0.5 s, so that is about 2 per cent of the budget. The label-free reference update is 0.98 ms of it. Peak GPU memory is 61 MB.
+
+Why not just use a Riemannian classifier? On cohort A, tangent space at the Riemannian mean with logistic regression reaches 0.793 over three seeds and MDM reaches 0.706, against 0.909 for the reported model: +0.116, higher in 7 of 7 participants, p = 0.016. Calibration error is worse too, 0.078 against 0.049. It also sits below the convolutional stem alone at 0.864.
+
+If pressed on why the classical pipeline loses: its reference is the Riemannian mean of the fitting split, fitted once and then fixed. That is the static counterpart of our running estimate, and it is the same thing the frozen-reference ablation measures (0.825 against 0.909).
+
+Be straight about the scope: this was run on cohort A only. Cohort C lives on the other machine and was still downloading. Say so.
+
+On parameters versus latency, if asked: the branch is 14.5 times the parameters but only 1.74 times the CPU latency, because its cost is an eigendecomposition rather than matrix multiplies. FLOPs rise only 1.13 times and therefore understate it. Latency is the honest measure.
+
+## 6. Why this had not been done
 
 Data: long multi-session exoskeleton EEG was rare. ds007788 gives 9 sessions over weeks per participant; earlier exoskeleton datasets were single-session.
 
@@ -92,7 +106,7 @@ Hidden failure mode: the rate problem only appears on protocols whose block leng
 
 Say 'to our knowledge'. Never say 'nobody has done this'.
 
-## 6. Technical questions
+## 7. Technical questions
 
 Validation split. 30 per cent of the class blocks from the fitting data, chosen per class, with whole blocks kept together so overlapping windows cannot leak. Used for early stopping, best-epoch selection and temperature scaling. Test recordings are never used for training or selection. The branch sees test EEG but never test labels.
 
@@ -108,7 +122,7 @@ Preprocessing. 8-30 Hz zero-phase band-pass, which excludes the 1-2 Hz gait rhyt
 
 Adaptation rate. Momentum m = 0.2 with batch N = 32 gives mu = N/m = 160 windows. Cohorts A (18), C (5), D (1) and E (13) have blocks shorter than 160, so the branch is admissible. Cohort B (214) does not.
 
-## 7. The questions that will actually be asked
+## 8. The questions that will actually be asked
 
 'Isn't cohort C just your best result?' No, and it is the one cohort where that cannot be true. Every design choice was fixed on A and B before C was run. That is what held out means here, and it is why C carries the accuracy claim rather than A, where n = 7 and p = 0.22.
 

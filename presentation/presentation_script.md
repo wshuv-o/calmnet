@@ -1,6 +1,6 @@
 # CALM-Net final presentation: speaking script
 
-Deck: `CALM-Net_final_presentation.pptx`, 24 slides, about 19 minutes in total.
+Deck: `CALM-Net_final_presentation.pptx`, 25 slides, about 20 minutes in total.
 
 ## Slide 1. Title  (about 20 s)
 
@@ -234,7 +234,21 @@ The stem alone also clears them, so the ordering does not depend on the branch. 
 
 Cohort D needs a caveat that the margin itself hides. Five of its eight decoders are left near chance on at least one seed, which its roughly 100 fitting windows per participant explain. Only the three that trained properly are load-bearing, and all three hold after correction for multiple comparisons.
 
-## Slide 22. Limitations  (about 50 s)
+## Slide 22. Inference Cost and the Classical Baseline  (about 55 s)
+
+Two questions always come first, so we measured both.
+
+Can it run online? One forward covering eight windows takes 10 milliseconds on a CPU, 12 at the 95th percentile. Cohort A decides once every half second, so that is about two per cent of the budget, and it needs no accelerator.
+
+Worth noting from the table: the branch is 14 and a half times the parameters but only 1.74 times the CPU latency, because its cost is an eigendecomposition rather than matrix multiplies. The FLOP count rises only 1.13 times, so it understates the cost. Latency is the honest measure.
+
+The second question is why not just use a standard Riemannian classifier, since we are reading a Riemannian representation. On cohort A, tangent space at the Riemannian mean with logistic regression reaches 0.793 and minimum distance to the mean reaches 0.706, against 0.909 for our model. That is plus 0.116, higher in all seven participants.
+
+It also sits below the convolutional stem on its own, at 0.864. Its reference is fitted once on the training split and then held fixed, which is the static counterpart of our running estimate.
+
+This one was run on cohort A only, and the paper says so.
+
+## Slide 23. Limitations  (about 50 s)
 
 Four, honestly.
 
@@ -246,7 +260,7 @@ Our cohorts are small, 7, 8, 20, 9 and 7, and the between-subject standard devia
 
 And the branch is not compact. 238,028 parameters against a 19,505-parameter stem path, so we make no parameter-efficiency claim.
 
-## Slide 23. Conclusion  (about 45 s)
+## Slide 24. Conclusion  (about 45 s)
 
 The covariance structure that a log-power stem discards does carry movement intent. Reading it raises balanced accuracy on four of five cohorts, and on 20 of 20 participants of a cohort held out from every design decision.
 
@@ -258,6 +272,6 @@ The experiment that would settle it is small and specific: choose a protocol who
 
 Thank you. We are happy to take questions.
 
-## Slide 24. References  (about 15 s)
+## Slide 25. References  (about 15 s)
 
 These are the works cited on the slides, keyed to the author-and-year tags used throughout.

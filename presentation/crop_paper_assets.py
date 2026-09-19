@@ -28,6 +28,7 @@ TABLES = {
     "tab_rate":      "The estimator memory against the class-block length",
     "tab_deploy":    "What a wearer would experience",
     "tab_newbase":   "Published decoders on the two cohorts added last",
+    "tab_cost":      "Inference cost at cohort",
 }
 
 

@@ -828,6 +828,35 @@ E, exoskeleton & stem & $0.928$ & $0.043$ & $1.80$ & $0.000$ \\
 
 Table~\ref{tab:deploy} reports the quantities a controller would act on. Calibration improves with the branch on 4 of the five cohorts and the missed-onset rate falls on 3, so the accuracy gain is not bought by a worse-behaved posterior. The exception is the spurious-activation rate on cohort~A, which rises from $0.70$ to $2.09$ per minute of standing. That rate is the quantity a per-window error rate hides, since one long false run and many scattered false windows score identically. A decoder that is more often right per window can still command more false starts, because the two are different functions of the same posterior, and on a lower-limb exoskeleton the second is the one that throws a wearer off balance. We report it rather than the accuracy alone.
 
+\subsection{What the branch costs at inference}\label{sec:cost}
+
+Parameters are the wrong measure of what the branch costs to run. Its expense is an eigendecomposition of a $60\times60$ matrix, which no parameter count reflects and which a floating-point count misses as well. Table~\ref{tab:cost} measures the model instead, at cohort~A's input shape, with no training.
+
+\begin{table}[t]
+\centering
+\caption{Inference cost at cohort~A's input shape, eight windows per forward. Latency is the median over 200 forwards after warm-up, batch~1, with CUDA synchronised; the 95th percentile is given for the online case. No training.}
+\label{tab:cost}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+ & Stem & Stem $+$ branch & Ratio \\
+\midrule
+Parameters & $20{,}019$ & $290{,}943$ & $14.5\times$ \\
+GFLOPs per forward & $0.32$ & $0.36$ & $1.13\times$ \\
+CPU latency (ms) & $5.8$ & $10.0$ & $1.74\times$ \\
+CPU 95th percentile (ms) & $7.2$ & $12.0$ & \\
+GPU latency (ms) & $0.64$ & $4.31$ & $6.7\times$ \\
+GPU peak memory (MB) & $60$ & $61$ & \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+The decision rate sets the budget. Cohort~A advances one window every $0.5$\,s, and one forward covering eight windows takes $10.0$\,ms on a CPU, with a 95th percentile of $12.0$\,ms. That is around 2\,\% of the interval, so the reported model runs in the loop on a CPU and needs no accelerator. The label-free reference update, the part with no analogue in the stem, is $0.98$\,ms of that.
+
+Two things in the table are worth stating because they cut in opposite directions. The branch multiplies the parameter count by $14.5$ but the CPU latency by only $1.74$, so parameters overstate what it costs to run. Floating-point operations understate it, rising by $1.13\times$, because the counter does not see the eigendecomposition. Latency is the honest measure and it is the one reported here. On the GPU the overhead is proportionally larger, $6.7\times$, because an eigendecomposition of a small matrix is latency-bound and the device cannot hide it behind throughput.
+
+
 \subsection{Published decoders on the two new cohorts}
 \label{sec:newbaselines}
 
@@ -864,6 +893,9 @@ The reported model is highest on 4 of the five cohorts. On the fifth, cohort~B, 
 
 Parameter counts belong beside this. The reported model is 290{,}943 parameters against 19{,}505 for the stem, so the gains in this table cost roughly fifteen times the parameters. Of the published decoders, ShallowFBCSPNet and EEGNet are an order of magnitude smaller again, and EEG Conformer is larger than ours. Nothing here is a claim about efficiency.
 
+One comparison in this table is with neural decoders only, and the branch reads a Riemannian representation, so the obvious question is whether the classical pipeline would do as well without a network. On cohort~A, in this harness and on these splits, it does not. Tangent space at the Riemannian mean of the fitting covariances followed by logistic regression reaches $0.793$ over three seeds, and minimum distance to the Riemannian mean reaches $0.706$, against $0.909$ for the reported model: a paired difference of $+0.116$, higher in 7 of the 7 participants ($p=0.016$). Expected calibration error is also worse, $0.078$ against $0.049$. The classical pipeline sits below the convolutional stem alone as well, at $0.864$, though with seven participants that gap is not significant. Its reference is the Riemannian mean of the fitting split, fitted once and then held fixed, which is the static counterpart of the running estimate Section~\ref{sec:rate} studies. This was run on cohort~A only.
+
+
 %=============================================================================
 \section{Discussion}
 \label{sec:discussion}
@@ -897,7 +929,7 @@ and the comparison with published decoders on cohort~C (Section~\ref{sec:master}
 \textbf{Cohort size.} Seven, eight, twenty, nine and seven participants, 51 in total. This is typical for
 exoskeleton BCI studies \citep{he_exo} but small, and the between-subject SD of
 $0.06$ to $0.13$ is large relative to the differences
-between arms.
+between arms. \textbf{The classical Riemannian comparison is one cohort.} Tangent space with logistic regression and MDM were run on cohort~A only (Section~\ref{sec:master}), so the margin over them is not established on the held-out cohort where the accuracy claim rests.
 
 \textbf{Best-epoch evaluation.} Model selection uses the best epoch by held-out
 balanced accuracy, which is conventional but upward-biased on small folds. The
