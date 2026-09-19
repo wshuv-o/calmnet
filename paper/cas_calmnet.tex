@@ -659,14 +659,7 @@ that this does not settle whether it helps the task.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_ablation.pdf}
-\caption{Component ablation on cohort~A, seed 0, over the components of Section~\ref{sec:dropped} that were tested and are not in the reported model. It is retained because the ablation is reported against these arms; the reported model appears in Table~\ref{tab:ablation_rep} and Fig.~\ref{fig:cohorts}. (a) Balanced accuracy by arm;
-error bars are $\pm1$ SD across the 7 participants; seed variation is
-reported separately in Table~\ref{tab:noise}. (b)
-Balanced accuracy at $90\,\%$ coverage, obtained by declining the least-confident $10\,\%$ of windows. It sits \emph{below} full-coverage
-accuracy for every arm with a trained gate. (c)
-Balanced accuracy against spurious activations per minute of standing, showing
-the cross-epoch context as a selectable operating point. Three-seed values
-under the current estimator are in Table~\ref{tab:ablation3}.}
+\caption{Ablation of the reported model on cohort~A, three data-split seeds. (a) Balanced accuracy by configuration; the reported model is solid, the stem it is built on is grey, and every configuration containing a component that was tested and not retained is faded. White bars are one standard deviation across seeds. (b) The same arms as a change against the stem alone, paired across participants with seeds averaged within participant; the annotation gives how many participants improved and the shaded band is the $0.02$ interpretation threshold. The branch is the only component that raises accuracy. Nothing built from the alignment layer, the gate or the cross-epoch transformer improves on the stem by more than $0.005$, and the gate alone is $0.022$ below it.}
 \label{fig:ablation}
 \end{figure*}
 
@@ -994,20 +987,7 @@ and at the two slowest rates its remaining cost is not significant.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../results/fig_rate.pdf}
-\caption{The adaptation rate condition. (a) Cohort B, five arms, three momenta,
-single seed; the shaded region is where the estimator memory is shorter than a
-class block. Measurement points are marked because the sweep is sparse. (b) The
-same change applied to both cohorts at matched estimator version, giving
-opposite signs. (c) Effect of alignment on balanced accuracy (\textit{align + gate} minus gate
-only) against estimator memory, three data-split seeds under the current
-estimator, for all three cohorts; dotted lines mark each cohort's
-$\tau_{\mathrm{blk}}$. The effect on cohort B recovers gradually as the memory
-passes its block length and does not become positive. No upper bound is drawn,
-because $\tau_{\mathrm{drift}}$ was not measured (Section~\ref{sec:limits}).
-The arms shown are the components of Section~\ref{sec:dropped} and none is the
-reported model; the condition is drawn here on the alignment layer because that
-is where it was derived, and Section~\ref{sec:fivecohort} shows it governing the
-branch's reference, which is the estimator the reported model actually uses.}
+\caption{The rate condition, measured by manipulation rather than by comparing cohorts. Each point moves only the estimator memory $\mu = N/m$, with the architecture, the data and every other setting fixed; dashed verticals mark each cohort's class-block length and annotations give how many participants improved. On cohort~A the branch gains $+0.045$ and $+0.048$ at memories of 160 and 40 windows, both above its 18-window block, and reverses to $-0.076$ in every participant at a memory of 8, below it. On cohort~B, whose blocks are 214 windows, the effect recovers monotonically as the memory is raised past them but does not become positive. The effect therefore appears and disappears as $\mu$ crosses $\tau_{\mathrm{blk}}$, which is the causal form of the comparison Fig.~\ref{fig:cohorts} makes across cohorts.}
 \label{fig:rate}
 \end{figure*}
 
