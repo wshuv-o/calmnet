@@ -1,0 +1,14 @@
+{
+  "title": "CALM-Net: code and results for \"Adaptive tangent-space features for cross-session EEG movement-intent decoding under temporally structured test streams\"",
+  "upload_type": "software",
+  "description": "PyTorch code, cohort configurations and result files for the paper \"Adaptive tangent-space features for cross-session EEG movement-intent decoding under temporally structured test streams\" (Journal of Neural Engineering, under review).",
+  "creators": [
+    {"name": "Abha, Esm E Moula Chowdhury", "affiliation": "American International University-Bangladesh", "orcid": "0009-0008-3776-2283"},
+    {"name": "Suva, Md Wahiduzzaman", "affiliation": "American International University-Bangladesh", "orcid": "0009-0007-6227-7282"},
+    {"name": "Islam, Md Tauhidul", "affiliation": "United International University", "orcid": "0009-0004-3595-4274"},
+    {"name": "Sajin, Md. Imtiaj Alam", "affiliation": "American International University-Bangladesh", "orcid": "0009-0009-2423-1835"},
+    {"name": "Chayon, Hasibur Rashid", "affiliation": "American International University-Bangladesh", "orcid": "0000-0003-3741-6651"}
+  ],
+  "keywords": ["brain-computer interface", "electroencephalography", "test-time adaptation", "covariate shift", "Riemannian tangent space", "lower-limb exoskeleton"],
+  "license": "MIT"
+}

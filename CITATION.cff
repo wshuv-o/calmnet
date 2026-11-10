@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper."
+title: "CALM-Net: Adaptive tangent-space features for cross-session EEG movement-intent decoding"
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/wshuv-o/calmnet"
+authors:
+  - family-names: Abha
+    given-names: Esm E Moula Chowdhury
+    orcid: "https://orcid.org/0009-0008-3776-2283"
+  - family-names: Suva
+    given-names: Md Wahiduzzaman
+    orcid: "https://orcid.org/0009-0007-6227-7282"
+  - family-names: Islam
+    given-names: Md Tauhidul
+    orcid: "https://orcid.org/0009-0004-3595-4274"
+  - family-names: Sajin
+    given-names: Md. Imtiaj Alam
+    orcid: "https://orcid.org/0009-0009-2423-1835"
+  - family-names: Chayon
+    given-names: Hasibur Rashid
+    orcid: "https://orcid.org/0000-0003-3741-6651"
+preferred-citation:
+  type: article
+  title: "Adaptive tangent-space features for cross-session EEG movement-intent decoding under temporally structured test streams"
+  journal: "Journal of Neural Engineering"
+  notes: "Under review"
+  authors:
+    - family-names: Abha
+      given-names: Esm E Moula Chowdhury
+    - family-names: Suva
+      given-names: Md Wahiduzzaman
+    - family-names: Islam
+      given-names: Md Tauhidul
+    - family-names: Sajin
+      given-names: Md. Imtiaj Alam
+    - family-names: Chayon
+      given-names: Hasibur Rashid
