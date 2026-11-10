@@ -6,7 +6,7 @@ PyTorch code, configurations and results for the paper (Journal of Neural Engine
 
 ## Network architecture
 
-![Network architecture](network_architecture.png)
+![Network architecture](assets/network_architecture.png)
 
 A multi-scale log-power stem is augmented with an adaptive tangent-space branch. Each window's
 shrinkage-regularised covariance is mapped to the tangent space at a running reference **M**,
@@ -77,18 +77,20 @@ metrics under `results/runs/`.
 
 ## Results
 
-Balanced accuracy on the later sessions, mean over participants and three seeds.
+![Results across five cohorts](assets/table_five_cohorts.png)
 
-| Cohort | Stem | Stem + branch | Δ | Δ, fully causal |
-|---|---|---|---|---|
-| A, exoskeleton (7) | 0.864 | 0.909 | +0.045 | +0.036 |
-| B, treadmill (8) | 0.744 | 0.568 | −0.175 | −0.170 |
-| C, motor execution (20) | 0.779 | 0.843 | +0.064 | +0.048 |
-| D, BCI IV-2a (9) | 0.701 | 0.741 | +0.040 | +0.042 |
-| E, DECODED exoskeleton (7) | 0.928 | 0.949 | +0.021 | +0.010 |
+![Comparison with published decoders](assets/table_published_decoders.png)
 
-Cohort B is the only cohort whose median class block (214 windows) outlasts the reference
-memory (160 windows). Parameters: stem 20,019; stem + branch 290,943.
+The running reference on the covariance cone. On cohort A (18-window class blocks) it stays
+in one place as the classes alternate; on cohort B (214-window blocks) it moves to whichever
+class is streaming:
+
+![Reference path on the SPD cone](assets/fig_cone.png)
+
+What the running reference removes: on cohort A the session drift (SD 0.29 to 0.10) while
+the Walk-Stop contrast is kept (0.37); on cohort B much of the contrast as well (0.36 to 0.20):
+
+![Reference maps](assets/fig_refmaps.png)
 
 ## Notes
 
