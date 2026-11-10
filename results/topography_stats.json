@@ -1,0 +1,114 @@
+{
+ "_note": "Reference built by TangentBranch with its own shrinkage and per-window trace normalisation, so it matches what the reported model holds. Panel (c) is ABSOLUTE 8-30 Hz band power (4th-order Butterworth, per-channel variance) as 10*log10(walk/stop), NOT the reference diagonal, which is relative. One participant, three sessions. The sign of a power contrast is not an artefact rejection.",
+ "subject": "sub-01",
+ "sessions": [
+  1,
+  2,
+  3
+ ],
+ "n_windows": 940,
+ "highest_gain": [
+  [
+   "AFz",
+   2.93
+  ],
+  [
+   "Fz",
+   2.9
+  ],
+  [
+   "F2",
+   2.9
+  ],
+  [
+   "AF4",
+   2.89
+  ],
+  [
+   "AF3",
+   2.89
+  ],
+  [
+   "F1",
+   2.89
+  ]
+ ],
+ "lowest_gain": [
+  [
+   "T8",
+   1.94
+  ],
+  [
+   "T7",
+   1.95
+  ],
+  [
+   "POz",
+   2.44
+  ],
+  [
+   "PO3",
+   2.44
+  ],
+  [
+   "O1",
+   2.47
+  ],
+  [
+   "O2",
+   2.51
+  ]
+ ],
+ "largest_decrease": [
+  [
+   "C3",
+   -3.52
+  ],
+  [
+   "C1",
+   -2.97
+  ],
+  [
+   "CP3",
+   -2.77
+  ],
+  [
+   "C5",
+   -2.75
+  ],
+  [
+   "CP1",
+   -2.58
+  ],
+  [
+   "C4",
+   -2.53
+  ]
+ ],
+ "largest_increase": [
+  [
+   "O1",
+   2.12
+  ],
+  [
+   "O2",
+   2.08
+  ],
+  [
+   "F6",
+   1.7
+  ],
+  [
+   "PO7",
+   1.66
+  ],
+  [
+   "F8",
+   1.5
+  ],
+  [
+   "PO8",
+   1.47
+  ]
+ ]
+}

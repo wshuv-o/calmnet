@@ -1,0 +1,311 @@
+{
+ "stem_tangent|s0": {
+  "acc": 0.7268518518518519,
+  "ece": 0.08786606793234378,
+  "acc_at_90": 0.7230841630351139,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 12.962962962962964,
+  "latency_s": 0.0,
+  "missed_onsets": 0.2842342342342342,
+  "n_true_onsets": 39.666666666666664,
+  "acc_sd": 0.16030823789982207,
+  "per_subject": {
+   "1": {
+    "acc": 0.8611111111111112,
+    "ece": 0.07985673720637958,
+    "acc_at_90": 0.8680288461538461,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 10.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.05,
+    "n_true_onsets": 40.0
+   },
+   "2": {
+    "acc": 0.5277777777777778,
+    "ece": 0.17832523418797389,
+    "acc_at_90": 0.5383413461538462,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.775,
+    "n_true_onsets": 40.0
+   },
+   "3": {
+    "acc": 0.8888888888888888,
+    "ece": 0.08349272691541249,
+    "acc_at_90": 0.883173076923077,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.666666666666667,
+    "latency_s": 0.0,
+    "missed_onsets": 0.05,
+    "n_true_onsets": 40.0
+   },
+   "4": {
+    "acc": 0.7291666666666667,
+    "ece": 0.0934201685918702,
+    "acc_at_90": 0.7118440057775638,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 18.333333333333336,
+    "latency_s": 0.0,
+    "missed_onsets": 0.10810810810810811,
+    "n_true_onsets": 37.0
+   },
+   "5": {
+    "acc": 0.6041666666666667,
+    "ece": 0.04747831241952044,
+    "acc_at_90": 0.5983173076923077,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.666666666666668,
+    "latency_s": 0.0,
+    "missed_onsets": 0.55,
+    "n_true_onsets": 40.0
+   },
+   "6": {
+    "acc": 0.4930555555555555,
+    "ece": 0.1114079323079851,
+    "acc_at_90": 0.4907451923076923,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 21.666666666666668,
+    "latency_s": 0.0,
+    "missed_onsets": 0.7,
+    "n_true_onsets": 40.0
+   },
+   "7": {
+    "acc": 0.625,
+    "ece": 0.10400494684775667,
+    "acc_at_90": 0.6037259615384616,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 26.666666666666668,
+    "latency_s": 0.0,
+    "missed_onsets": 0.25,
+    "n_true_onsets": 40.0
+   },
+   "8": {
+    "acc": 0.9444444444444444,
+    "ece": 0.023803572687837803,
+    "acc_at_90": 0.9377403846153847,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.3333333333333335,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 40.0
+   },
+   "9": {
+    "acc": 0.8680555555555556,
+    "ece": 0.06900498022635779,
+    "acc_at_90": 0.8758413461538461,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 13.333333333333334,
+    "latency_s": 0.0,
+    "missed_onsets": 0.075,
+    "n_true_onsets": 40.0
+   }
+  }
+ },
+ "stem_tangent|s1": {
+  "acc": 0.7407407407407407,
+  "ece": 0.06693278942947035,
+  "acc_at_90": 0.7365557577085623,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 13.333333333333336,
+  "latency_s": 0.0,
+  "missed_onsets": 0.15135135135135136,
+  "n_true_onsets": 39.666666666666664,
+  "acc_sd": 0.14415182849018765,
+  "per_subject": {
+   "1": {
+    "acc": 0.875,
+    "ece": 0.04379015333122678,
+    "acc_at_90": 0.8685096153846155,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.075,
+    "n_true_onsets": 40.0
+   },
+   "2": {
+    "acc": 0.5625,
+    "ece": 0.04333545971247885,
+    "acc_at_90": 0.5647836538461539,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 25.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.175,
+    "n_true_onsets": 40.0
+   },
+   "3": {
+    "acc": 0.9166666666666667,
+    "ece": 0.05148767224616478,
+    "acc_at_90": 0.9068509615384616,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.3333333333333335,
+    "latency_s": 0.0,
+    "missed_onsets": 0.05,
+    "n_true_onsets": 40.0
+   },
+   "4": {
+    "acc": 0.7083333333333333,
+    "ece": 0.09150878464182219,
+    "acc_at_90": 0.6912614347616755,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 13.333333333333334,
+    "latency_s": 0.0,
+    "missed_onsets": 0.16216216216216217,
+    "n_true_onsets": 37.0
+   },
+   "5": {
+    "acc": 0.5416666666666666,
+    "ece": 0.04626161398159134,
+    "acc_at_90": 0.5356971153846154,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 23.333333333333336,
+    "latency_s": 0.0,
+    "missed_onsets": 0.35,
+    "n_true_onsets": 40.0
+   },
+   "6": {
+    "acc": 0.6111111111111112,
+    "ece": 0.08345125656988887,
+    "acc_at_90": 0.6055288461538462,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 15.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.325,
+    "n_true_onsets": 40.0
+   },
+   "7": {
+    "acc": 0.6944444444444444,
+    "ece": 0.06574684381484987,
+    "acc_at_90": 0.6814903846153846,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 21.666666666666668,
+    "latency_s": 0.0,
+    "missed_onsets": 0.175,
+    "n_true_onsets": 40.0
+   },
+   "8": {
+    "acc": 0.9444444444444444,
+    "ece": 0.03762348244587578,
+    "acc_at_90": 0.9379807692307692,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6666666666666667,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 40.0
+   },
+   "9": {
+    "acc": 0.8125,
+    "ece": 0.13918983812133473,
+    "acc_at_90": 0.8368990384615385,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.666666666666668,
+    "latency_s": 0.0,
+    "missed_onsets": 0.05,
+    "n_true_onsets": 40.0
+   }
+  }
+ },
+ "stem_tangent|s2": {
+  "acc": 0.7399691358024691,
+  "ece": 0.0650400417270484,
+  "acc_at_90": 0.7293508226547165,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 14.814814814814817,
+  "latency_s": 0.0,
+  "missed_onsets": 0.19346846846846852,
+  "n_true_onsets": 39.666666666666664,
+  "acc_sd": 0.14355999666120658,
+  "per_subject": {
+   "1": {
+    "acc": 0.9027777777777778,
+    "ece": 0.05126772903733786,
+    "acc_at_90": 0.9074519230769231,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.3333333333333335,
+    "latency_s": 0.0,
+    "missed_onsets": 0.05,
+    "n_true_onsets": 40.0
+   },
+   "2": {
+    "acc": 0.5486111111111112,
+    "ece": 0.024651971128251828,
+    "acc_at_90": 0.5415865384615385,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 23.333333333333336,
+    "latency_s": 0.0,
+    "missed_onsets": 0.275,
+    "n_true_onsets": 40.0
+   },
+   "3": {
+    "acc": 0.9305555555555556,
+    "ece": 0.035497845460971185,
+    "acc_at_90": 0.9224759615384616,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.075,
+    "n_true_onsets": 40.0
+   },
+   "4": {
+    "acc": 0.6805555555555556,
+    "ece": 0.07661093854241903,
+    "acc_at_90": 0.6491333654309099,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 16.666666666666668,
+    "latency_s": 0.0,
+    "missed_onsets": 0.21621621621621623,
+    "n_true_onsets": 37.0
+   },
+   "5": {
+    "acc": 0.5555555555555556,
+    "ece": 0.05707712347308793,
+    "acc_at_90": 0.5365384615384615,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 23.333333333333336,
+    "latency_s": 0.0,
+    "missed_onsets": 0.5,
+    "n_true_onsets": 40.0
+   },
+   "6": {
+    "acc": 0.6666666666666667,
+    "ece": 0.11148037513097125,
+    "acc_at_90": 0.6671875,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 18.333333333333336,
+    "latency_s": 0.0,
+    "missed_onsets": 0.3,
+    "n_true_onsets": 40.0
+   },
+   "7": {
+    "acc": 0.6527777777777778,
+    "ece": 0.09217709509862794,
+    "acc_at_90": 0.6350961538461539,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 28.333333333333336,
+    "latency_s": 0.0,
+    "missed_onsets": 0.225,
+    "n_true_onsets": 40.0
+   },
+   "8": {
+    "acc": 0.9166666666666667,
+    "ece": 0.04537462691466016,
+    "acc_at_90": 0.9064903846153847,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 40.0
+   },
+   "9": {
+    "acc": 0.8055555555555556,
+    "ece": 0.09122267075710827,
+    "acc_at_90": 0.7981971153846155,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 10.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.1,
+    "n_true_onsets": 40.0
+   }
+  }
+ }
+}

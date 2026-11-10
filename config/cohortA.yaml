@@ -1,0 +1,31 @@
+# Cohort A: OpenNeuro ds007788, lower-limb exoskeleton (7 participants x 9 sessions)
+# Overground walking against standing, labels from the exoskeleton state stream.
+cohort: A
+data:
+  dir: ds007788       # BIDS root under datasets/
+  sfreq: 100
+  classes_display: [stop, walk]
+  band: [8, 30]       # zero-phase FIR (offline) / minimum-phase FIR (causal)
+  window_s: 4.0
+  step_s: 0.5
+  margin_s: 0.5       # skipped after each segment onset
+split:
+  n_fit_sessions: 3   # sessions 1-3 fit, 4-9 test (weeks later)
+  heldout_frac: 0.3   # of fitting segments, per class
+
+model:
+  n_filt: 16          # temporal filters per scale (64, 128, 256 ms)
+  d_model: 128        # embedding width
+  dropout: 0.3
+  momentum: 0.2       # reference update rate m (memory mu ~ 1/m batches)
+  shrink: 0.1         # covariance shrinkage lambda
+
+train:
+  epochs: 30
+  batch: 32           # windows per forward pass = per reference update (N)
+  lr: 3.0e-4          # AdamW, OneCycle schedule
+  weight_decay: 1.0e-2
+  patience: 12        # early stopping on held-out balanced accuracy
+  clip: 1.0           # gradient-norm clip
+
+seeds: [0, 1, 2]

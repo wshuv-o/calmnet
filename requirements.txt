@@ -1,0 +1,12 @@
+numpy>=2.0
+scipy>=1.13
+pandas>=2.2
+scikit-learn>=1.5
+torch>=2.4
+mne>=1.8
+mne-icalabel>=0.7
+python-picard>=0.8
+moabb>=1.1
+braindecode>=1.0
+pyyaml>=6.0
+matplotlib>=3.9

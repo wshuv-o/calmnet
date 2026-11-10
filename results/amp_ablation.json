@@ -1,0 +1,132 @@
+{
+ "w4.0|ShallowFBCSPNet|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "ShallowFBCSPNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.832390895044598,
+  "acc_sd": 0.07813092824900454,
+  "cond_r2": -0.041857898197455494,
+  "n_sub": 7
+ },
+ "w4.0|Deep4Net|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "Deep4Net",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.7980399807341804,
+  "acc_sd": 0.14170388817465726,
+  "cond_r2": -0.06688427567979054,
+  "n_sub": 7
+ },
+ "w4.0|EEGNeX|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "EEGNeX",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8412699938825667,
+  "acc_sd": 0.09250712395794795,
+  "cond_r2": -0.06642426120574414,
+  "n_sub": 7
+ },
+ "w4.0|EEGITNet|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "EEGITNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8284510353664458,
+  "acc_sd": 0.11471652614567523,
+  "cond_r2": -0.07398914590767049,
+  "n_sub": 7
+ },
+ "w4.0|BDTCN|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "BDTCN",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.7476043913653487,
+  "acc_sd": 0.13617511799472964,
+  "cond_r2": -0.06331304528757345,
+  "n_sub": 7
+ },
+ "w4.0|EEGConformer|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "EEGConformer",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8175670389230328,
+  "acc_sd": 0.08260153524059437,
+  "cond_r2": -0.0664277678435568,
+  "n_sub": 7
+ },
+ "w4.0|ATCNet|global|s0|amp-on": {
+  "win": 4.0,
+  "model": "ATCNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8443233194311534,
+  "acc_sd": 0.09764599286156893,
+  "cond_r2": -0.06799105490075434,
+  "n_sub": 7
+ },
+ "w4.0|ShallowFBCSPNet|global|s0|amp-shuffle": {
+  "win": 4.0,
+  "model": "ShallowFBCSPNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.815865767914859,
+  "acc_sd": 0.10095969746213065,
+  "cond_r2": -0.04331404274849351,
+  "n_sub": 7
+ },
+ "w4.0|Deep4Net|global|s0|amp-shuffle": {
+  "win": 4.0,
+  "model": "Deep4Net",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8092727977631491,
+  "acc_sd": 0.12305645391457452,
+  "cond_r2": -0.05087335240918466,
+  "n_sub": 7
+ },
+ "w4.0|EEGNeX|global|s0|amp-shuffle": {
+  "win": 4.0,
+  "model": "EEGNeX",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8408969488007169,
+  "acc_sd": 0.08565742275130755,
+  "cond_r2": -0.046209454707181026,
+  "n_sub": 7
+ },
+ "w4.0|EEGITNet|global|s0|amp-shuffle": {
+  "win": 4.0,
+  "model": "EEGITNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8366795430815106,
+  "acc_sd": 0.11056834973343205,
+  "cond_r2": -0.06475862654147269,
+  "n_sub": 7
+ },
+ "w4.0|BDTCN|global|s0|amp-shuffle": {
+  "win": 4.0,
+  "model": "BDTCN",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.6521308467229134,
+  "acc_sd": 0.15100312539271427,
+  "cond_r2": -0.057644957017137136,
+  "n_sub": 7
+ },
+ "w4.0|ShallowFBCSPNet|global|s0|amp-off": {
+  "win": 4.0,
+  "model": "ShallowFBCSPNet",
+  "scheme": "global",
+  "seed": 0,
+  "acc": 0.8205316801111147,
+  "acc_sd": 0.08704569625029422,
+  "cond_r2": -0.048294642613789095,
+  "n_sub": 7
+ }
+}

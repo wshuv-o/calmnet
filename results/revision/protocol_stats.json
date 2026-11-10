@@ -1,0 +1,599 @@
+{
+ "_note": "Block-length distribution and class balance, fitting and test recordings apart.\n\nReferee 2, point 3: what protocol information is available before deployment,\nand a parameter choice that does not depend on test results; report the block\nlength distribution, class imbalance and effect uncertainty.\n\nFor each cohort this computes, separately on the fitting recordings and on the\ntest recordings, the contiguous single-class block lengths (in windows, never\ncrossing a recording), their percentiles, the fraction of windows lying in\nblocks longer than the estimator memory mu, and the class proportions. If the\nfitting-split statistics match the test-split ones, tau_blk and the occupancy\nabove mu are known before any test window is seen, and the admissibility check\nof Condition 1 can be made from the fitting labels alone.\n\nLabels only; no model is trained or read. Cohort B reads the causal-filter\ncache (CX_CAUSAL_FILTER=1); labels do not depend on the filter.\nUsage: python tools/protocol_stats.py [C D E A B]\n",
+ "C": {
+  "fit": {
+   "n_blocks": 2400,
+   "median": 5.0,
+   "p75": 5.0,
+   "p90": 5.0,
+   "p95": 5.0,
+   "longest": 5,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 0.0,
+    "16": 0.0,
+    "40": 0.0,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.5,
+   "n_windows": 12000,
+   "counts": {
+    "5": 2400
+   }
+  },
+  "test": {
+   "n_blocks": 1200,
+   "median": 5.0,
+   "p75": 5.0,
+   "p90": 5.0,
+   "p95": 5.0,
+   "longest": 5,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 0.0,
+    "16": 0.0,
+    "40": 0.0,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.5,
+   "n_windows": 6000,
+   "counts": {
+    "5": 1200
+   }
+  },
+  "per_subject": {
+   "S001": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S002": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S003": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S004": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S005": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S006": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S007": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S008": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S009": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S010": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S011": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S012": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S013": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S014": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S015": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S016": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S017": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S018": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S019": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "S020": {
+    "fit_median": 5.0,
+    "test_median": 5.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   }
+  }
+ },
+ "D": {
+  "fit": {
+   "n_blocks": 756,
+   "median": 1.0,
+   "p75": 2.0,
+   "p90": 3.0,
+   "p95": 4.0,
+   "longest": 6,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 0.0,
+    "16": 0.0,
+    "40": 0.0,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.5,
+   "n_windows": 1296,
+   "counts": {
+    "1": 415,
+    "2": 221,
+    "3": 73,
+    "4": 21,
+    "5": 20,
+    "6": 6
+   }
+  },
+  "test": {
+   "n_blocks": 742,
+   "median": 1.0,
+   "p75": 2.0,
+   "p90": 3.0,
+   "p95": 4.0,
+   "longest": 6,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 0.0,
+    "16": 0.0,
+    "40": 0.0,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.5,
+   "n_windows": 1296,
+   "counts": {
+    "1": 417,
+    "2": 197,
+    "3": 73,
+    "4": 18,
+    "5": 28,
+    "6": 9
+   }
+  },
+  "per_subject": {
+   "1": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "2": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "3": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "4": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "5": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "6": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "7": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "8": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   },
+   "9": {
+    "fit_median": 1.0,
+    "test_median": 1.0,
+    "fit_class1": 0.5,
+    "test_class1": 0.5
+   }
+  }
+ },
+ "A": {
+  "fit": {
+   "n_blocks": 249,
+   "median": 18.0,
+   "p75": 26.0,
+   "p90": 27.0,
+   "p95": 112.0,
+   "longest": 486,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 0.939936009307737,
+    "16": 0.8808900523560209,
+    "40": 0.4490983129726585,
+    "160": 0.13961605584642234,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.2037521815008726,
+   "n_windows": 6876,
+   "counts": {
+    "7": 59,
+    "10": 1,
+    "13": 6,
+    "14": 9,
+    "16": 12,
+    "17": 31,
+    "18": 55,
+    "22": 1,
+    "26": 28,
+    "27": 26,
+    "112": 19,
+    "474": 1,
+    "486": 1
+   }
+  },
+  "test": {
+   "n_blocks": 540,
+   "median": 18.0,
+   "p75": 26.0,
+   "p90": 27.0,
+   "p95": 112.0,
+   "longest": 112,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 0.9275351134434326,
+    "16": 0.8466584349436641,
+    "40": 0.3630189844111746,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.23375520913721254,
+   "n_windows": 12958,
+   "counts": {
+    "6": 1,
+    "7": 131,
+    "8": 2,
+    "10": 4,
+    "11": 2,
+    "13": 10,
+    "14": 20,
+    "16": 36,
+    "17": 49,
+    "18": 118,
+    "20": 1,
+    "22": 1,
+    "26": 54,
+    "27": 68,
+    "28": 1,
+    "112": 42
+   }
+  },
+  "per_subject": {
+   "sub-01": {
+    "fit_median": 18.0,
+    "test_median": 18.0,
+    "fit_class1": 0.2393617021276596,
+    "test_class1": 0.23923444976076555
+   },
+   "sub-02": {
+    "fit_median": 18.0,
+    "test_median": 18.0,
+    "fit_class1": 0.23829787234042554,
+    "test_class1": 0.2385759829968119
+   },
+   "sub-03": {
+    "fit_median": 18.0,
+    "test_median": 18.0,
+    "fit_class1": 0.23855165069222578,
+    "test_class1": 0.23948908994145823
+   },
+   "sub-04": {
+    "fit_median": 18.0,
+    "test_median": 18.0,
+    "fit_class1": 0.23910733262486716,
+    "test_class1": 0.2393617021276596
+   },
+   "sub-05": {
+    "fit_median": 18.0,
+    "test_median": 18.0,
+    "fit_class1": 0.240128068303095,
+    "test_class1": 0.23948908994145823
+   },
+   "sub-06": {
+    "fit_median": 18.0,
+    "test_median": 17.5,
+    "fit_class1": 0.12682481751824817,
+    "test_class1": 0.20958429561200922
+   },
+   "sub-07": {
+    "fit_median": 18.0,
+    "test_median": 17.5,
+    "fit_class1": 0.1283471837488458,
+    "test_class1": 0.2284931506849315
+   }
+  }
+ },
+ "E": {
+  "fit": {
+   "n_blocks": 192,
+   "median": 13.0,
+   "p75": 33.0,
+   "p90": 33.0,
+   "p95": 33.0,
+   "longest": 33,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 1.0,
+    "16": 0.559322033898305,
+    "40": 0.0,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.559322033898305,
+   "n_windows": 3776,
+   "counts": {
+    "13": 128,
+    "33": 64
+   }
+  },
+  "test": {
+   "n_blocks": 192,
+   "median": 13.0,
+   "p75": 33.0,
+   "p90": 33.0,
+   "p95": 33.0,
+   "longest": 33,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 1.0,
+    "16": 0.559322033898305,
+    "40": 0.0,
+    "160": 0.0,
+    "1280": 0.0,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.559322033898305,
+   "n_windows": 3776,
+   "counts": {
+    "13": 128,
+    "33": 64
+   }
+  },
+  "per_subject": {
+   "subject_01": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   },
+   "subject_02": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   },
+   "subject_03": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   },
+   "subject_05": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   },
+   "subject_06": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   },
+   "subject_13": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   },
+   "subject_14": {
+    "fit_median": 13.0,
+    "test_median": 13.0,
+    "fit_class1": 0.559322033898305,
+    "test_class1": 0.559322033898305
+   }
+  }
+ },
+ "B": {
+  "fit": {
+   "n_blocks": 24,
+   "median": 214.0,
+   "p75": 2211.0,
+   "p90": 2211.0,
+   "p95": 2211.0,
+   "longest": 2211,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 1.0,
+    "16": 1.0,
+    "40": 1.0,
+    "160": 0.9622061303442119,
+    "1280": 0.8772939192540422,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.8772939192540422,
+   "n_windows": 20162,
+   "counts": {
+    "86": 1,
+    "92": 1,
+    "96": 1,
+    "97": 2,
+    "98": 3,
+    "214": 8,
+    "2211": 8
+   }
+  },
+  "test": {
+   "n_blocks": 42,
+   "median": 214.0,
+   "p75": 2209.75,
+   "p90": 2211.0,
+   "p95": 2211.0,
+   "longest": 2211,
+   "frac_windows_in_blocks_over_mu": {
+    "8": 1.0,
+    "16": 0.9997709224190593,
+    "40": 0.9979637548360822,
+    "160": 0.985593565465282,
+    "1280": 0.898442272449603,
+    "3200": 0.0
+   },
+   "class1_fraction": 0.898442272449603,
+   "n_windows": 39288,
+   "counts": {
+    "9": 1,
+    "21": 1,
+    "22": 1,
+    "28": 1,
+    "47": 1,
+    "56": 1,
+    "94": 1,
+    "95": 1,
+    "97": 2,
+    "214": 16,
+    "2183": 1,
+    "2186": 1,
+    "2199": 1,
+    "2203": 1,
+    "2206": 1,
+    "2211": 11
+   }
+  },
+  "per_subject": {
+   "SL01": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8784266984505363,
+    "test_class1": 0.8770329234430781
+   },
+   "SL02": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8770329234430781,
+    "test_class1": 0.9013452914798207
+   },
+   "SL03": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8763376932223543,
+    "test_class1": 0.8962302391568707
+   },
+   "SL04": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8805256869772998,
+    "test_class1": 0.9077270859021784
+   },
+   "SL05": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8763376932223543,
+    "test_class1": 0.8932709900386258
+   },
+   "SL06": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8766851704996035,
+    "test_class1": 0.907159067464411
+   },
+   "SL07": {
+    "fit_median": 214.0,
+    "test_median": 1206.5,
+    "fit_class1": 0.8763376932223543,
+    "test_class1": 0.9113871635610766
+   },
+   "SL08": {
+    "fit_median": 214.0,
+    "test_median": 214.0,
+    "fit_class1": 0.8766851704996035,
+    "test_class1": 0.8944174757281553
+   }
+  }
+ }
+}

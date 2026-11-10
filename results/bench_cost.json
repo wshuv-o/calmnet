@@ -1,0 +1,58 @@
+{
+ "_note": "Inference cost of the reported model at cohort A's input shape (60 channels, 400 samples, 8 windows per forward). No training. Latency is median and 95th percentile over 200 forwards after 20 warm-up, wall clock, with CUDA synchronised. FLOPs from torch.utils.flop_counter, which does not count the eigendecomposition in the tangent map, so the branch's FLOP figure understates it and the latency is the honest measure.",
+ "input": {
+  "channels": 60,
+  "samples": 400,
+  "windows_per_forward": 8
+ },
+ "device_cuda": "NVIDIA GeForce RTX 5080",
+ "arms": {
+  "stem": {
+   "parameters": 20019,
+   "flops_per_forward": 317870592,
+   "cpu_b1_ms": 5.757,
+   "cpu_b1_p95_ms": 7.211,
+   "cpu_b1_ms_per_window": 5.7571,
+   "cpu_b32_ms": 349.852,
+   "cpu_b32_p95_ms": 396.249,
+   "cpu_b32_ms_per_window": 10.9329,
+   "cuda_b1_ms": 0.643,
+   "cuda_b1_p95_ms": 0.749,
+   "cuda_b1_ms_per_window": 0.6431,
+   "cuda_b32_ms": 8.835,
+   "cuda_b32_p95_ms": 8.982,
+   "cuda_b32_ms_per_window": 0.2761,
+   "cuda_peak_mb_b1": 60.06
+  },
+  "stem+branch": {
+   "parameters": 290943,
+   "flops_per_forward": 359411968,
+   "cpu_b1_ms": 10.043,
+   "cpu_b1_p95_ms": 11.972,
+   "cpu_b1_ms_per_window": 10.0431,
+   "cpu_b32_ms": 443.025,
+   "cpu_b32_p95_ms": 470.103,
+   "cpu_b32_ms_per_window": 13.8445,
+   "cuda_b1_ms": 4.306,
+   "cuda_b1_p95_ms": 4.635,
+   "cuda_b1_ms_per_window": 4.3061,
+   "cuda_b32_ms": 20.451,
+   "cuda_b32_p95_ms": 20.87,
+   "cuda_b32_ms_per_window": 0.6391,
+   "cuda_peak_mb_b1": 61.2
+  }
+ },
+ "branch_parts_cpu": {
+  "update_ms": 0.98,
+  "branch_forward_ms": 9.575
+ },
+ "branch_parts_cuda": {
+  "update_ms": 0.648,
+  "branch_forward_ms": 4.254
+ },
+ "overhead": {
+  "parameters_x": 14.53,
+  "cpu_b1_x": 1.74,
+  "cuda_b1_x": 6.7
+ }
+}

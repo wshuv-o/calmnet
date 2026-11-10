@@ -1,0 +1,103 @@
+# CALM-Net
+
+## Adaptive tangent-space features for cross-session EEG movement-intent decoding under temporally structured test streams
+
+PyTorch code, configurations and results for the paper (Journal of Neural Engineering, under review).
+
+## Network architecture
+
+![Network architecture](network_architecture.png)
+
+A multi-scale log-power stem is augmented with an adaptive tangent-space branch. Each window's
+shrinkage-regularised covariance is mapped to the tangent space at a running reference **M**,
+which is updated from incoming EEG without labels, also at test time. The branch is useful
+when the reference memory μ (batch size N divided by update rate m) is longer than the
+stream's median single-class block τ<sub>blk</sub>; when it is shorter, the reference follows
+the class instead of the session drift and accuracy drops (cohort B).
+
+## Repository
+
+```
+config/        one YAML per cohort (data, split, model, training)
+data/          loaders for cohorts A-E, filtering (offline and causal), held-out split
+model/         CALMNet.py, stem.py, tangent_branch.py, baselines.py, baseModel.py (trainer)
+scripts/       one shell script per group of experiments
+train.py       train and test one cohort
+utils.py       metrics, calibration, causal output filter
+results/       every result file used in the paper
+```
+
+## Requirements
+
+Python 3.10+ and `pip install -r requirements.txt` (PyTorch, MNE, braindecode, moabb).
+
+## Datasets
+
+| Cohort | Dataset | Task | n |
+|---|---|---|---|
+| A | [OpenNeuro ds007788](https://openneuro.org/datasets/ds007788) | exoskeleton walking vs standing, sessions weeks apart | 7 |
+| B | MoBI treadmill BCI, Luu et al. ([doi](https://doi.org/10.1038/s41598-017-09187-0)) | treadmill walking vs standing | 8 |
+| C | [PhysioNet EEGMMIDB](https://physionet.org/content/eegmmidb/1.0.0/) | motor execution vs rest | 20 |
+| D | BCI Competition IV-2a / BNCI2014-001 ([doi](https://doi.org/10.3389/fnins.2012.00055)) | left vs right hand imagery, two days | 9 |
+| E | DECODED, EUROBENCH ([doi](https://doi.org/10.1038/s41597-023-02243-7)) | exoskeleton walking with motor imagery vs standing | 7 |
+
+Place the data under `datasets/` (or set `CALMNET_DATA`):
+
+```
+datasets/ds007788/              BIDS dataset
+datasets/mobi_treadmill/        SL01-T01/ ... (eeg.txt, joints.txt, conductor.txt)
+datasets/eegbci/MNE-eegbci-data/files/eegmmidb/1.0.0/   (mne.datasets.eegbci)
+datasets/decoded/dataset.zip    (or set DECODED_ZIP)
+```
+
+Cohort D is downloaded by moabb into `MNE_DATA`.
+
+## Usage
+
+```bash
+# stem and stem + branch, three seeds
+python train.py --config config/cohortA.yaml
+
+# fully causal processing (forward-only filters, causal reference update)
+python train.py --config config/cohortC.yaml --causal-filter --causal-update
+
+# reference memory mu = N / m, here N = 4, m = 1 (mu = 4 windows)
+python train.py --config config/cohortC.yaml --arms stem_tangent --batch 4 --momentum 1.0
+
+# a published decoder in the same pipeline
+python train.py --config config/cohortD.yaml --arms bd:EEGNeX
+
+# every experiment in the paper
+bash scripts/run_all.sh
+```
+
+Each run writes `results/<out>.json` (cohort means and per-participant values) and, per
+participant and seed, `model.pth`, the training curve, the confusion matrix and the test
+metrics under `results/runs/`.
+
+## Results
+
+Balanced accuracy on the later sessions, mean over participants and three seeds.
+
+| Cohort | Stem | Stem + branch | Δ | Δ, fully causal |
+|---|---|---|---|---|
+| A, exoskeleton (7) | 0.864 | 0.909 | +0.045 | +0.036 |
+| B, treadmill (8) | 0.744 | 0.568 | −0.175 | −0.170 |
+| C, motor execution (20) | 0.779 | 0.843 | +0.064 | +0.048 |
+| D, BCI IV-2a (9) | 0.701 | 0.741 | +0.040 | +0.042 |
+| E, DECODED exoskeleton (7) | 0.928 | 0.949 | +0.021 | +0.010 |
+
+Cohort B is the only cohort whose median class block (214 windows) outlasts the reference
+memory (160 windows). Parameters: stem 20,019; stem + branch 290,943.
+
+## Notes
+
+- Result files use the arm names `stem`, `stem_tangent`, `stem_wide` and `bd:<model>`.
+- DECODED subject_01 has runs from two recording dates with the same run numbers; runs are
+  sorted by number, so its two dates interleave in both halves. This is how the reported
+  results were produced.
+- ECE is computed with 15 equal-width bins.
+
+## License
+
+MIT

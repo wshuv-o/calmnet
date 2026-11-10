@@ -1,0 +1,1280 @@
+{
+ "stem|s0": {
+  "acc": 0.7851666666666667,
+  "ece": 0.07353416569034259,
+  "acc_at_90": 0.7855555555555556,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 6.2,
+  "latency_s": 0.025,
+  "missed_onsets": 0.06333333333333332,
+  "n_true_onsets": 30.0,
+  "acc_sd": 0.08180243815980602,
+  "per_subject": {
+   "S001": {
+    "acc": 0.6566666666666667,
+    "ece": 0.061194357275962806,
+    "acc_at_90": 0.6444444444444444,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 13.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.06666666666666667,
+    "n_true_onsets": 30.0
+   },
+   "S002": {
+    "acc": 0.8633333333333333,
+    "ece": 0.04933234155178068,
+    "acc_at_90": 0.8666666666666667,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S003": {
+    "acc": 0.6799999999999999,
+    "ece": 0.08678381899992624,
+    "acc_at_90": 0.6962962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.13333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S004": {
+    "acc": 0.9066666666666667,
+    "ece": 0.029038303494453428,
+    "acc_at_90": 0.8962962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S005": {
+    "acc": 0.89,
+    "ece": 0.06424646774927775,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S006": {
+    "acc": 0.7,
+    "ece": 0.09337613701820374,
+    "acc_at_90": 0.6925925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.16666666666666666,
+    "n_true_onsets": 30.0
+   },
+   "S007": {
+    "acc": 0.8133333333333332,
+    "ece": 0.042506459752718634,
+    "acc_at_90": 0.8185185185185185,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 9.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S008": {
+    "acc": 0.8333333333333333,
+    "ece": 0.07617545882860817,
+    "acc_at_90": 0.837037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 0.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.13333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S009": {
+    "acc": 0.8033333333333333,
+    "ece": 0.05150181253751118,
+    "acc_at_90": 0.7925925925925925,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S010": {
+    "acc": 0.6833333333333333,
+    "ece": 0.16222813645998638,
+    "acc_at_90": 0.6851851851851851,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 15.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.06666666666666667,
+    "n_true_onsets": 30.0
+   },
+   "S011": {
+    "acc": 0.6366666666666667,
+    "ece": 0.10165075699488323,
+    "acc_at_90": 0.6296296296296297,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S012": {
+    "acc": 0.7533333333333334,
+    "ece": 0.06366048912207282,
+    "acc_at_90": 0.7518518518518519,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.2,
+    "n_true_onsets": 30.0
+   },
+   "S013": {
+    "acc": 0.7666666666666666,
+    "ece": 0.06698617776234944,
+    "acc_at_90": 0.7851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S014": {
+    "acc": 0.91,
+    "ece": 0.041515065232912714,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S015": {
+    "acc": 0.8233333333333333,
+    "ece": 0.06065861582756041,
+    "acc_at_90": 0.8518518518518519,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.1,
+    "n_true_onsets": 30.0
+   },
+   "S016": {
+    "acc": 0.8266666666666667,
+    "ece": 0.07604477445284523,
+    "acc_at_90": 0.825925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S017": {
+    "acc": 0.7066666666666667,
+    "ece": 0.1534253603219986,
+    "acc_at_90": 0.711111111111111,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6,
+    "latency_s": 0.5,
+    "missed_onsets": 0.23333333333333334,
+    "n_true_onsets": 30.0
+   },
+   "S018": {
+    "acc": 0.8366666666666667,
+    "ece": 0.0734094027678172,
+    "acc_at_90": 0.825925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S019": {
+    "acc": 0.78,
+    "ece": 0.07842425644397737,
+    "acc_at_90": 0.762962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S020": {
+    "acc": 0.8333333333333333,
+    "ece": 0.03852512121200561,
+    "acc_at_90": 0.8296296296296296,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   }
+  }
+ },
+ "stem|s1": {
+  "acc": 0.7823333333333333,
+  "ece": 0.07247984157999357,
+  "acc_at_90": 0.7792592592592593,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 7.279999999999999,
+  "latency_s": 0.0625,
+  "missed_onsets": 0.05333333333333333,
+  "n_true_onsets": 30.0,
+  "acc_sd": 0.0855056853210488,
+  "per_subject": {
+   "S001": {
+    "acc": 0.63,
+    "ece": 0.10807949403921761,
+    "acc_at_90": 0.625925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.5,
+    "missed_onsets": 0.16666666666666666,
+    "n_true_onsets": 30.0
+   },
+   "S002": {
+    "acc": 0.8733333333333333,
+    "ece": 0.049310617446899435,
+    "acc_at_90": 0.8629629629629629,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 0.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S003": {
+    "acc": 0.6799999999999999,
+    "ece": 0.0483660485347112,
+    "acc_at_90": 0.662962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.06666666666666667,
+    "n_true_onsets": 30.0
+   },
+   "S004": {
+    "acc": 0.9366666666666668,
+    "ece": 0.018158991138140342,
+    "acc_at_90": 0.9296296296296296,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S005": {
+    "acc": 0.7433333333333334,
+    "ece": 0.128748431801796,
+    "acc_at_90": 0.7555555555555555,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6,
+    "latency_s": 0.5,
+    "missed_onsets": 0.16666666666666666,
+    "n_true_onsets": 30.0
+   },
+   "S006": {
+    "acc": 0.6366666666666667,
+    "ece": 0.1454559830824534,
+    "acc_at_90": 0.625925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 10.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.23333333333333334,
+    "n_true_onsets": 30.0
+   },
+   "S007": {
+    "acc": 0.7666666666666666,
+    "ece": 0.08433725992838541,
+    "acc_at_90": 0.7592592592592593,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S008": {
+    "acc": 0.8533333333333333,
+    "ece": 0.04144098560015361,
+    "acc_at_90": 0.8444444444444444,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S009": {
+    "acc": 0.8466666666666667,
+    "ece": 0.03895940343538919,
+    "acc_at_90": 0.8444444444444444,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S010": {
+    "acc": 0.7133333333333334,
+    "ece": 0.03189192076524101,
+    "acc_at_90": 0.711111111111111,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 14.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.06666666666666667,
+    "n_true_onsets": 30.0
+   },
+   "S011": {
+    "acc": 0.67,
+    "ece": 0.10809862971305849,
+    "acc_at_90": 0.662962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S012": {
+    "acc": 0.74,
+    "ece": 0.11815145591894785,
+    "acc_at_90": 0.7518518518518518,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.16666666666666666,
+    "n_true_onsets": 30.0
+   },
+   "S013": {
+    "acc": 0.8033333333333332,
+    "ece": 0.06874183932940169,
+    "acc_at_90": 0.8111111111111111,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S014": {
+    "acc": 0.8866666666666667,
+    "ece": 0.06256333827972413,
+    "acc_at_90": 0.8814814814814815,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S015": {
+    "acc": 0.85,
+    "ece": 0.07129240274429323,
+    "acc_at_90": 0.8518518518518519,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S016": {
+    "acc": 0.8333333333333333,
+    "ece": 0.060458346406618735,
+    "acc_at_90": 0.825925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S017": {
+    "acc": 0.7133333333333334,
+    "ece": 0.03729433516661325,
+    "acc_at_90": 0.7185185185185186,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S018": {
+    "acc": 0.8433333333333334,
+    "ece": 0.058603674173355116,
+    "acc_at_90": 0.8407407407407408,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S019": {
+    "acc": 0.8233333333333333,
+    "ece": 0.11413648585478464,
+    "acc_at_90": 0.8148148148148149,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S020": {
+    "acc": 0.8033333333333333,
+    "ece": 0.05550718824068703,
+    "acc_at_90": 0.8037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.25,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   }
+  }
+ },
+ "stem|s2": {
+  "acc": 0.7923333333333333,
+  "ece": 0.07302262991666794,
+  "acc_at_90": 0.7929629629629629,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 6.319999999999999,
+  "latency_s": 0.025,
+  "missed_onsets": 0.053333333333333344,
+  "n_true_onsets": 30.0,
+  "acc_sd": 0.08155502573246005,
+  "per_subject": {
+   "S001": {
+    "acc": 0.6566666666666667,
+    "ece": 0.08990744769573215,
+    "acc_at_90": 0.6555555555555556,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.5,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S002": {
+    "acc": 0.8866666666666667,
+    "ece": 0.05259746889273327,
+    "acc_at_90": 0.8814814814814815,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 0.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S003": {
+    "acc": 0.63,
+    "ece": 0.12903715093930562,
+    "acc_at_90": 0.6296296296296295,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.16666666666666666,
+    "n_true_onsets": 30.0
+   },
+   "S004": {
+    "acc": 0.9233333333333333,
+    "ece": 0.04716996411482495,
+    "acc_at_90": 0.9185185185185185,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S005": {
+    "acc": 0.8066666666666666,
+    "ece": 0.09811936557292941,
+    "acc_at_90": 0.8296296296296296,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.16666666666666666,
+    "n_true_onsets": 30.0
+   },
+   "S006": {
+    "acc": 0.7033333333333334,
+    "ece": 0.11817094981670381,
+    "acc_at_90": 0.6888888888888889,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.06666666666666667,
+    "n_true_onsets": 30.0
+   },
+   "S007": {
+    "acc": 0.79,
+    "ece": 0.06532932758331302,
+    "acc_at_90": 0.7740740740740741,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S008": {
+    "acc": 0.7933333333333333,
+    "ece": 0.06097639620304107,
+    "acc_at_90": 0.7925925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.13333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S009": {
+    "acc": 0.8733333333333333,
+    "ece": 0.05627006471157073,
+    "acc_at_90": 0.8629629629629629,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S010": {
+    "acc": 0.74,
+    "ece": 0.07416985074679058,
+    "acc_at_90": 0.7444444444444445,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S011": {
+    "acc": 0.6833333333333333,
+    "ece": 0.0573663995663325,
+    "acc_at_90": 0.662962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.06666666666666667,
+    "n_true_onsets": 30.0
+   },
+   "S012": {
+    "acc": 0.78,
+    "ece": 0.05963165382544199,
+    "acc_at_90": 0.8,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.13333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S013": {
+    "acc": 0.85,
+    "ece": 0.05833638091882071,
+    "acc_at_90": 0.8629629629629629,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S014": {
+    "acc": 0.8866666666666667,
+    "ece": 0.08730528275171914,
+    "acc_at_90": 0.8777777777777778,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S015": {
+    "acc": 0.8633333333333333,
+    "ece": 0.042174228032430025,
+    "acc_at_90": 0.8814814814814815,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S016": {
+    "acc": 0.8366666666666667,
+    "ece": 0.05196556071440377,
+    "acc_at_90": 0.8333333333333333,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S017": {
+    "acc": 0.76,
+    "ece": 0.07111939489841461,
+    "acc_at_90": 0.7666666666666666,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.1,
+    "n_true_onsets": 30.0
+   },
+   "S018": {
+    "acc": 0.8400000000000001,
+    "ece": 0.10290328482786813,
+    "acc_at_90": 0.837037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S019": {
+    "acc": 0.7033333333333334,
+    "ece": 0.11376663684844969,
+    "acc_at_90": 0.7111111111111111,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 9.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S020": {
+    "acc": 0.84,
+    "ece": 0.024135789672533665,
+    "acc_at_90": 0.8481481481481481,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   }
+  }
+ },
+ "stem_tangent|s0": {
+  "acc": 0.866,
+  "ece": 0.10627058033148448,
+  "acc_at_90": 0.8701851851851853,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 6.28,
+  "latency_s": 0.0,
+  "missed_onsets": 0.0016666666666666666,
+  "n_true_onsets": 30.0,
+  "acc_sd": 0.06998888800691469,
+  "per_subject": {
+   "S001": {
+    "acc": 0.7433333333333333,
+    "ece": 0.0416212139527003,
+    "acc_at_90": 0.7296296296296296,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S002": {
+    "acc": 0.8999999999999999,
+    "ece": 0.07509471595287323,
+    "acc_at_90": 0.8999999999999999,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 1.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S003": {
+    "acc": 0.7866666666666666,
+    "ece": 0.03850394705931345,
+    "acc_at_90": 0.8074074074074074,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 10.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S004": {
+    "acc": 0.9433333333333334,
+    "ece": 0.09073743383089702,
+    "acc_at_90": 0.9444444444444444,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S005": {
+    "acc": 0.9299999999999999,
+    "ece": 0.1558239563306173,
+    "acc_at_90": 0.9333333333333333,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S006": {
+    "acc": 0.8833333333333333,
+    "ece": 0.11841005146503449,
+    "acc_at_90": 0.8925925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S007": {
+    "acc": 0.88,
+    "ece": 0.12604219158490498,
+    "acc_at_90": 0.8888888888888888,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S008": {
+    "acc": 0.9266666666666667,
+    "ece": 0.12867146511872607,
+    "acc_at_90": 0.9296296296296296,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S009": {
+    "acc": 0.8666666666666667,
+    "ece": 0.13633318384488424,
+    "acc_at_90": 0.8592592592592593,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S010": {
+    "acc": 0.7666666666666666,
+    "ece": 0.08460525552431743,
+    "acc_at_90": 0.7555555555555555,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 13.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S011": {
+    "acc": 0.6833333333333333,
+    "ece": 0.042200618982315086,
+    "acc_at_90": 0.6592592592592592,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S012": {
+    "acc": 0.8733333333333333,
+    "ece": 0.09520188371340434,
+    "acc_at_90": 0.8925925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S013": {
+    "acc": 0.9166666666666667,
+    "ece": 0.15358493089675904,
+    "acc_at_90": 0.9444444444444444,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S014": {
+    "acc": 0.9433333333333334,
+    "ece": 0.118695117632548,
+    "acc_at_90": 0.9407407407407408,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S015": {
+    "acc": 0.9199999999999999,
+    "ece": 0.13991596281528473,
+    "acc_at_90": 0.9333333333333333,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S016": {
+    "acc": 0.8566666666666667,
+    "ece": 0.16806472500165304,
+    "acc_at_90": 0.8629629629629629,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S017": {
+    "acc": 0.81,
+    "ece": 0.10760242919127147,
+    "acc_at_90": 0.8333333333333333,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S018": {
+    "acc": 0.9133333333333333,
+    "ece": 0.11745275557041171,
+    "acc_at_90": 0.9222222222222223,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S019": {
+    "acc": 0.89,
+    "ece": 0.0930318119128545,
+    "acc_at_90": 0.8888888888888888,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S020": {
+    "acc": 0.8866666666666667,
+    "ece": 0.09381795624891918,
+    "acc_at_90": 0.8851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   }
+  }
+ },
+ "stem_tangent|s1": {
+  "acc": 0.8595000000000003,
+  "ece": 0.11889862526456516,
+  "acc_at_90": 0.8638888888888887,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 7.039999999999999,
+  "latency_s": 0.0,
+  "missed_onsets": 0.0016666666666666666,
+  "n_true_onsets": 30.0,
+  "acc_sd": 0.06132133034724176,
+  "per_subject": {
+   "S001": {
+    "acc": 0.78,
+    "ece": 0.14270291725794473,
+    "acc_at_90": 0.7851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S002": {
+    "acc": 0.9166666666666667,
+    "ece": 0.11973427792390187,
+    "acc_at_90": 0.9185185185185185,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S003": {
+    "acc": 0.7666666666666666,
+    "ece": 0.04568893094857533,
+    "acc_at_90": 0.7851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 10.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S004": {
+    "acc": 0.9666666666666667,
+    "ece": 0.12175158818562824,
+    "acc_at_90": 0.962962962962963,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S005": {
+    "acc": 0.9199999999999999,
+    "ece": 0.11575578093528748,
+    "acc_at_90": 0.9259259259259258,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S006": {
+    "acc": 0.8566666666666667,
+    "ece": 0.17200230081876117,
+    "acc_at_90": 0.8629629629629629,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S007": {
+    "acc": 0.89,
+    "ece": 0.12132383704185484,
+    "acc_at_90": 0.8888888888888888,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 9.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S008": {
+    "acc": 0.9066666666666667,
+    "ece": 0.1373364994923274,
+    "acc_at_90": 0.9074074074074074,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S009": {
+    "acc": 0.8866666666666667,
+    "ece": 0.14591215789318085,
+    "acc_at_90": 0.8851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 2.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S010": {
+    "acc": 0.7433333333333334,
+    "ece": 0.08292399048805238,
+    "acc_at_90": 0.7333333333333334,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 15.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S011": {
+    "acc": 0.7333333333333334,
+    "ece": 0.053420582811037697,
+    "acc_at_90": 0.7222222222222222,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S012": {
+    "acc": 0.8300000000000001,
+    "ece": 0.09654952565828959,
+    "acc_at_90": 0.8407407407407408,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S013": {
+    "acc": 0.87,
+    "ece": 0.18160017748673757,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S014": {
+    "acc": 0.9033333333333333,
+    "ece": 0.10678032735983531,
+    "acc_at_90": 0.9074074074074074,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S015": {
+    "acc": 0.8999999999999999,
+    "ece": 0.11195606569449107,
+    "acc_at_90": 0.9185185185185185,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S016": {
+    "acc": 0.8833333333333333,
+    "ece": 0.10871889134248099,
+    "acc_at_90": 0.8851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S017": {
+    "acc": 0.8333333333333334,
+    "ece": 0.1573232368628184,
+    "acc_at_90": 0.8407407407407408,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S018": {
+    "acc": 0.89,
+    "ece": 0.09566189845403039,
+    "acc_at_90": 0.8925925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S019": {
+    "acc": 0.8866666666666667,
+    "ece": 0.17616592069466908,
+    "acc_at_90": 0.8851851851851852,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S020": {
+    "acc": 0.8266666666666667,
+    "ece": 0.08466359794139865,
+    "acc_at_90": 0.825925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 9.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   }
+  }
+ },
+ "stem_tangent|s2": {
+  "acc": 0.8630000000000001,
+  "ece": 0.11317074723045029,
+  "acc_at_90": 0.8646296296296297,
+  "cond_r2": NaN,
+  "false_onsets_per_min": 7.6800000000000015,
+  "latency_s": 0.0,
+  "missed_onsets": 0.006666666666666666,
+  "n_true_onsets": 30.0,
+  "acc_sd": 0.07267048919609664,
+  "per_subject": {
+   "S001": {
+    "acc": 0.7466666666666667,
+    "ece": 0.04567864199479421,
+    "acc_at_90": 0.7407407407407407,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S002": {
+    "acc": 0.9166666666666667,
+    "ece": 0.1470913326740265,
+    "acc_at_90": 0.9185185185185185,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S003": {
+    "acc": 0.74,
+    "ece": 0.06350213627020519,
+    "acc_at_90": 0.7444444444444445,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 12.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S004": {
+    "acc": 0.97,
+    "ece": 0.08717070400714874,
+    "acc_at_90": 0.9703703703703703,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S005": {
+    "acc": 0.9066666666666667,
+    "ece": 0.13111287275950118,
+    "acc_at_90": 0.9111111111111112,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S006": {
+    "acc": 0.8666666666666667,
+    "ece": 0.1029538212219874,
+    "acc_at_90": 0.8740740740740741,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 7.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S007": {
+    "acc": 0.8333333333333334,
+    "ece": 0.11617332180341085,
+    "acc_at_90": 0.8296296296296296,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S008": {
+    "acc": 0.9033333333333333,
+    "ece": 0.11249429086844126,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S009": {
+    "acc": 0.91,
+    "ece": 0.10622240900993346,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 3.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S010": {
+    "acc": 0.7033333333333334,
+    "ece": 0.08705018877983095,
+    "acc_at_90": 0.7,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 15.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S011": {
+    "acc": 0.7566666666666666,
+    "ece": 0.057356163660685223,
+    "acc_at_90": 0.7444444444444445,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 9.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.03333333333333333,
+    "n_true_onsets": 30.0
+   },
+   "S012": {
+    "acc": 0.8833333333333333,
+    "ece": 0.07449450771013896,
+    "acc_at_90": 0.8925925925925926,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S013": {
+    "acc": 0.9333333333333333,
+    "ece": 0.18775349418322243,
+    "acc_at_90": 0.9481481481481482,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.8,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S014": {
+    "acc": 0.9133333333333333,
+    "ece": 0.09928821225961049,
+    "acc_at_90": 0.9111111111111112,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 5.6,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S015": {
+    "acc": 0.8999999999999999,
+    "ece": 0.11783448497454327,
+    "acc_at_90": 0.9111111111111111,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 11.2,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S016": {
+    "acc": 0.8733333333333333,
+    "ece": 0.18417196810245512,
+    "acc_at_90": 0.874074074074074,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 4.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S017": {
+    "acc": 0.7933333333333333,
+    "ece": 0.0835355887810389,
+    "acc_at_90": 0.8074074074074074,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S018": {
+    "acc": 0.9099999999999999,
+    "ece": 0.10920810461044311,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 8.0,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S019": {
+    "acc": 0.9033333333333333,
+    "ece": 0.195765021443367,
+    "acc_at_90": 0.9,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 6.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   },
+   "S020": {
+    "acc": 0.8966666666666667,
+    "ece": 0.154557679494222,
+    "acc_at_90": 0.9037037037037037,
+    "cond_r2": NaN,
+    "false_onsets_per_min": 10.4,
+    "latency_s": 0.0,
+    "missed_onsets": 0.0,
+    "n_true_onsets": 30.0
+   }
+  }
+ }
+}

@@ -1,0 +1,30 @@
+# Cohort D: BNCI2014-001 (BCI Competition IV-2a), 9 participants, two days
+# Left against right hand imagery. Downloaded by moabb into MNE_DATA.
+cohort: D
+data:
+  sfreq: 100          # resampled from 250 Hz
+  classes_display: [left, right]
+  band: [8, 30]       # 4th-order Butterworth IIR, zero-phase (MNE)
+  window_s: 4.0       # one window per trial from the cue
+  classes: [left_hand, right_hand]
+split:
+  fit_session: 0
+  test_session: 1
+  heldout_frac: 0.3
+
+model:
+  n_filt: 16          # temporal filters per scale (64, 128, 256 ms)
+  d_model: 128        # embedding width
+  dropout: 0.3
+  momentum: 0.2       # reference update rate m (memory mu ~ 1/m batches)
+  shrink: 0.1         # covariance shrinkage lambda
+
+train:
+  epochs: 30
+  batch: 32           # windows per forward pass = per reference update (N)
+  lr: 3.0e-4          # AdamW, OneCycle schedule
+  weight_decay: 1.0e-2
+  patience: 12        # early stopping on held-out balanced accuracy
+  clip: 1.0           # gradient-norm clip
+
+seeds: [0, 1, 2]

@@ -1,0 +1,7 @@
+cohort A: 789 blocks, median 18, mean 25.1, longest 486, 19834 windows total
+blocks longer than mu=160: 2 (0.3 % of blocks), holding 4.8 % of all windows
+  50th percentile: 18 windows
+  75th percentile: 26 windows
+  90th percentile: 27 windows
+  95th percentile: 112 windows
+  99th percentile: 112 windows

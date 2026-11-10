@@ -1,0 +1,32 @@
+# Cohort C: PhysioNet EEGMMIDB, motor execution (S001-S020)
+# Hands or feet against rest. Held out from all model development.
+cohort: C
+data:
+  dir: eegbci/MNE-eegbci-data/files/eegmmidb/1.0.0
+  n_subjects: 20
+  sfreq: 100          # resampled from 160 Hz
+  classes_display: [rest, move]
+  band: [8, 30]       # 4th-order Butterworth, forward-backward (offline)
+  window_s: 2.0
+  step_s: 0.5
+split:
+  fit_runs: [3, 5, 7, 9]
+  test_runs: [11, 13]
+  heldout_frac: 0.3
+
+model:
+  n_filt: 16          # temporal filters per scale (64, 128, 256 ms)
+  d_model: 128        # embedding width
+  dropout: 0.3
+  momentum: 0.2       # reference update rate m (memory mu ~ 1/m batches)
+  shrink: 0.1         # covariance shrinkage lambda
+
+train:
+  epochs: 30
+  batch: 32           # windows per forward pass = per reference update (N)
+  lr: 3.0e-4          # AdamW, OneCycle schedule
+  weight_decay: 1.0e-2
+  patience: 12        # early stopping on held-out balanced accuracy
+  clip: 1.0           # gradient-norm clip
+
+seeds: [0, 1, 2]
