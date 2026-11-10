@@ -24,6 +24,9 @@ model/         CALMNet.py, stem.py, tangent_branch.py, baselines.py, baseModel.p
 scripts/       one shell script per group of experiments
 train.py       train and test one cohort
 utils.py       metrics, calibration, causal output filter
+make_figures.py  every figure of the paper and supplement -> figures/
+analysis/      statistics behind the tables, inference cost, figure data,
+               earlier_pipeline/ (Tables 3-4)
 results/       every result file used in the paper
 ```
 
@@ -69,6 +72,11 @@ python train.py --config config/cohortD.yaml --arms bd:EEGNeX
 
 # every experiment in the paper
 bash scripts/run_all.sh
+
+# statistics, cost and figures from the stored results (no training)
+python -m analysis.stats
+python -m analysis.cost
+python make_figures.py
 ```
 
 Each run writes `results/<out>.json` (cohort means and per-participant values) and, per

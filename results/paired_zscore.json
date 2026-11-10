@@ -1,0 +1,89 @@
+{
+ "comparison": "z0 minus z1 (removing per-window normalisation)",
+ "tests": [
+  {
+   "cohort": "A",
+   "representation": "bandpower",
+   "label": "band power (pure marginal power)",
+   "n": 7,
+   "acc_z1": 0.62519196715674,
+   "acc_z0": 0.7596248953957888,
+   "mean_delta": 0.13443292823904868,
+   "better_in": 6,
+   "rank_biserial": 0.7142857142857143,
+   "W": 1.0,
+   "p_raw": 0.03125,
+   "p_holm": 0.09375
+  },
+  {
+   "cohort": "A",
+   "representation": "tangent_ea",
+   "label": "tangent space (power via covariance diagonal)",
+   "n": 7,
+   "acc_z1": 0.7617356590634176,
+   "acc_z0": 0.7455260410281864,
+   "mean_delta": -0.01620961803523083,
+   "better_in": 2,
+   "rank_biserial": -0.42857142857142855,
+   "W": 9.0,
+   "p_raw": 0.46875,
+   "p_holm": 0.75
+  },
+  {
+   "cohort": "A",
+   "representation": "corr_only",
+   "label": "correlation only (scale-free)",
+   "n": 7,
+   "acc_z1": 0.7380401560588029,
+   "acc_z0": 0.7337862903137223,
+   "mean_delta": -0.0042538657450806395,
+   "better_in": 3,
+   "rank_biserial": -0.14285714285714285,
+   "W": 8.0,
+   "p_raw": 0.375,
+   "p_holm": 0.75
+  },
+  {
+   "cohort": "B",
+   "representation": "bandpower",
+   "label": "band power (pure marginal power)",
+   "n": 8,
+   "acc_z1": 0.5737251078835505,
+   "acc_z0": 0.747747874175043,
+   "mean_delta": 0.1740227662914924,
+   "better_in": 7,
+   "rank_biserial": 0.75,
+   "W": 1.0,
+   "p_raw": 0.015625,
+   "p_holm": 0.046875
+  },
+  {
+   "cohort": "B",
+   "representation": "tangent_ea",
+   "label": "tangent space (power via covariance diagonal)",
+   "n": 8,
+   "acc_z1": 0.6750027714918441,
+   "acc_z0": 0.7041108825688792,
+   "mean_delta": 0.02910811107703523,
+   "better_in": 5,
+   "rank_biserial": 0.25,
+   "W": 9.0,
+   "p_raw": 0.25,
+   "p_holm": 0.5
+  },
+  {
+   "cohort": "B",
+   "representation": "corr_only",
+   "label": "correlation only (scale-free)",
+   "n": 8,
+   "acc_z1": 0.7014472354288956,
+   "acc_z0": 0.7017053992962718,
+   "mean_delta": 0.0002581638673761072,
+   "better_in": 3,
+   "rank_biserial": 0.125,
+   "W": 7.0,
+   "p_raw": 1.0,
+   "p_holm": 1.0
+  }
+ ]
+}
