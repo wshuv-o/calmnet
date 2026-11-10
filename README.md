@@ -15,21 +15,6 @@ when the reference memory μ (batch size N divided by update rate m) is longer t
 stream's median single-class block τ<sub>blk</sub>; when it is shorter, the reference follows
 the class instead of the session drift and accuracy drops (cohort B).
 
-## Repository
-
-```
-config/        one YAML per cohort (data, split, model, training)
-data/          loaders for cohorts A-E, filtering (offline and causal), held-out split
-model/         CALMNet.py, stem.py, tangent_branch.py, baselines.py, baseModel.py (trainer)
-scripts/       one shell script per group of experiments
-train.py       train and test one cohort
-utils.py       metrics, calibration, causal output filter
-make_figures.py  every figure of the paper and supplement -> figures/
-analysis/      statistics behind the tables, inference cost, figure data,
-               earlier_pipeline/ (Tables 3-4)
-results/       every result file used in the paper
-```
-
 ## Requirements
 
 Python 3.10+ and `pip install -r requirements.txt` (PyTorch, MNE, braindecode, moabb).
