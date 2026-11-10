@@ -92,13 +92,6 @@ the Walk-Stop contrast is kept (0.37); on cohort B much of the contrast as well 
 
 ![Reference maps](assets/fig_refmaps.png)
 
-## Notes
-
-- Result files use the arm names `stem`, `stem_tangent`, `stem_wide` and `bd:<model>`.
-- DECODED subject_01 has runs from two recording dates with the same run numbers; runs are
-  sorted by number, so its two dates interleave in both halves. This is how the reported
-  results were produced.
-- ECE is computed with 15 equal-width bins.
 
 ## License
 
