@@ -2,8 +2,6 @@
 
 ## Adaptive tangent-space features for cross-session EEG movement-intent decoding under temporally structured test streams
 
-PyTorch code, configurations and results for the paper (Journal of Neural Engineering, under review).
-
 ## Network architecture
 
 ![Network architecture](assets/network_architecture.png)
